@@ -294,9 +294,11 @@ body.focus #pv-tip { display: none; }
 .blank { height: 10px; }
 
 body.focus .topbar, body.focus .viewer-head, body.focus #fit-status { display: none !important; }
-body.focus main { padding-top: 4px; }
-body.focus .toolbar-wrap { top: env(safe-area-inset-top, 0px); }
-body.focus .sheet { border-color: transparent; min-height: calc(100vh - 80px); }
+body.focus main { padding-top: calc(4px + env(safe-area-inset-top, 0px)); }
+body.focus .toolbar-wrap { position: fixed; top: 0; left: 0; right: 0; margin: 0; padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 8px; z-index: 30; transform: translateY(-110%); transition: transform .2s ease; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+body.focus.bars-peek .toolbar-wrap { transform: none; }
+@media (prefers-reduced-motion: reduce) { body.focus .toolbar-wrap { transition: none; } }
+body.focus .sheet { border-color: transparent; min-height: calc(100vh - 16px); }
 
 /* ---------- Editor ---------- */
 .editor-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 20px; align-items: start; }
@@ -369,6 +371,30 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
 .font-opt[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
 .font-opt .sample { font-size: 24px; font-weight: 700; line-height: 1.1; }
 .font-opt small { font-size: 12px; color: var(--muted); }
+
+/* ---------- Anotações e pinça ---------- */
+.sheet { position: relative; }
+#sheet, #pv-pages { touch-action: pan-x pan-y; }
+.ink-layer { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; z-index: 2; }
+.ink-layer text { font-family: 'Noto Sans', system-ui, sans-serif; font-weight: 700; }
+.inking, #sheet.inking, #pv-pages.inking { touch-action: none; -webkit-user-select: none; user-select: none; cursor: crosshair; }
+.ink-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 55; display: flex; gap: 4px; align-items: center; background: var(--surface); border: var(--bw) solid var(--line); border-radius: 16px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.35); max-width: calc(100vw - 16px); overflow-x: auto; scrollbar-width: none; }
+.ink-bar::-webkit-scrollbar { display: none; }
+.ink-bar button { min-width: 44px; min-height: 44px; padding: 0 8px; border-radius: 12px; border: 0; background: transparent; color: var(--fg); display: flex; align-items: center; justify-content: center; gap: 6px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; flex: none; }
+.ink-bar button:hover { background: var(--surface-2); }
+.ink-bar button[aria-pressed="true"] { background: var(--surface-2); box-shadow: inset 0 0 0 2px var(--accent); }
+.ink-bar .sw { width: 22px; height: 22px; border-radius: 50%; display: block; box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
+.ink-bar .sep { width: 1px; align-self: stretch; background: var(--line); margin: 6px 2px; flex: none; }
+.ink-bar .ink-done { background: var(--accent); color: var(--accent-ink, #FFFFFF); padding: 0 16px; }
+.ink-bar .ink-done:hover { background: var(--accent); filter: brightness(1.08); }
+.ink-text { position: fixed; left: 50%; transform: translateX(-50%); top: calc(76px + env(safe-area-inset-top, 0px)); z-index: 56; width: min(440px, calc(100vw - 24px)); display: flex; gap: 8px; align-items: center; padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+.ink-text .input { flex: 1; min-width: 0; }
+.pdf-pages { align-items: flex-start; }
+.pdf-page { position: relative; flex: none; margin-inline: auto; background: #FFFFFF; box-shadow: 0 1px 6px rgba(0,0,0,.25); }
+.pdf-pages .pdf-page canvas { box-shadow: none; }
+.pdf-page .ink-layer { width: 100%; height: 100%; }
+#ink-warn .link { margin-left: 6px; }
+#t-ink, #pv-ink { display: flex; align-items: center; gap: 6px; }
 </style>
 
 <!-- ================= LOGIN ================= -->
@@ -549,6 +575,7 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
             <span class="pdf-page-ind" id="pv-page"></span>
             <button type="button" id="pv-next" aria-label="Próxima página">›</button>
           </div>
+          <div class="group"><button type="button" id="pv-ink" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M14 6l4 4"></path></svg>Anotar</button></div>
           <div class="group"><button type="button" id="pv-fs" aria-pressed="false">Tela cheia</button></div>
           <div class="group focus-only"><button type="button" class="mode-btn" aria-label="Mudar para o tema claro">
             <svg class="ico-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
@@ -556,7 +583,7 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
           </button></div>
         </div>
       </div>
-      <p class="hint" id="pv-tip">Na tela cheia, toque na metade direita para avançar e na esquerda para voltar. Pedal de virar página (Bluetooth) também funciona.</p>
+      <p class="hint" id="pv-tip">Na tela cheia, toque na direita da página para avançar, na esquerda para voltar e no meio para mostrar os controles. Pedal de virar página (Bluetooth) também funciona.</p>
       <div class="pdf-pages" id="pv-pages"></div>
     </section>
 
@@ -651,6 +678,7 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
               <button type="button" id="t-zin" aria-label="Aumentar texto">A+</button>
             </div>
             <div class="group"><button type="button" id="t-fit">Ajustar à tela</button></div>
+            <div class="group"><button type="button" id="t-ink" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M14 6l4 4"></path></svg>Anotar</button></div>
             <div class="group"><button type="button" id="t-fs" aria-pressed="false">Tela cheia</button></div>
             <div class="group focus-only"><button type="button" class="mode-btn" id="t-mode" aria-label="Mudar para o tema claro">
               <svg class="ico-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
@@ -661,6 +689,7 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
         </div>
       </div>
       <p class="status" id="fit-status" aria-live="polite" hidden></p>
+      <p class="status" id="ink-warn" hidden>A cifra foi editada depois das suas anotações. Confira se elas continuam no lugar.<button type="button" class="link" id="ink-warn-ok">Já conferi</button></p>
       <article class="sheet" id="sheet"></article>
     </section>
 
@@ -733,6 +762,25 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
     <button type="button" class="fab" id="fab" aria-label="Adicionar cifra" aria-haspopup="menu" aria-expanded="false" aria-controls="fab-menu"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
   </div>
 </div>
+<div class="ink-bar" id="ink-bar" role="toolbar" aria-label="Anotações" hidden>
+  <button type="button" data-tool="pen" data-color="#E53935" aria-label="Caneta vermelha"><span class="sw" style="background:#E53935"></span></button>
+  <button type="button" data-tool="pen" data-color="#1E6FE0" aria-label="Caneta azul"><span class="sw" style="background:#1E6FE0"></span></button>
+  <button type="button" data-tool="pen" data-color="#00A651" aria-label="Caneta verde"><span class="sw" style="background:#00A651"></span></button>
+  <button type="button" data-tool="hl" aria-label="Marca-texto"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h8" stroke="#E0B000" stroke-width="3"></path><path d="M8 17l-2-2 9-10 4 4-10 9z"></path><path d="M6 15l-2 4h4"></path></svg></button>
+  <button type="button" data-tool="txt" aria-label="Texto"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 6V4h14v2M12 4v16M9 20h6"></path></svg></button>
+  <button type="button" data-tool="erase" aria-label="Borracha"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 20h12"></path><path d="M4.6 15.4l9.2-9.2a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8z"></path><path d="M9 11l5 5"></path></svg></button>
+  <span class="sep"></span>
+  <button type="button" id="ink-undo" aria-label="Desfazer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10a6 6 0 0 1 0 12h-3"></path></svg></button>
+  <button type="button" id="ink-clear" aria-label="Apagar todas as anotações desta música"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button>
+  <button type="button" id="ink-penonly" aria-pressed="false" hidden title="Ligado: só a caneta (S Pen) desenha; o dedo rola a tela e a mão apoiada não risca.">Só caneta</button>
+  <span class="sep"></span>
+  <button type="button" class="ink-done" id="ink-done">Concluir</button>
+</div>
+<form class="ink-text card" id="ink-text" hidden>
+  <input class="input" id="ink-text-in" type="text" maxlength="80" autocomplete="off" placeholder="Escreva a anotação" aria-label="Texto da anotação">
+  <button type="submit" class="btn primary">Pôr</button>
+  <button type="button" class="btn" id="ink-text-no">Cancelar</button>
+</form>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script>
@@ -1056,6 +1104,7 @@ let route = { name: 'inicio' }, lastTop = 'inicio';
 function show(id) { ['v-login', 'v-signup'].forEach(x => $(x).hidden = x !== id); $('app').hidden = id !== 'app'; }
 let pdfFolder = null;   // pasta aberta em Partituras (null = início)
 function go(name, params = {}) {
+  if (ink.on) inkStop();
   closeKeypick(); closeKeyset(); if (document.body.classList.contains('focus')) exitFocus();
   if (route && route.name === 'config' && name !== 'config' && prefDraft) {
     const unsaved = prefsDirty() ? Object.assign({}, prefDraft) : null;
@@ -1335,17 +1384,27 @@ function openRowMenu(btn) {
 function closeRowMenu() { rowMenu.hidden = true; }
 /* Compartilhar: manda a cifra como arquivo de texto em ChordPro (o WhatsApp aceita .txt).
    Quem recebe baixa o arquivo e usa + > Importar arquivo. */
+/* APK: plugins nativos do Capacitor. Sem empacotador, eles só existem depois de registrados pelo capacitor.js (incluído no APK). */
+const capCache = {};
+function capPlugin(name) {
+  const C = window.Capacitor;
+  if (!C || !C.isNativePlatform || !C.isNativePlatform()) return null;
+  if (capCache[name]) return capCache[name];
+  const X = window.capacitorExports;
+  try { capCache[name] = (X && X[name]) || (C.Plugins && C.Plugins[name]) || (C.registerPlugin ? C.registerPlugin(name) : null); } catch (e) { capCache[name] = null; }
+  return capCache[name];
+}
 const fileSafe = (t) => (t || 'cifra').replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
 async function shareSong(id) {
   const s = songById(id); if (!s) return;
   const name = `${fileSafe(s.title)} (ChordPro).txt`;
   const msg = `Cifra "${s.title}". Para abrir no app: toque em + e depois em Importar arquivo.`;
   /* APK: grava o arquivo no cache do app e abre a janela de compartilhar do Android (WhatsApp etc.) */
-  const P = window.Capacitor && window.Capacitor.Plugins;
-  if (isApk() && P && P.Filesystem && P.Share) {
+  const FS = capPlugin('Filesystem'), SH = capPlugin('Share');
+  if (FS && SH) {
     try {
-      const w = await P.Filesystem.writeFile({ path: name, data: s.text, directory: 'CACHE', encoding: 'utf8' });
-      await P.Share.share({ title: s.title, text: msg, files: [w.uri], dialogTitle: 'Compartilhar cifra' });
+      const w = await FS.writeFile({ path: name, data: s.text, directory: 'CACHE', encoding: 'utf8', recursive: true });
+      await SH.share({ title: s.title, text: msg, files: [w.uri], dialogTitle: 'Compartilhar cifra' });
     } catch (e) { if (!/cancel/i.test(String(e && (e.message || e)))) toast('Não consegui abrir o compartilhamento.'); }
     return;
   }
@@ -1502,6 +1561,7 @@ function renderViewer() {
   $('t-zval').disabled = pct === 100;
   $('t-zval').setAttribute('aria-label', pct === 100 ? 'Texto em 100%' : `Texto em ${pct}%. Voltar para 100%`);
   save();
+  drawCifraInk();
 }
 function setZoom(z) { cur.v.zoom = Math.round(Math.min(ZMAX, Math.max(ZMIN, z)) * 100) / 100; cur.v.colsMode = 'auto'; cur.v.fit = false; $('fit-status').hidden = true; renderViewer(); }
 $('t-up').addEventListener('click', () => { cur.v.shift = (cur.v.shift + 1) % 12; renderViewer(); });
@@ -1514,13 +1574,17 @@ $('t-zout').addEventListener('click', () => setZoom(cur.v.zoom - 0.1));
 $('t-zval').addEventListener('click', () => setZoom(1));
 $('viewer-fav').addEventListener('click', () => { toggleFav(cur.id); renderViewer(); });
 $('viewer-edit').addEventListener('click', () => go('editor', { id: cur.id }));
-$('sheet').addEventListener('click', (e) => { if (e.target.closest('[data-act="edit"]')) go('editor', { id: cur.id }); });
+$('sheet').addEventListener('click', (e) => {
+  if (e.target.closest('[data-act="edit"]')) { go('editor', { id: cur.id }); return; }
+  if (document.body.classList.contains('focus') && !ink.on) { document.body.classList.contains('bars-peek') ? hideBars() : peekBars(); }
+});
 /* Ajustar à tela: maior zoom (até 80%) em que a música inteira cabe na altura visível */
 /* Altura que sobra para a cifra: a janela inteira menos as barras fixas (em tela cheia, só a barra de controles) */
 function reservedTop() {
   const focus = document.body.classList.contains('focus');
   const topbar = document.querySelector('.topbar'), tools = document.querySelector('.toolbar-wrap');
-  return (focus || !topbar ? 0 : topbar.offsetHeight) + (tools ? tools.offsetHeight : 0);
+  if (focus) return 0;
+  return (!topbar ? 0 : topbar.offsetHeight) + (tools ? tools.offsetHeight : 0);
 }
 /* Busca binária entre 80% e 220% (passos de 5%): ~5 tentativas em vez de até 29 */
 function fitToScreen(showMsg) {
@@ -1578,22 +1642,58 @@ $('keypick').addEventListener('click', (e) => {
 /* Tela cheia: modo foco + tela cheia do aparelho e tela acesa, quando permitidos */
 let wakeLock = null;
 async function keepAwake() {
-  const KA = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.KeepAwake;
-  if (KA && isApk()) { try { await KA.keepAwake(); wakeLock = { release: () => KA.allowSleep() }; return; } catch (e) {} }
+  const KA = capPlugin('KeepAwake');
+  if (KA) { try { await KA.keepAwake(); wakeLock = { release: () => KA.allowSleep() }; return; } catch (e) {} }
   try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) { wakeLock = null; }
 }
 async function enterFocus() {
   document.body.classList.add('focus');
   $('t-fs').textContent = 'Sair da tela cheia'; $('t-fs').setAttribute('aria-pressed', 'true');
   renderViewer();
-  try { if (document.documentElement.requestFullscreen && !document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch (e) {}
-  keepAwake(); window.scrollTo(0, 0);
+  await sysFullscreen(true);
+  keepAwake(); window.scrollTo(0, 0); focusTip();
   refitSoon();
 }
+/* Tela cheia de verdade: no APK esconde as barras do Android (voltam deslizando da borda); no navegador usa a Fullscreen API */
+async function sysFullscreen(on) {
+  const IM = capPlugin('Immersive');
+  if (IM) { try { await (on ? IM.enter() : IM.exit()); return; } catch (e) {} }
+  try {
+    if (on && document.documentElement.requestFullscreen && !document.fullscreenElement) await document.documentElement.requestFullscreen();
+    if (!on && document.fullscreenElement) await document.exitFullscreen();
+  } catch (e) {}
+}
+/* Controles na tela cheia: aparecem com um toque ou deslizando do topo para baixo; somem sozinhos em 5 s */
+let peekT = null;
+function peekBars() {
+  if (!document.body.classList.contains('focus')) return;
+  document.body.classList.add('bars-peek');
+  clearTimeout(peekT); peekT = setTimeout(hideBars, 5000);
+}
+function hideBars() {
+  clearTimeout(peekT);
+  if (!$('keypick').hidden) { peekT = setTimeout(hideBars, 5000); return; }   // escolhendo o tom: espera
+  document.body.classList.remove('bars-peek');
+}
+function focusTip() {
+  let seen = false; try { seen = localStorage.getItem('repertorio.focusTip') === '1'; localStorage.setItem('repertorio.focusTip', '1'); } catch (e) {}
+  if (!seen) toast('Toque na tela ou deslize do topo para mostrar os controles.');
+}
+document.querySelectorAll('.toolbar-wrap').forEach(w => w.addEventListener('pointerdown', () => { if (document.body.classList.contains('bars-peek')) peekBars(); }));
+(function swipeFromTop() {
+  let y0 = null, x0 = 0;
+  document.addEventListener('touchstart', (e) => { y0 = (document.body.classList.contains('focus') && !ink.on && e.touches.length === 1 && e.touches[0].clientY < 60) ? e.touches[0].clientY : null; x0 = e.touches[0] ? e.touches[0].clientX : 0; }, { passive: true });
+  document.addEventListener('touchmove', (e) => {
+    if (y0 == null || !e.touches[0]) return;
+    const dy = e.touches[0].clientY - y0, dx = Math.abs(e.touches[0].clientX - x0);
+    if (dy > 40 && dy > dx) { y0 = null; peekBars(); }
+  }, { passive: true });
+  document.addEventListener('mousemove', (e) => { if (document.body.classList.contains('focus') && e.clientY < 8) peekBars(); });
+})();
 function exitFocus() {
-  document.body.classList.remove('focus');
+  document.body.classList.remove('focus', 'bars-peek'); clearTimeout(peekT);
   $('t-fs').textContent = 'Tela cheia'; $('t-fs').setAttribute('aria-pressed', 'false');
-  try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
+  sysFullscreen(false);
   try { if (wakeLock) wakeLock.release(); } catch (e) {}
   wakeLock = null;
   if (route.name === 'cifra') renderViewer();
@@ -1826,6 +1926,8 @@ function toast(msg, action) {
 document.addEventListener('click', () => { closeKeypick(); closeKeyset(); });
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
+  if (!$('ink-text').hidden) { $('ink-text').hidden = true; return; }
+  if (ink.on) { inkStop(); return; }
   if (!$('keypick').hidden) { closeKeypick(); $('t-key').focus(); return; }
   if (!$('keyset').hidden) { closeKeyset(); return; }
   if (!$('drawer').hidden) { closeDrawer(); $('menu-btn').focus(); return; }
@@ -2352,27 +2454,44 @@ async function openPdfView(id) {
     $('pv-pages').innerHTML = `<div class="empty"><p>${msg}</p></div>`;
   }
 }
-async function renderPdf() {
+async function renderPdf(onLayout) {
   const doc = pv.doc; if (!doc) return;
   const token = ++pv.token, box = $('pv-pages');
   const W = Math.max(240, (box.clientWidth || window.innerWidth) - 2);
-  box.innerHTML = '';
+  const pages = [];
   for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i);
     if (token !== pv.token) return;
     const base = page.getViewport({ scale: 1 });
-    const vp = page.getViewport({ scale: (W / base.width) * pv.zoom });
+    pages.push({ page, vp: page.getViewport({ scale: (W / base.width) * pv.zoom }) });
+  }
+  // 1) monta todas as páginas no tamanho certo (a rolagem já pode ser ajustada)
+  const frag = document.createDocumentFragment(), jobs = [];
+  pages.forEach(({ page, vp }, k) => {
+    const i = k + 1;
     let ratio = Math.min(window.devicePixelRatio || 1, 2);
     const MAXPX = 8e6;   // limite por página: tablets com pouca memória
     if (vp.width * vp.height * ratio * ratio > MAXPX) ratio = Math.sqrt(MAXPX / (vp.width * vp.height));
+    const w = Math.floor(vp.width), h = Math.floor(vp.height);
+    const wrap = document.createElement('div');
+    wrap.className = 'pdf-page'; wrap.dataset.page = i; wrap.style.width = w + 'px'; wrap.style.height = h + 'px';
     const cv = document.createElement('canvas');
     cv.width = Math.floor(vp.width * ratio); cv.height = Math.floor(vp.height * ratio);
-    cv.style.width = Math.floor(vp.width) + 'px'; cv.style.height = Math.floor(vp.height) + 'px';
+    cv.style.width = w + 'px'; cv.style.height = h + 'px';
     cv.dataset.page = i; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', `Página ${i} de ${doc.numPages}`);
-    box.appendChild(cv);
-    await page.render({ canvasContext: cv.getContext('2d'), viewport: vp, transform: ratio !== 1 ? [ratio, 0, 0, ratio, 0, 0] : null }).promise;
+    const svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('class', 'ink-layer'); svg.setAttribute('viewBox', `0 0 1000 ${Math.round(1000 * vp.height / vp.width)}`); svg.setAttribute('preserveAspectRatio', 'none');
+    wrap.append(cv, svg); frag.appendChild(wrap);
+    jobs.push({ page, vp, cv, ratio });
+  });
+  box.innerHTML = ''; box.appendChild(frag);
+  drawPdfInk();
+  if (onLayout) onLayout();
+  updPdfPage();
+  // 2) desenha as páginas, uma de cada vez
+  for (const j of jobs) {
+    await j.page.render({ canvasContext: j.cv.getContext('2d'), viewport: j.vp, transform: j.ratio !== 1 ? [j.ratio, 0, 0, j.ratio, 0, 0] : null }).promise;
     if (token !== pv.token) return;
-    if (i === 1) updPdfPage();
   }
   updPdfPage();
 }
@@ -2387,11 +2506,11 @@ function updPdfPage() {
 window.addEventListener('scroll', () => { if (route.name === 'partitura') updPdfPage(); }, { passive: true });
 window.addEventListener('resize', () => { if (route.name === 'partitura') renderPdfSoon(); });
 document.addEventListener('fullscreenchange', () => { if (route.name === 'partitura') renderPdfSoon(); });
-function setPdfZoom(z) {
-  pv.zoom = Math.min(3, Math.max(0.5, Math.round(z * 4) / 4));
+function setPdfZoom(z, fine, onLayout) {
+  pv.zoom = Math.min(3, Math.max(0.5, fine ? Math.round(z * 20) / 20 : Math.round(z * 4) / 4));
   db.pdfZoom[pv.id] = pv.zoom; save();
   $('pv-zval').textContent = Math.round(pv.zoom * 100) + '%';
-  renderPdf();
+  renderPdf(onLayout);
 }
 $('pv-zin').addEventListener('click', () => setPdfZoom(pv.zoom + 0.25));
 $('pv-zout').addEventListener('click', () => setPdfZoom(pv.zoom - 0.25));
@@ -2412,9 +2531,10 @@ function turnPdf(dir) {
 $('pv-next').addEventListener('click', () => turnPdf(1));
 $('pv-prev').addEventListener('click', () => turnPdf(-1));
 $('pv-pages').addEventListener('click', (e) => {
-  if (!document.body.classList.contains('focus')) return;
-  const r = $('pv-pages').getBoundingClientRect();
-  turnPdf(e.clientX - r.left > r.width / 2 ? 1 : -1);
+  if (!document.body.classList.contains('focus') || ink.on) return;
+  const r = $('pv-pages').getBoundingClientRect(), x = (e.clientX - r.left) / r.width;
+  if (x > 1 / 3 && x < 2 / 3) { peekBars(); return; }
+  turnPdf(x >= 2 / 3 ? 1 : -1);
 });
 document.addEventListener('keydown', (e) => {
   if (route.name !== 'partitura' || e.target.closest('input, textarea, select')) return;
@@ -2425,8 +2545,8 @@ $('pv-fs').addEventListener('click', async () => {
   if (document.body.classList.contains('focus')) { exitFocus(); return; }
   document.body.classList.add('focus');
   $('pv-fs').textContent = 'Sair da tela cheia'; $('pv-fs').setAttribute('aria-pressed', 'true');
-  try { if (document.documentElement.requestFullscreen && !document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch (e) {}
-  keepAwake(); renderPdfSoon();
+  await sysFullscreen(true);
+  keepAwake(); renderPdfSoon(); focusTip();
 });
 $('pv-cifra').addEventListener('click', () => { const s = scoreSong(scoreById(pv.id)); if (s) go('cifra', { id: s.id, back: { name: 'partitura', params: { id: pv.id } } }); });
 $('viewer-pdf').addEventListener('click', () => {
@@ -2549,12 +2669,327 @@ $('cfg-reset').addEventListener('click', () => {
   toast('Aparência voltou ao padrão.', { label: 'Desfazer', fn: () => { db.prefs = before; prefDraft = route.name === 'config' ? Object.assign({}, before) : null; save(); applyTheme(); if (route.name === 'config') renderConfig(); } });
 });
 
+/* ---------- Pinça (zoom com dois dedos) e anotações ----------
+   Pinça: durante o gesto a tela só acompanha os dedos (transform); ao soltar, aplica o zoom de verdade e redesenha nítido.
+   Anotações: pessoais, guardadas neste aparelho (chave própria no localStorage, separada das cifras).
+   - Partitura: cada traço fica preso à página, em unidades da largura da página (0 a 1000), então acompanha o zoom.
+   - Cifra: cada traço fica preso ao acorde/trecho mais próximo, em px no zoom 100%. Assim acompanha tom, tamanho do texto e colunas. */
+const SVGNS = 'http://www.w3.org/2000/svg';
+const NOTES_KEY = 'repertorio.notes.v1';
+let notes = {};
+try { notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}') || {}; } catch (e) { notes = {}; }
+function saveNotes() { try { localStorage.setItem(NOTES_KEY, JSON.stringify(notes)); } catch (e) { toast('Não consegui guardar as anotações (sem espaço no aparelho).'); } }
+const INK_HL = '#FFD600';
+let ink = { on: false, tool: 'pen', color: '#E53935', undo: [], live: null, pan: null, touches: new Set(), blocked: false, penSeen: false, penOnly: false };
+try { ink.penOnly = localStorage.getItem('repertorio.penOnly') === '1'; ink.penSeen = ink.penOnly; } catch (e) {}
+let inkGeo = new Map();
+const r1 = (v) => Math.round(v * 10) / 10;
+function textHash(t) { let h = 5381; for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+function inkDoc(create) {
+  if (route.name === 'cifra' && cur.id) {
+    const k = 'c:' + cur.id;
+    if (!notes[k] && create) { const s = songById(cur.id); notes[k] = { h: textHash(s ? s.text : ''), s: [] }; }
+    return notes[k] || null;
+  }
+  if (route.name === 'partitura' && pv.id) {
+    const k = 'p:' + pv.id;
+    if (!notes[k] && create) notes[k] = { s: [] };
+    return notes[k] || null;
+  }
+  return null;
+}
+function smoothPath(a) {
+  if (a.length < 4) return `M${a[0]} ${a[1]} l0.01 0`;
+  if (a.length < 6) return `M${a[0]} ${a[1]} L${a[2]} ${a[3]}`;
+  let d = `M${a[0]} ${a[1]}`;
+  for (let i = 2; i < a.length - 2; i += 2) d += ` Q${a[i]} ${a[i + 1]} ${(a[i] + a[i + 2]) / 2} ${(a[i + 1] + a[i + 3]) / 2}`;
+  return d + ` L${a[a.length - 2]} ${a[a.length - 1]}`;
+}
+function inkEl(st, pts, k) {
+  if (st.k === 'txt') {
+    const t = document.createElementNS(SVGNS, 'text');
+    t.setAttribute('x', pts[0]); t.setAttribute('y', pts[1]);
+    t.setAttribute('font-size', st.f * k); t.setAttribute('fill', st.c); t.setAttribute('dominant-baseline', 'hanging');
+    t.textContent = st.t; return t;
+  }
+  const p = document.createElementNS(SVGNS, 'path');
+  p.setAttribute('d', smoothPath(pts)); p.setAttribute('fill', 'none'); p.setAttribute('stroke', st.c);
+  p.setAttribute('stroke-width', st.w * k); p.setAttribute('stroke-linecap', 'round'); p.setAttribute('stroke-linejoin', 'round');
+  if (st.k === 'hl') p.setAttribute('stroke-opacity', '0.4');
+  return p;
+}
+/* Cifra: pontos de apoio (título, nome da parte, cada pedaço acorde+letra, comentários) */
+const cifraAnchors = (sheet) => [...sheet.querySelectorAll('.title, .section-name, .seg, .comment')];
+function sheetOrigin(sheet) { const r = sheet.getBoundingClientRect(); return { x: r.left + sheet.clientLeft - sheet.scrollLeft, y: r.top + sheet.clientTop - sheet.scrollTop }; }
+function drawCifraInk() {
+  if (route.name !== 'cifra') return;
+  const sheet = $('sheet'), s = songById(cur.id);
+  let svg = sheet.querySelector(':scope > svg.ink-layer');
+  if (!svg) { svg = document.createElementNS(SVGNS, 'svg'); svg.setAttribute('class', 'ink-layer'); sheet.appendChild(svg); }
+  svg.setAttribute('width', 0); svg.setAttribute('height', 0); svg.innerHTML = '';
+  svg.setAttribute('width', sheet.scrollWidth); svg.setAttribute('height', sheet.scrollHeight);
+  inkGeo = new Map();
+  const doc = notes['c:' + cur.id];
+  $('ink-warn').hidden = !(doc && doc.s.length && s && doc.h !== textHash(s.text));
+  if (!doc || !doc.s.length) return;
+  const o = sheetOrigin(sheet), z = cur.v.zoom;
+  const pos = cifraAnchors(sheet).map(a => { const r = a.getBoundingClientRect(); return { x: r.left - o.x, y: r.top - o.y }; });
+  doc.s.forEach(st => {
+    const a = st.a >= 0 ? (pos[Math.min(st.a, pos.length - 1)] || { x: 0, y: 0 }) : { x: 0, y: 0 };
+    const pts = st.p.map((v, i) => (i % 2 ? a.y : a.x) + v * z);
+    const el = inkEl(st, pts, z); svg.appendChild(el);
+    inkGeo.set(st, { svg, pts, w: (st.w || 0) * z, el });
+  });
+}
+function drawPdfInk() {
+  if (route.name !== 'partitura') return;
+  const box = $('pv-pages'); inkGeo = new Map();
+  box.querySelectorAll('.pdf-page svg.ink-layer').forEach(svg => svg.innerHTML = '');
+  const doc = notes['p:' + pv.id]; if (!doc) return;
+  doc.s.forEach(st => {
+    const svg = box.querySelector(`.pdf-page[data-page="${st.pg}"] svg.ink-layer`); if (!svg) return;
+    const el = inkEl(st, st.p, 1); svg.appendChild(el);
+    inkGeo.set(st, { svg, pts: st.p, w: st.w || 0, el });
+  });
+}
+function inkRedraw() { if (route.name === 'cifra') drawCifraInk(); else if (route.name === 'partitura') drawPdfInk(); }
+$('ink-warn-ok').addEventListener('click', () => { const d = inkDoc(false), s = songById(cur.id); if (d && s) { d.h = textHash(s.text); saveNotes(); } $('ink-warn').hidden = true; });
+
+/* Ligar / desligar o modo anotar */
+const inkArea = () => route.name === 'cifra' ? $('sheet') : route.name === 'partitura' ? $('pv-pages') : null;
+function inkSyncBar() {
+  document.querySelectorAll('#ink-bar [data-tool]').forEach(b => {
+    const on = b.dataset.tool === ink.tool && (ink.tool !== 'pen' || b.dataset.color === ink.color);
+    b.setAttribute('aria-pressed', String(on));
+  });
+  $('ink-penonly').hidden = !ink.penSeen; $('ink-penonly').setAttribute('aria-pressed', String(ink.penOnly));
+  ['t-ink', 'pv-ink'].forEach(id => $(id).setAttribute('aria-pressed', String(ink.on)));
+}
+function inkStart() {
+  const area = inkArea(); if (!area) return;
+  closeKeypick();
+  ink.on = true; ink.undo = []; ink.live = null; ink.pan = null; ink.touches.clear(); ink.blocked = false;
+  area.classList.add('inking');
+  $('ink-bar').hidden = false; inkSyncBar(); inkRedraw();
+  let seen = false; try { seen = localStorage.getItem('repertorio.inkTip') === '1'; localStorage.setItem('repertorio.inkTip', '1'); } catch (e) {}
+  if (!seen) toast('Um dedo desenha. Dois dedos rolam e dão zoom.');
+}
+function inkStop() {
+  inkCancelStroke();
+  ink.on = false; ink.pan = null; ink.touches.clear(); ink.blocked = false;
+  ['sheet', 'pv-pages'].forEach(id => $(id).classList.remove('inking'));
+  $('ink-bar').hidden = true; $('ink-text').hidden = true; inkSyncBar();
+}
+function inkCancelStroke() { if (ink.live && ink.live.el) ink.live.el.remove(); ink.live = null; }
+$('t-ink').addEventListener('click', (e) => { e.stopPropagation(); ink.on ? inkStop() : inkStart(); });
+$('pv-ink').addEventListener('click', (e) => { e.stopPropagation(); ink.on ? inkStop() : inkStart(); });
+$('ink-done').addEventListener('click', inkStop);
+document.querySelectorAll('#ink-bar [data-tool]').forEach(b => b.addEventListener('click', () => {
+  ink.tool = b.dataset.tool; if (b.dataset.color) ink.color = b.dataset.color; inkSyncBar();
+}));
+$('ink-penonly').addEventListener('click', () => {
+  ink.penOnly = !ink.penOnly; try { localStorage.setItem('repertorio.penOnly', ink.penOnly ? '1' : '0'); } catch (e) {}
+  inkSyncBar(); toast(ink.penOnly ? 'Só a caneta desenha. O dedo rola a tela.' : 'Dedo e caneta desenham.');
+});
+$('ink-undo').addEventListener('click', () => {
+  const doc = inkDoc(false), u = ink.undo.pop();
+  if (!doc || !u) { toast('Nada para desfazer.'); return; }
+  if (u.add) { const i = doc.s.indexOf(u.add); if (i >= 0) doc.s.splice(i, 1); }
+  else if (u.del) doc.s.push(...u.del);
+  else if (u.clear) doc.s = u.clear;
+  saveNotes(); inkRedraw();
+});
+$('ink-clear').addEventListener('click', () => {
+  const doc = inkDoc(false); if (!doc || !doc.s.length) { toast('Não há anotações aqui.'); return; }
+  const before = doc.s; doc.s = []; ink.undo.push({ clear: before }); saveNotes(); inkRedraw();
+  toast('Anotações apagadas.', { label: 'Desfazer', fn: () => { const d = inkDoc(true); d.s = before; saveNotes(); inkRedraw(); } });
+});
+
+/* Onde o dedo/caneta está: camada e conversão de coordenadas da tela para as da anotação */
+function inkCtx(cx, cy) {
+  if (route.name === 'cifra') {
+    const sheet = $('sheet'), svg = sheet.querySelector(':scope > svg.ink-layer'); if (!svg) return null;
+    const o = sheetOrigin(sheet);
+    return { kind: 'c', svg, upp: 1, pt: (x, y) => ({ x: x - o.x, y: y - o.y }) };
+  }
+  const hit = document.elementFromPoint(cx, cy), pg = hit && hit.closest ? hit.closest('.pdf-page') : null;
+  if (!pg) return null;
+  const r = pg.getBoundingClientRect(), k = 1000 / r.width;
+  return { kind: 'p', svg: pg.querySelector('svg.ink-layer'), page: +pg.dataset.page, upp: k, pt: (x, y) => ({ x: (x - r.left) * k, y: (y - r.top) * k }) };
+}
+function inkCommit(ctx, st, pts) {
+  const doc = inkDoc(true);
+  if (ctx.kind === 'c') {
+    const z = cur.v.zoom, sheet = $('sheet'), o = sheetOrigin(sheet);
+    let best = -1, bd = Infinity, ax = 0, ay = 0;
+    cifraAnchors(sheet).forEach((a, i) => {
+      const r = a.getBoundingClientRect(), x = r.left - o.x, y = r.top - o.y;
+      const dx = Math.max(x - pts[0], 0, pts[0] - (x + r.width)), dy = Math.max(y - pts[1], 0, pts[1] - (y + r.height));
+      const d = dx * dx + dy * dy * 4;   // prefere a mesma linha
+      if (d < bd) { bd = d; best = i; ax = x; ay = y; }
+    });
+    st.a = best;
+    st.p = pts.map((v, i) => r1((v - (i % 2 ? ay : ax)) / z));
+    if (st.w) st.w = Math.round(st.w / z * 100) / 100;
+  } else { st.pg = ctx.page; st.p = pts.map(r1); }
+  doc.s.push(st); ink.undo.push({ add: st }); saveNotes(); inkRedraw();
+}
+function distSeg(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy;
+  const t = L ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L)) : 0;
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+function inkEraseAt(ctx, p) {
+  const doc = inkDoc(false); if (!doc) return;
+  const r = 14 * ctx.upp; let hit = false;
+  for (const [st, g] of inkGeo) {
+    if (g.svg !== ctx.svg) continue;
+    let near = false;
+    if (st.k === 'txt') { const b = g.el.getBBox(); near = p.x >= b.x - r && p.x <= b.x + b.width + r && p.y >= b.y - r && p.y <= b.y + b.height + r; }
+    else {
+      const tol = r + g.w / 2, a = g.pts;
+      if (a.length === 2) near = Math.hypot(p.x - a[0], p.y - a[1]) < tol;
+      for (let i = 0; !near && i < a.length - 2; i += 2) near = distSeg(p.x, p.y, a[i], a[i + 1], a[i + 2], a[i + 3]) < tol;
+    }
+    if (near) { const i = doc.s.indexOf(st); if (i >= 0) { doc.s.splice(i, 1); ink.live.removed.push(st); hit = true; } }
+  }
+  if (hit) { saveNotes(); inkRedraw(); }
+}
+let inkTextAt = null;
+function inkAskText(ctx, p) {
+  inkTextAt = { ctx, p, where: route.name, id: route.name === 'cifra' ? cur.id : pv.id };
+  $('ink-text-in').value = ''; $('ink-text').hidden = false; setTimeout(() => $('ink-text-in').focus(), 30);
+}
+$('ink-text').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const t = $('ink-text-in').value.trim(); $('ink-text').hidden = true;
+  const A = inkTextAt; inkTextAt = null;
+  if (!t || !A || A.where !== route.name || A.id !== (route.name === 'cifra' ? cur.id : pv.id)) return;
+  // a tela pode ter mudado (teclado do aparelho): recalcula a camada no mesmo ponto
+  inkCommit(A.ctx, { k: 'txt', c: ink.color, t, f: A.ctx.kind === 'c' ? 15 : 24 }, [A.p.x, A.p.y]);
+});
+$('ink-text-no').addEventListener('click', () => { $('ink-text').hidden = true; inkTextAt = null; });
+
+/* Entrada: dedo, caneta ou mouse */
+function inkDown(e) {
+  if (!ink.on) return;
+  if (e.pointerType === 'pen' && !ink.penSeen) {
+    ink.penSeen = true; inkSyncBar();
+    toast('Caneta detectada. Se a mão apoiada riscar, ligue "Só caneta".');
+  }
+  if (e.pointerType === 'touch') {
+    ink.touches.add(e.pointerId);
+    if (ink.touches.size > 1) { inkCancelStroke(); ink.blocked = true; ink.pan = null; return; }   // dois dedos: pinça/rolagem
+    if (ink.penOnly) { ink.pan = { id: e.pointerId, x: e.clientX, y: e.clientY }; return; }       // só caneta: dedo rola
+  }
+  if (ink.live || ink.blocked) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  if (e.target.closest && e.target.closest('button, a, input')) return;
+  const ctx = inkCtx(e.clientX, e.clientY); if (!ctx) return;
+  e.preventDefault();
+  try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+  const p = ctx.pt(e.clientX, e.clientY);
+  if (ink.tool === 'erase') { ink.live = { id: e.pointerId, erase: true, ctx, removed: [] }; inkEraseAt(ctx, p); return; }
+  if (ink.tool === 'txt') { ink.live = { id: e.pointerId, txt: true, ctx, p0: p, x: e.clientX, y: e.clientY }; return; }
+  const hl = ink.tool === 'hl';
+  const w = ctx.kind === 'c' ? (hl ? 16 : 2.5) * cur.v.zoom : (hl ? 22 : 3.2);
+  const st = { k: hl ? 'hl' : 'pen', c: hl ? INK_HL : ink.color, w };
+  const el = inkEl(st, [p.x, p.y], 1); ctx.svg.appendChild(el);
+  ink.live = { id: e.pointerId, ctx, st, pts: [r1(p.x), r1(p.y)], el };
+}
+function inkMove(e) {
+  if (ink.pan && e.pointerId === ink.pan.id) {
+    const dx = e.clientX - ink.pan.x, dy = e.clientY - ink.pan.y; ink.pan.x = e.clientX; ink.pan.y = e.clientY;
+    window.scrollBy(0, -dy); const a = inkArea(); if (a) a.scrollLeft -= dx; return;
+  }
+  const L = ink.live; if (!L || L.id !== e.pointerId || L.txt) return;
+  e.preventDefault();
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null;
+  for (const ev of (evs && evs.length ? evs : [e])) {
+    const p = L.ctx.pt(ev.clientX, ev.clientY);
+    if (L.erase) { inkEraseAt(L.ctx, p); continue; }
+    const n = L.pts.length;
+    if (Math.hypot(p.x - L.pts[n - 2], p.y - L.pts[n - 1]) >= 1.5 * L.ctx.upp) L.pts.push(r1(p.x), r1(p.y));
+  }
+  if (!L.erase) L.el.setAttribute('d', smoothPath(L.pts));
+}
+function inkUp(e) {
+  if (e.pointerType === 'touch') { ink.touches.delete(e.pointerId); if (!ink.touches.size) ink.blocked = false; }
+  if (ink.pan && e.pointerId === ink.pan.id) { ink.pan = null; return; }
+  const L = ink.live; if (!L || L.id !== e.pointerId) return;
+  ink.live = null;
+  if (L.erase) { if (L.removed.length) ink.undo.push({ del: L.removed }); return; }
+  if (L.txt) { if (e.type !== 'pointercancel' && Math.hypot(e.clientX - L.x, e.clientY - L.y) < 14) inkAskText(L.ctx, L.p0); return; }
+  L.el.remove();
+  if (e.type === 'pointercancel') return;
+  inkCommit(L.ctx, L.st, L.pts);
+}
+['sheet', 'pv-pages'].forEach(id => {
+  const el = $(id);
+  el.addEventListener('pointerdown', inkDown);
+  el.addEventListener('pointermove', inkMove);
+  el.addEventListener('pointerup', inkUp);
+  el.addEventListener('pointercancel', inkUp);
+});
+
+/* Pinça: dois dedos dão zoom; dois dedos arrastando rolam a tela */
+function pinchable(area, content, commit) {
+  let g = null;
+  const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  const mid = (t) => ({ x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 });
+  area.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 2 || g) return;
+    const el = content(); if (!el || el.hidden) return;
+    inkCancelStroke();
+    const r = el.getBoundingClientRect(), m = mid(e.touches);
+    g = { el, d0: Math.max(10, dist(e.touches)), m0: m, m, s: 1, ox: m.x - r.left, oy: m.y - r.top };
+    el.style.transformOrigin = `${g.ox}px ${g.oy}px`; el.style.willChange = 'transform';
+    e.preventDefault();
+  }, { passive: false });
+  area.addEventListener('touchmove', (e) => {
+    if (!g || e.touches.length < 2) return;
+    if (e.cancelable) e.preventDefault();
+    g.s = Math.max(0.3, Math.min(4, dist(e.touches) / g.d0)); g.m = mid(e.touches);
+    g.el.style.transform = `translate(${g.m.x - g.m0.x}px, ${g.m.y - g.m0.y}px) scale(${g.s})`;
+  }, { passive: false });
+  const end = (e) => {
+    if (!g || e.touches.length >= 2) return;
+    const G = g; g = null;
+    G.el.style.transform = ''; G.el.style.transformOrigin = ''; G.el.style.willChange = '';
+    G.dx = G.m.x - G.m0.x; G.dy = G.m.y - G.m0.y; G.pan = Math.abs(G.s - 1) < 0.06;
+    if (G.pan) { window.scrollBy(0, -G.dy); G.el.scrollLeft -= G.dx; return; }
+    commit(G);
+  };
+  area.addEventListener('touchend', end); area.addEventListener('touchcancel', end);
+}
+/* Cifra: o mesmo que A−/A+, mantendo o ponto entre os dedos no lugar */
+pinchable($('v-cifra'), () => $('sheet'), (G) => {
+  const z0 = cur.v.zoom; setZoom(z0 * G.s);
+  const ratio = cur.v.zoom / z0, sheet = $('sheet');
+  const top = sheet.getBoundingClientRect().top + window.scrollY;
+  window.scrollTo(0, Math.max(0, top + G.oy * ratio - G.m.y));
+  sheet.scrollLeft = Math.max(0, G.ox * ratio - (G.m.x - sheet.getBoundingClientRect().left));
+});
+/* Partitura: zoom em passos de 5%, entre 50% e 300% */
+pinchable($('v-partitura'), () => $('pv-pages'), (G) => {
+  const z0 = pv.zoom, box = $('pv-pages'), lx = G.ox + box.scrollLeft, ly = G.oy;
+  setPdfZoom(z0 * G.s, true, () => {
+    const ratio = pv.zoom / z0;
+    const r = box.getBoundingClientRect();
+    box.scrollLeft = Math.max(0, lx * ratio - (G.m.x - r.left));
+    window.scrollTo(0, Math.max(0, r.top + window.scrollY + ly * ratio - G.m.y));
+  });
+});
+
 /* APK: botão voltar do Android navega dentro do app (só fecha na tela Início) */
 (function nativeBack() {
-  const P = window.Capacitor && window.Capacitor.Plugins;
-  if (!(P && P.App && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) return;
-  P.App.addListener('backButton', () => {
+  const App = capPlugin('App');
+  if (!App) return;
+  const P = { App };
+  App.addListener('backButton', () => {
     if (!$('drawer').hidden) { closeDrawer(); return; }
+    if (!$('ink-text').hidden) { $('ink-text').hidden = true; return; }
+    if (ink.on) { inkStop(); return; }
     if (typeof rowMenu !== 'undefined' && !rowMenu.hidden) { closeRowMenu(); return; }
     if ($('fab-wrap') && $('fab-wrap').classList.contains('open')) { closeFab(); return; }
     if (!$('keypick').hidden) { closeKeypick(); return; }

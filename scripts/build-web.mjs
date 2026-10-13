@@ -32,8 +32,9 @@ for (const [fam, weights] of FONTS) {
 }
 fs.writeFileSync(path.join(www, 'fonts', 'fonts.css'), css);
 
-// 2) Leitor de PDF (PDF.js)
+// 2) Leitor de PDF (PDF.js) e o runtime do Capacitor (registra os plugins nativos: voltar, compartilhar, tela acesa, tela cheia)
 for (const f of ['pdf.min.js', 'pdf.worker.min.js']) fs.copyFileSync(path.join(nm, 'pdfjs-dist', 'build', f), path.join(www, 'lib', f));
+fs.copyFileSync(path.join(nm, '@capacitor', 'core', 'dist', 'capacitor.js'), path.join(www, 'lib', 'capacitor.js'));
 
 // 3) App: mesmas telas e lógica; só os endereços externos viram locais
 let html = fs.readFileSync(path.join(root, 'src', 'app.html'), 'utf8');
@@ -49,7 +50,7 @@ const page = `<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">\n<script src="lib/capacitor.js"></script>
 <meta name="theme-color" content="#FFFFFF">
 <style>html,body{margin:0}</style>
 </head>
