@@ -1,0 +1,9 @@
+{
+  "appId": "br.org.iasd.jaraguacentral.musica",
+  "appName": "IASD Música",
+  "webDir": "www",
+  "android": { "allowMixedContent": false },
+  "plugins": {
+    "CapacitorHttp": { "enabled": true }
+  }
+}
