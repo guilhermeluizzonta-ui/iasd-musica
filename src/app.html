@@ -437,6 +437,10 @@ button.keytag { cursor: pointer; }
 .list-nav #ln-next span { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 @media (max-width: 480px) { .list-nav #ln-next span { max-width: 110px; } .list-nav #ln-mid span { max-width: 90px; } }
 body.has-listnav main { padding-bottom: 96px; }
+/* Cifra e partitura: a barra de controles some ao rolar para baixo e volta ao rolar para cima */
+body:not(.focus) .toolbar-wrap { transition: transform .2s ease; }
+body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 12px)); }
+@media (prefers-reduced-motion: reduce) { body:not(.focus) .toolbar-wrap { transition: none; } }
 .next-card { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 12px; border: var(--bw) solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; font: inherit; }
 .next-card:hover { background: var(--surface-2); }
 .next-card strong { font-size: 17px; }
@@ -1227,6 +1231,7 @@ function go(name, params = {}) {
   if (name === 'listaform') openListForm(params);
   if (name === 'listapick') openPick(params.id);
   updListNav();
+  document.body.classList.remove('bars-hidden'); lastScrollY = 0;
   window.scrollTo(0, 0);
 }
 function back() { go(lastTop); }
@@ -2618,7 +2623,8 @@ $('pv-zval').addEventListener('click', () => setPdfZoom(1));
 /* Virar página: vai para o começo da próxima página; se a página for maior que a tela, rola uma tela por vez */
 function turnPdf(dir) {
   const bar = document.querySelector('#v-partitura .toolbar-wrap');
-  const top = (bar ? bar.getBoundingClientRect().bottom : 0) + 8;
+  const tb = document.querySelector('.topbar');
+  const top = Math.max(bar ? bar.getBoundingClientRect().bottom : 0, tb && !document.body.classList.contains('focus') ? tb.getBoundingClientRect().bottom : 0) + 8;   // a barra de controles pode estar escondida
   const step = Math.max(200, window.innerHeight - top - 16);
   const y = window.scrollY, tops = [...$('pv-pages').querySelectorAll('canvas')].map(c => c.getBoundingClientRect().top + y - top);
   let target;
@@ -3402,6 +3408,16 @@ $('li-items').addEventListener('submit', (e) => {
   l.items[Number(f.dataset.liNoteForm)].note = f.querySelector('input').value.trim();
   liNoteFor = null; touchList(l); renderListDetail(l.id);
 });
+/* Barra de controles da cifra/partitura: esconde ao rolar para baixo (para não cobrir a música), volta ao rolar para cima */
+let lastScrollY = 0;
+window.addEventListener('scroll', () => {
+  const y = window.scrollY, dy = y - lastScrollY;
+  if (Math.abs(dy) < 8) return;
+  lastScrollY = y;
+  if (document.body.classList.contains('focus') || !(route.name === 'cifra' || route.name === 'partitura')) { document.body.classList.remove('bars-hidden'); return; }
+  const busy = !$('keypick').hidden;
+  document.body.classList.toggle('bars-hidden', dy > 0 && y > 140 && !busy);
+}, { passive: true });
 /* Início: próximo culto */
 function renderNextList() {
   const l = upcomingLists().find(x => x.items.length) || upcomingLists()[0];
