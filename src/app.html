@@ -395,6 +395,53 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
 .pdf-page .ink-layer { width: 100%; height: 100%; }
 #ink-warn .link { margin-left: 6px; }
 #t-ink, #pv-ink { display: flex; align-items: center; gap: 6px; }
+
+/* ---------- Listas de culto ---------- */
+.ls-body { display: flex; flex-direction: column; gap: 22px; }
+.datetag { width: 58px; height: 50px; border-radius: var(--r); border: var(--bw) solid var(--ctl-eff, var(--line)); background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; flex: none; line-height: 1.15; }
+.datetag small { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.datetag b { font-size: 15px; font-variant-numeric: tabular-nums; }
+.datetag.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.li-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0 6px; }
+.li-actions .spacer { flex: 1; }
+.li-note { margin: 6px 0 0; white-space: pre-wrap; font-size: 14px; }
+.li-item { display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.li-n { width: 26px; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 600; flex: none; }
+.li-open { flex: 1; min-width: 0; }
+.li-open:disabled { cursor: default; }
+.li-obs { font-style: normal; font-size: 13px; color: var(--accent); white-space: normal !important; }
+.li-move { display: flex; flex: none; }
+.li-move .icon-btn { width: 38px; }
+.icon-btn:disabled { opacity: .3; cursor: default; }
+button.keytag { cursor: pointer; }
+.keytag.changed { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); }
+.li-item.gone .song-text strong { text-decoration: line-through; color: var(--muted); }
+.li-note-form { flex-basis: 100%; display: flex; gap: 8px; padding: 0 0 12px 32px; }
+.li-pop { width: min(380px, calc(100vw - 16px)); padding: 12px; }
+.lf-note { font-family: inherit !important; font-size: 16px !important; min-height: 96px !important; }
+.pick-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 4px; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--fg); text-align: left; cursor: pointer; min-height: 60px; font: inherit; }
+.pick-row:hover { background: var(--surface-2); }
+.pick-check { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--ctl); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex: none; }
+.pick-row[aria-pressed="true"] .pick-check { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.pick-row .song-text { flex: 1; min-width: 0; }
+.pick-bar { position: sticky; bottom: 0; z-index: 5; background: var(--bg); padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; border-top: 1px solid var(--line); margin-top: 8px; }
+.pick-bar .btn.primary { flex: 1; }
+.pick-bar .btn.primary:disabled { opacity: .5; cursor: default; }
+.list-nav { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 25; display: flex; align-items: stretch; background: var(--surface); border: var(--bw) solid var(--line); border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.3); max-width: calc(100vw - 16px); overflow: hidden; }
+.list-nav button { border: 0; background: none; color: var(--fg); min-height: 52px; padding: 0 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; font: inherit; font-size: 14px; }
+.list-nav button:hover:not(:disabled) { background: var(--surface-2); }
+.list-nav button:disabled { opacity: .35; cursor: default; }
+.list-nav #ln-mid { flex-direction: column; justify-content: center; gap: 0; border-inline: 1px solid var(--line); min-width: 96px; line-height: 1.2; }
+.list-nav #ln-mid b { font-size: 14px; }
+.list-nav #ln-mid span { font-size: 11px; color: var(--muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-nav #ln-next span { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+@media (max-width: 480px) { .list-nav #ln-next span { max-width: 110px; } .list-nav #ln-mid span { max-width: 90px; } }
+body.has-listnav main { padding-bottom: 96px; }
+.next-card { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 12px; border: var(--bw) solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; font: inherit; }
+.next-card:hover { background: var(--surface-2); }
+.next-card strong { font-size: 17px; }
+.next-songs { font-size: 14px; }
+.rm-sub { margin-left: auto; padding-left: 12px; color: var(--muted); font-size: 12px; }
 </style>
 
 <!-- ================= LOGIN ================= -->
@@ -473,7 +520,7 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
     <button type="button" class="nav-item" data-nav="cifras"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5H20" stroke-width="2.6"></path><path d="M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5" stroke-width="1.3"></path><path d="M4 10.5H20M4 16H20M4 21.5H20" stroke-width="1.3"></path><circle cx="4" cy="18.75" r="2.3" fill="currentColor" stroke="none"></circle><circle cx="9.33" cy="13.25" r="2.3" fill="currentColor" stroke="none"></circle><circle cx="20" cy="7.75" r="2.3" fill="currentColor" stroke="none"></circle></svg>Cifras</button>
     <button type="button" class="nav-item" data-nav="partituras"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9"></path><path d="M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5"></path><circle cx="10.2" cy="21.2" r="1.1" fill="currentColor" stroke="none"></circle></svg>Partituras</button>
     <button type="button" class="nav-item" data-nav="letras"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 10h16M4 14h10M4 18h7"></path><path d="M18 14v6"></path><circle cx="16.5" cy="20" r="1.5"></circle></svg>Letras<span class="soon">em breve</span></button>
-    <button type="button" class="nav-item" data-nav="listas"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12"></path><circle cx="4.5" cy="6" r="1"></circle><circle cx="4.5" cy="12" r="1"></circle><circle cx="4.5" cy="18" r="1"></circle></svg>Minhas listas<span class="soon">em breve</span></button>
+    <button type="button" class="nav-item" data-nav="listas"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12"></path><circle cx="4.5" cy="6" r="1"></circle><circle cx="4.5" cy="12" r="1"></circle><circle cx="4.5" cy="18" r="1"></circle></svg>Listas de culto</button>
     <button type="button" class="nav-item" data-nav="favoritas"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"></path></svg>Favoritas</button>
     <button type="button" class="nav-item" data-nav="lixeira" id="nav-trash" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"></path></svg>Lixeira<span class="soon" id="nav-trash-n">0</span></button>
     <button type="button" class="nav-item" data-nav="config"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>Configurações</button>
@@ -503,6 +550,10 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
         <blockquote id="w-verse-text"></blockquote>
         <figcaption id="w-verse-ref"></figcaption>
       </figure>
+      <div class="stack" id="w-next" hidden>
+        <div class="panel-head"><span class="sec-title">Próximo culto</span><button type="button" class="link" data-nav="listas">Ver listas</button></div>
+        <div id="w-next-body"></div>
+      </div>
       <div class="stack">
         <div class="panel-head"><span class="sec-title">Visualizadas recentemente</span><button type="button" class="link" data-nav="cifras">Ver todas</button></div>
         <div class="song-list" id="w-recent"></div>
@@ -595,11 +646,40 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
       </div>
     </section>
     <section class="view" id="v-listas" hidden>
-      <div class="placeholder card">
-        <span class="sec-title">Próxima etapa</span>
-        <h2>Listas de culto</h2>
-        <p>Montar a lista do culto com ordem e tom de cada música, clonar listas e usar listas-modelo. Está planejado na nota 05 da documentação.</p>
+      <p class="hint" id="ls-count"></p>
+      <div class="ls-body" id="ls-body"></div>
+    </section>
+    <!-- Lista aberta -->
+    <section class="view" id="v-lista" hidden>
+      <div id="li-head"></div>
+      <div class="li-actions" id="li-actions"></div>
+      <div id="li-items"></div>
+    </section>
+    <!-- Nova lista / editar / clonar -->
+    <section class="view" id="v-listaform" hidden>
+      <form class="box" id="lf-form" autocomplete="off">
+        <div class="field"><label for="lf-title">Nome da lista</label><input class="input" id="lf-title" maxlength="60" placeholder="Ex.: Culto de sábado, Santa Ceia, Culto jovem"></div>
+        <div class="two">
+          <div class="field"><label for="lf-date">Data</label><input class="input" id="lf-date" type="date"></div>
+          <div class="field"><label for="lf-time">Horário <small>(opcional)</small></label><input class="input" id="lf-time" type="time"></div>
+        </div>
+        <div class="field"><label for="lf-leader">Responsável <small>(opcional)</small></label><input class="input" id="lf-leader" maxlength="60" placeholder="Quem dirige o louvor"></div>
+        <div class="field"><label for="lf-note">Observações <small>(opcional)</small></label><textarea class="input lf-note" id="lf-note" maxlength="400" placeholder="Ex.: ensaio às 8h; abertura com a orquestra"></textarea></div>
+        <p class="status" id="lf-clone-info" hidden></p>
+        <p class="hint">Sem nome, a lista se chama pelo dia da semana: "Culto de sábado".</p>
+        <div class="row"><button type="submit" class="btn primary" id="lf-save">Criar lista</button><button type="button" class="btn" id="lf-cancel">Cancelar</button></div>
+      </form>
+    </section>
+    <!-- Escolher músicas para a lista -->
+    <section class="view" id="v-listapick" hidden>
+      <div class="search-box">
+        <label for="lp-q" class="sr">Buscar música</label>
+        <input class="input" id="lp-q" type="search" placeholder="Buscar música ou artista">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8F98" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
       </div>
+      <p class="hint" style="margin:10px 0 4px">Toque nas músicas na ordem do culto. Dá para reordenar depois.</p>
+      <div id="lp-list"></div>
+      <div class="pick-bar"><button type="button" class="btn primary" id="lp-go" disabled>Escolha as músicas</button><button type="button" class="btn" id="lp-cancel">Cancelar</button></div>
     </section>
 
     <!-- Configurações -->
@@ -653,6 +733,7 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
         <span class="hint" id="viewer-sub"></span>
         <span class="spacer"></span>
         <button type="button" class="btn star" id="viewer-fav" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"></path></svg><span>Favoritar</span></button>
+        <button type="button" class="btn" id="viewer-addlist" hidden>+ Lista</button>
         <button type="button" class="btn" id="viewer-pdf" hidden>Partitura</button>
         <button type="button" class="btn" id="viewer-edit">Editar</button>
       </div>
@@ -762,6 +843,11 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
     <button type="button" class="fab" id="fab" aria-label="Adicionar cifra" aria-haspopup="menu" aria-expanded="false" aria-controls="fab-menu"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
   </div>
 </div>
+<nav class="list-nav" id="list-nav" aria-label="Músicas da lista" hidden>
+  <button type="button" id="ln-prev" aria-label="Anterior"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+  <button type="button" id="ln-mid" aria-label="Voltar para a lista"></button>
+  <button type="button" id="ln-next" aria-label="Próxima"><span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+</nav>
 <div class="ink-bar" id="ink-bar" role="toolbar" aria-label="Anotações" hidden>
   <button type="button" data-tool="pen" data-color="#E53935" aria-label="Caneta vermelha"><span class="sw" style="background:#E53935"></span></button>
   <button type="button" data-tool="pen" data-color="#1E6FE0" aria-label="Caneta azul"><span class="sw" style="background:#1E6FE0"></span></button>
@@ -1098,13 +1184,14 @@ function viewFor(id) {
 }
 
 /* ---------- Navegação ---------- */
-const TITLES = { letras: 'Letras', partitura: 'Partitura', inicio: 'Início', cifras: 'Cifras', favoritas: 'Favoritas', partituras: 'Partituras', listas: 'Minhas listas', config: 'Configurações', lixeira: 'Lixeira' };
+const TITLES = { lista: 'Lista', listaform: 'Nova lista', listapick: 'Adicionar músicas', letras: 'Letras', partitura: 'Partitura', inicio: 'Início', cifras: 'Cifras', favoritas: 'Favoritas', partituras: 'Partituras', listas: 'Listas de culto', config: 'Configurações', lixeira: 'Lixeira' };
 const TOP = ['inicio', 'cifras', 'favoritas', 'partituras', 'letras', 'listas', 'config', 'lixeira'];
 let route = { name: 'inicio' }, lastTop = 'inicio';
 function show(id) { ['v-login', 'v-signup'].forEach(x => $(x).hidden = x !== id); $('app').hidden = id !== 'app'; }
 let pdfFolder = null;   // pasta aberta em Partituras (null = início)
 function go(name, params = {}) {
   if (ink.on) inkStop();
+  closeListPop(); liNoteFor = null;
   closeKeypick(); closeKeyset(); if (document.body.classList.contains('focus')) exitFocus();
   if (route && route.name === 'config' && name !== 'config' && prefDraft) {
     const unsaved = prefsDirty() ? Object.assign({}, prefDraft) : null;
@@ -1120,8 +1207,9 @@ function go(name, params = {}) {
   const hasBack = !!(params && params.back) || (name === 'partituras' && !!pdfFolder);
   $('menu-btn').hidden = !top || hasBack; $('back-btn').hidden = top && !hasBack;
   document.querySelectorAll('.nav-item[data-nav]').forEach(b => { if (b.dataset.nav === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
-  $('fab-wrap').hidden = !((db.role === 'editor' && name === 'cifras') || name === 'partituras'); closeFab();   // pastas: todos organizam as suas
-  $('fab').setAttribute('aria-label', name === 'partituras' ? 'Importar partituras em PDF' : 'Adicionar cifra');
+  $('fab-wrap').hidden = !((db.role === 'editor' && (name === 'cifras' || name === 'listas')) || name === 'partituras'); closeFab();
+  $('fab-wrap').classList.toggle('single', name === 'listas');   // pastas: todos organizam as suas
+  $('fab').setAttribute('aria-label', name === 'partituras' ? 'Importar partituras em PDF' : name === 'listas' ? 'Nova lista' : 'Adicionar cifra');
   const inPdf = name === 'partituras';
   ['fab-new', 'fab-import'].forEach(i => $(i).hidden = inPdf); $('fab-folder').hidden = !inPdf; $('fab-pdf').hidden = !inPdf;   // todos importam os PDFs que têm no aparelho
   if (TITLES[name]) $('top-title').textContent = TITLES[name];
@@ -1134,6 +1222,11 @@ function go(name, params = {}) {
   if (name === 'editor') openEditor(params.id);
   if (name === 'partituras') { if (params.q != null) $('pdf-q').value = params.q; renderPdfList(); if (params.back && params.back.name === 'cifra') { const bs = songById(params.back.params.id); if (bs) $('top-title').textContent = 'Partituras · ' + bs.title; } }
   if (name === 'partitura') openPdfView(params.id);
+  if (name === 'listas') renderLists();
+  if (name === 'lista') renderListDetail(params.id);
+  if (name === 'listaform') openListForm(params);
+  if (name === 'listapick') openPick(params.id);
+  updListNav();
   window.scrollTo(0, 0);
 }
 function back() { go(lastTop); }
@@ -1521,6 +1614,7 @@ function renderWelcome() {
   $('w-logo').alt = src ? 'Igreja Adventista do Sétimo Dia' : '';
   const recent = activeSongs().filter(s => s.viewed).sort((a, b) => b.viewed - a.viewed).slice(0, 4);
   $('w-recent').innerHTML = recent.length ? recent.map(songRow).join('') : emptyBox('As cifras que você abrir aparecem aqui.');
+  renderNextList();
 }
 
 /* ---------- Cifra aberta ---------- */
@@ -1529,13 +1623,16 @@ const ZMIN = 0.5, ZMAX = 2.2, ZFIT_MIN = 0.8;
 function openViewer(id) {
   const s = songById(id);
   if (!s) { go('cifras'); return; }
-  cur.id = id; cur.v = viewFor(id);
+  cur.id = id; cur.v = viewFor(id); cur.listBase = null;
+  const inList = route.list ? listById(route.list) : null, item = inList ? inList.items[route.idx] : null;
+  if (item && item.songId === id) { cur.listBase = cur.v; cur.v = Object.assign({}, cur.v, { shift: item.shift || 0 }); }
   s.viewed = Date.now(); save();   // para "Visualizadas recentemente" no Início
   if (autoLinkScores()) save();
   const nPdf = scoresForSong(id).length;
   $('viewer-pdf').hidden = !nPdf; $('viewer-pdf').textContent = nPdf > 1 ? `Partituras (${nPdf})` : 'Partitura';
   $('top-title').textContent = s.title;
-  $('viewer-sub').textContent = [s.artist, s.source ? 'fonte: ' + s.source : ''].filter(Boolean).join(' · ');
+  $('viewer-sub').textContent = [cur.listBase ? `Lista: ${listTitle(inList)} · ${route.idx + 1} de ${inList.items.length}` : '', s.artist, s.source ? 'fonte: ' + s.source : ''].filter(Boolean).join(' · ');
+  $('viewer-addlist').hidden = db.role !== 'editor' || !!cur.listBase;
   $('viewer-edit').hidden = db.role !== 'editor';
   $('fit-status').hidden = true;
   renderViewer();
@@ -1560,6 +1657,7 @@ function renderViewer() {
   $('t-zval').textContent = pct === 100 ? '100%' : '↺ ' + pct + '%';
   $('t-zval').disabled = pct === 100;
   $('t-zval').setAttribute('aria-label', pct === 100 ? 'Texto em 100%' : `Texto em ${pct}%. Voltar para 100%`);
+  if (cur.listBase) ['simplify', 'colsMode', 'cols', 'zoom', 'fit'].forEach(k => { cur.listBase[k] = cur.v[k]; });   // tom do culto não muda o tom pessoal
   save();
   drawCifraInk();
 }
@@ -1574,6 +1672,7 @@ $('t-zout').addEventListener('click', () => setZoom(cur.v.zoom - 0.1));
 $('t-zval').addEventListener('click', () => setZoom(1));
 $('viewer-fav').addEventListener('click', () => { toggleFav(cur.id); renderViewer(); });
 $('viewer-edit').addEventListener('click', () => go('editor', { id: cur.id }));
+$('viewer-addlist').addEventListener('click', (e) => { e.stopPropagation(); if (!rowMenu.hidden) { closeRowMenu(); return; } openAddToList(e.currentTarget); });
 $('sheet').addEventListener('click', (e) => {
   if (e.target.closest('[data-act="edit"]')) { go('editor', { id: cur.id }); return; }
   if (document.body.classList.contains('focus') && !ink.on) { document.body.classList.contains('bars-peek') ? hideBars() : peekBars(); }
@@ -1843,6 +1942,7 @@ $('back-btn').addEventListener('click', () => { if (route.name === 'partituras' 
 function closeFab() { const w = $('fab-wrap'); if (!w) return; w.classList.remove('open'); $('fab').setAttribute('aria-expanded', 'false'); }
 $('fab').addEventListener('click', (e) => {
   e.stopPropagation();
+  if (route.name === 'listas') { go('listaform', { back: { name: 'listas' } }); return; }
   const open = !$('fab-wrap').classList.contains('open');
   $('fab-wrap').classList.toggle('open', open); $('fab').setAttribute('aria-expanded', String(open));
   if (open) (route.name === 'partituras' ? $('fab-folder') : $('fab-new')).focus();
@@ -2548,10 +2648,10 @@ $('pv-fs').addEventListener('click', async () => {
   await sysFullscreen(true);
   keepAwake(); renderPdfSoon(); focusTip();
 });
-$('pv-cifra').addEventListener('click', () => { const s = scoreSong(scoreById(pv.id)); if (s) go('cifra', { id: s.id, back: { name: 'partitura', params: { id: pv.id } } }); });
+$('pv-cifra').addEventListener('click', () => { const s = scoreSong(scoreById(pv.id)); if (!s) return; if (route.list) go('cifra', { id: s.id, list: route.list, idx: route.idx, back: route.back }); else go('cifra', { id: s.id, back: { name: 'partitura', params: { id: pv.id } } }); });
 $('viewer-pdf').addEventListener('click', () => {
   const list = scoresForSong(cur.id); if (!list.length) return;
-  if (list.length === 1) go('partitura', { id: list[0].id, back: { name: 'cifra', params: { id: cur.id } } });
+  if (list.length === 1) go('partitura', route.list ? { id: list[0].id, list: route.list, idx: route.idx, back: route.back } : { id: list[0].id, back: { name: 'cifra', params: { id: cur.id } } });
   else { const s = songById(cur.id); go('partituras', { q: s ? s.title : '', back: { name: 'cifra', params: { id: cur.id } } }); }
 });
 
@@ -2770,7 +2870,7 @@ function inkStart() {
   closeKeypick();
   ink.on = true; ink.undo = []; ink.live = null; ink.pan = null; ink.touches.clear(); ink.blocked = false;
   area.classList.add('inking');
-  $('ink-bar').hidden = false; inkSyncBar(); inkRedraw();
+  $('ink-bar').hidden = false; inkSyncBar(); inkRedraw(); updListNav();
   let seen = false; try { seen = localStorage.getItem('repertorio.inkTip') === '1'; localStorage.setItem('repertorio.inkTip', '1'); } catch (e) {}
   if (!seen) toast('Um dedo desenha. Dois dedos rolam e dão zoom.');
 }
@@ -2778,7 +2878,7 @@ function inkStop() {
   inkCancelStroke();
   ink.on = false; ink.pan = null; ink.touches.clear(); ink.blocked = false;
   ['sheet', 'pv-pages'].forEach(id => $(id).classList.remove('inking'));
-  $('ink-bar').hidden = true; $('ink-text').hidden = true; inkSyncBar();
+  $('ink-bar').hidden = true; $('ink-text').hidden = true; inkSyncBar(); updListNav();
 }
 function inkCancelStroke() { if (ink.live && ink.live.el) ink.live.el.remove(); ink.live = null; }
 $('t-ink').addEventListener('click', (e) => { e.stopPropagation(); ink.on ? inkStop() : inkStart(); });
@@ -2981,6 +3081,338 @@ pinchable($('v-partitura'), () => $('pv-pages'), (G) => {
   });
 });
 
+/* ---------- Listas de culto ----------
+   db.lists = [{ id, title, date:'AAAA-MM-DD', time:'HH:MM', leader, note, items:[{ id, songId, shift, note }], created, updated }]
+   O tom de cada música no culto é guardado como deslocamento (shift) a partir do tom original da cifra.
+   Fase 1: as listas ficam no aparelho. Quem cria e edita: Editor. Todos usam o modo culto. */
+const listById = (id) => (db.lists || []).find(l => l.id === id);
+const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const pad2 = (n) => String(n).padStart(2, '0');
+const isoDay = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const todayIso = () => isoDay(new Date());
+const dayOf = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d); };
+function nextSaturday() { const d = new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7)); return isoDay(d); }
+const WEEK = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+function dateLabel(iso, long) {
+  if (!iso) return '';
+  const d = dayOf(iso), t = todayIso();
+  const rel = iso === t ? 'hoje' : iso === isoDay(new Date(Date.now() + 864e5)) ? 'amanhã' : '';
+  const base = d.toLocaleDateString('pt-BR', long ? { weekday: 'long', day: 'numeric', month: 'long' } : { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '');
+  return rel ? `${rel}, ${base}` : base;
+}
+const listTitle = (l) => l.title || (l.date ? 'Culto de ' + WEEK[dayOf(l.date).getDay()] : 'Lista sem nome');
+const canEditLists = () => db.role === 'editor';
+function songKeyInfo(s, shift) {
+  if (!s) return null;
+  const m = parseMeta(s.text); let k = m.key, sug = false;
+  if (!k) { const d = detectKey(s.text); if (d) { k = d.key; sug = true; } }
+  const ki = keyInfo(k, shift || 0); if (ki) ki.sug = sug;
+  return ki;
+}
+function listMeta(l) {
+  const n = l.items.length;
+  return [l.date ? dateLabel(l.date, true) : '', l.time, l.leader ? 'Resp.: ' + l.leader : '', `${n} ${n === 1 ? 'música' : 'músicas'}`].filter(Boolean);
+}
+function upcomingLists() {
+  const t = todayIso();
+  return (db.lists || []).filter(l => !l.date || l.date >= t).sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999') || (a.time || '').localeCompare(b.time || ''));
+}
+/* Lista de listas: próximas (e sem data) primeiro; depois as anteriores */
+function listRow(l) {
+  const d = l.date ? dayOf(l.date) : null;
+  return `<div class="song lrow">
+    <button type="button" class="song-open" data-list-open="${esc(l.id)}">
+      <span class="datetag${l.date === todayIso() ? ' today' : ''}">${d ? `<small>${WEEK[d.getDay()].slice(0, 3)}</small><b>${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}</b>` : '<small>sem</small><b>data</b>'}</span>
+      <span class="song-text"><strong>${esc(listTitle(l))}</strong><span>${esc([l.time, l.leader ? 'Resp.: ' + l.leader : '', `${l.items.length} ${l.items.length === 1 ? 'música' : 'músicas'}`].filter(Boolean).join(' · '))}</span></span>
+    </button>
+    ${canEditLists() ? `<button type="button" class="icon-btn" data-list-more="${esc(l.id)}" aria-haspopup="menu" aria-label="Mais opções: ${esc(listTitle(l))}"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg></button>` : ''}
+  </div>`;
+}
+function renderLists() {
+  const all = db.lists || [], t = todayIso();
+  const next = upcomingLists();
+  const past = all.filter(l => l.date && l.date < t).sort((a, b) => b.date.localeCompare(a.date));
+  $('ls-count').textContent = all.length ? `${all.length} ${all.length === 1 ? 'lista' : 'listas'}` : '';
+  let h = '';
+  if (!all.length) h = `<div class="empty"><p>${canEditLists() ? 'Nenhuma lista ainda. Monte a lista do próximo culto: escolha as músicas, a ordem e o tom de cada uma.' : 'Nenhuma lista neste aparelho ainda. As listas do culto são montadas pelo editor.'}</p>${canEditLists() ? '<button type="button" class="btn primary" data-list-new="1">Nova lista</button>' : ''}</div>`;
+  if (next.length) h += `<div class="stack"><span class="sec-title">Próximas</span><div class="song-list">${next.map(listRow).join('')}</div></div>`;
+  if (past.length) h += `<div class="stack"><span class="sec-title">Anteriores</span><div class="song-list">${past.map(listRow).join('')}</div></div>`;
+  $('ls-body').innerHTML = h;
+}
+/* Lista aberta */
+let liKeyFor = null, liNoteFor = null;
+function renderListDetail(id) {
+  const l = listById(id); if (!l) { go('listas'); return; }
+  const ed = canEditLists();
+  $('top-title').textContent = listTitle(l);
+  const open = db.listOpen || defaultListOpen();
+  $('li-head').innerHTML = `<p class="hint">${esc(listMeta(l).join(' · '))}</p>${l.note ? `<p class="li-note">${esc(l.note)}</p>` : ''}`;
+  $('li-actions').innerHTML = `<button type="button" class="btn primary" data-li-start="1" ${l.items.length ? '' : 'disabled'}><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"></path></svg>Começar</button>
+    <div class="group" role="group" aria-label="Abrir as músicas em"><button type="button" data-li-as="cifra" aria-pressed="${open === 'cifra'}">Cifra</button><button type="button" data-li-as="partitura" aria-pressed="${open === 'partitura'}">Partitura</button></div>
+    ${ed ? `<span class="spacer"></span><button type="button" class="btn" data-li-add="1">+ Músicas</button><button type="button" class="btn" data-li-edit="1">Editar</button><button type="button" class="icon-btn" data-list-more="${esc(l.id)}" aria-haspopup="menu" aria-label="Mais opções da lista"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg></button>` : ''}`;
+  if (!l.items.length) {
+    $('li-items').innerHTML = `<div class="empty"><p>${ed ? 'A lista está vazia. Adicione as músicas do culto.' : 'Esta lista ainda não tem músicas.'}</p>${ed ? '<button type="button" class="btn primary" data-li-add="1">Adicionar músicas</button>' : ''}</div>`;
+    return;
+  }
+  $('li-items').innerHTML = l.items.map((it, i) => {
+    const s = songById(it.songId), gone = !s || s.archived;
+    const ki = gone ? null : songKeyInfo(s, it.shift);
+    const nPdf = gone ? 0 : scoresForSong(it.songId).length;
+    const keyTxt = ki ? ki.cur.main : '—';
+    const changed = ki && it.shift;
+    const sub = gone ? (s ? 'Esta música está na lixeira.' : 'Esta música foi apagada.') : [s.artist, changed ? `original ${ki.orig.main}` : '', nPdf ? 'tem partitura' : ''].filter(Boolean).join(' · ');
+    return `<div class="li-item${gone ? ' gone' : ''}" data-i="${i}">
+      <span class="li-n">${i + 1}</span>
+      <button type="button" class="song-open li-open" data-li-open="${i}" ${gone ? 'disabled' : ''}>
+        <span class="song-text"><strong>${esc(s ? s.title : 'Música removida')}</strong><span>${esc(sub)}</span>${it.note ? `<em class="li-obs">${esc(it.note)}</em>` : ''}</span>
+      </button>
+      ${ed && !gone ? `<button type="button" class="keytag li-key${changed ? ' changed' : ''}" data-li-key="${i}" aria-label="Tom no culto: ${esc(ki ? ki.cur.label : 'sem tom')}. Trocar">${esc(keyTxt)}</button>` : `<span class="keytag${changed ? ' changed' : ''}" title="Tom no culto">${esc(keyTxt)}</span>`}
+      ${ed ? `<span class="li-move"><button type="button" class="icon-btn" data-li-up="${i}" aria-label="Subir" ${i === 0 ? 'disabled' : ''}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button><button type="button" class="icon-btn" data-li-down="${i}" aria-label="Descer" ${i === l.items.length - 1 ? 'disabled' : ''}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button></span>
+      <button type="button" class="icon-btn" data-li-more="${i}" aria-haspopup="menu" aria-label="Mais opções da música"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg></button>` : ''}
+      ${liNoteFor === it.id ? `<form class="li-note-form" data-li-note-form="${i}"><input class="input" maxlength="80" value="${esc(it.note || '')}" placeholder="Ex.: só 1x o refrão; entrada só piano" aria-label="Observação para o culto"><button type="submit" class="btn primary">OK</button></form>` : ''}
+    </div>`;
+  }).join('');
+  if (liNoteFor) { const f = $('li-items').querySelector('.li-note-form input'); if (f) f.focus(); }
+}
+function defaultListOpen() {
+  const g = ((db.user && db.user.groups) || []).map(x => String(x).toLowerCase());
+  return g.includes('orquestra') && !g.includes('banda') ? 'partitura' : 'cifra';
+}
+function touchList(l) { l.updated = Date.now(); save(); }
+/* Popover de tom (o mesmo desenho do seletor da cifra) */
+const liPop = document.createElement('div');
+liPop.className = 'row-menu li-pop'; liPop.hidden = true; document.body.appendChild(liPop);
+function openListKey(btn, l, i) {
+  const it = l.items[i], s = songById(it.songId), ki = songKeyInfo(s, it.shift);
+  if (!ki) { toast('Esta cifra não tem tom definido. Defina o tom no editor.'); return; }
+  const o = ki.orig;
+  let h = `<div class="keypick-head"><span>Tom no culto · original <strong>${esc(o.label)}</strong>${ki.sug ? ' (sugerido)' : ''}</span></div><div class="keypick-grid">`;
+  PICK.forEach(([main, alt], j) => {
+    const idx = o.minor ? (j + 9) % 12 : j, isOrig = idx === o.idx, sub = [];
+    if (alt) sub.push(alt);
+    if (o.minor) sub.push(PICK[idx][0] + 'm');
+    h += `<button type="button" data-lk="${idx}" aria-current="${idx === ki.cur.idx}" class="${isOrig ? 'orig' : ''}">${main}${sub.length ? `<small>${sub.join(' · ')}</small>` : ''}${isOrig ? '<small class="o">original</small>' : ''}</button>`;
+  });
+  liPop.innerHTML = h + '</div>';
+  liKeyFor = { id: l.id, i, orig: o.idx };
+  liPop.hidden = false;
+  const r = btn.getBoundingClientRect();
+  liPop.style.top = (r.bottom + window.scrollY + 6) + 'px';
+  liPop.style.left = Math.max(8, Math.min(window.innerWidth - liPop.offsetWidth - 8, r.right + window.scrollX - liPop.offsetWidth)) + 'px';
+}
+function closeListPop() { liPop.hidden = true; liKeyFor = null; }
+liPop.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const b = e.target.closest('[data-lk]'); if (!b || !liKeyFor) return;
+  const l = listById(liKeyFor.id); if (!l) return;
+  l.items[liKeyFor.i].shift = (Number(b.dataset.lk) - liKeyFor.orig + 12) % 12;
+  touchList(l); closeListPop(); renderListDetail(l.id);
+});
+/* Menu ⋯ de uma lista e de uma música da lista (reaproveita o menu das linhas) */
+function openMenuAt(btn, html) {
+  rowMenu.innerHTML = html; rowMenu.hidden = false;
+  const r = btn.getBoundingClientRect();
+  rowMenu.style.top = (r.bottom + window.scrollY + 4) + 'px';
+  rowMenu.style.left = Math.max(8, r.right + window.scrollX - rowMenu.offsetWidth) + 'px';
+  rowMenu.querySelector('button').focus();
+}
+function deleteList(id) {
+  const i = db.lists.findIndex(l => l.id === id); if (i < 0) return;
+  const [gone] = db.lists.splice(i, 1); save();
+  if (route.name === 'lista') go('listas'); else renderLists();
+  toast(`Lista "${listTitle(gone)}" excluída.`, { label: 'Desfazer', fn: () => { db.lists.splice(i, 0, gone); save(); if (route.name === 'listas') renderLists(); } });
+}
+function cloneList(id) {
+  const l = listById(id); if (!l) return;
+  let date = '';
+  if (l.date) { const d = dayOf(l.date); d.setDate(d.getDate() + 7); date = isoDay(d); if (date < todayIso()) date = nextSaturday(); }
+  go('listaform', { clone: id, date, back: { name: route.name, params: route.name === 'lista' ? { id } : {} } });
+}
+/* Formulário: nova lista, editar, clonar */
+function openListForm(p) {
+  const l = p.id ? listById(p.id) : p.clone ? listById(p.clone) : null;
+  const editing = !!p.id && l;
+  $('top-title').textContent = editing ? 'Editar lista' : p.clone ? 'Clonar lista' : 'Nova lista';
+  $('lf-title').value = l ? (p.clone ? listTitle(l) : (l.title || '')) : '';
+  $('lf-date').value = p.clone ? (p.date || '') : l ? (l.date || '') : nextSaturday();
+  $('lf-time').value = l ? (l.time || '') : '';
+  $('lf-leader').value = l ? (l.leader || '') : '';
+  $('lf-note').value = l ? (l.note || '') : '';
+  $('lf-clone-info').hidden = !p.clone;
+  if (p.clone && l) $('lf-clone-info').textContent = `Copiando ${l.items.length} ${l.items.length === 1 ? 'música' : 'músicas'}, com a ordem, os tons e as observações. Confira a data.`;
+  $('lf-save').textContent = editing ? 'Salvar' : p.clone ? 'Criar cópia' : 'Criar lista';
+  setTimeout(() => (p.clone ? $('lf-date') : $('lf-title')).focus(), 50);
+}
+$('lf-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const p = route, now = Date.now();
+  const data = { title: $('lf-title').value.trim().replace(/\s+/g, ' '), date: $('lf-date').value, time: $('lf-time').value, leader: $('lf-leader').value.trim(), note: $('lf-note').value.trim() };
+  if (!Array.isArray(db.lists)) db.lists = [];
+  let l;
+  if (p.id && listById(p.id)) { l = listById(p.id); Object.assign(l, data); l.updated = now; }
+  else {
+    const src = p.clone ? listById(p.clone) : null;
+    l = { id: uid('l'), ...data, items: src ? src.items.map(it => ({ id: uid('i'), songId: it.songId, shift: it.shift || 0, note: it.note || '' })) : [], created: now, updated: now };
+    db.lists.push(l);
+  }
+  save();
+  if (!p.id && !p.clone) { go('listapick', { id: l.id, back: { name: 'lista', params: { id: l.id, back: { name: 'listas' } } } }); return; }
+  go('lista', { id: l.id, back: { name: 'listas' } });
+  toast(p.clone ? 'Cópia criada.' : 'Lista salva.');
+});
+$('lf-cancel').addEventListener('click', () => $('back-btn').click());
+/* Escolher músicas para a lista */
+let pickSel = [];
+function openPick(id) {
+  const l = listById(id); if (!l) { go('listas'); return; }
+  pickSel = []; $('lp-q').value = '';
+  $('top-title').textContent = 'Adicionar músicas';
+  renderPick();
+}
+function renderPick() {
+  const l = listById(route.id); if (!l) return;
+  const q = norm($('lp-q').value.trim());
+  const inList = new Set(l.items.map(it => it.songId));
+  const all = activeSongs().sort(byTitle).filter(s => !q || norm(s.title + ' ' + (s.artist || '')).includes(q));
+  $('lp-list').innerHTML = all.length ? all.map(s => {
+    const k = pickSel.indexOf(s.id), ki = songKeyInfo(s, 0);
+    return `<button type="button" class="pick-row" data-pick="${esc(s.id)}" aria-pressed="${k >= 0}">
+      <span class="pick-check">${k >= 0 ? k + 1 : ''}</span>
+      <span class="song-text"><strong>${esc(s.title)}</strong><span>${esc([s.artist, inList.has(s.id) ? 'já está na lista' : ''].filter(Boolean).join(' · '))}</span></span>
+      <span class="keytag${ki && ki.sug ? ' sug' : ''}">${esc(ki ? ki.orig.main : '—')}</span></button>`;
+  }).join('') : `<div class="empty"><p>${q ? 'Nenhuma música encontrada.' : 'O repertório está vazio. Cadastre cifras em Cifras primeiro.'}</p></div>`;
+  $('lp-go').textContent = pickSel.length ? `Adicionar ${pickSel.length} ${pickSel.length === 1 ? 'música' : 'músicas'}` : 'Escolha as músicas';
+  $('lp-go').disabled = !pickSel.length;
+}
+$('lp-q').addEventListener('input', renderPick);
+$('lp-list').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-pick]'); if (!b) return;
+  const id = b.dataset.pick, k = pickSel.indexOf(id);
+  if (k >= 0) pickSel.splice(k, 1); else pickSel.push(id);
+  renderPick();
+});
+$('lp-go').addEventListener('click', () => {
+  const l = listById(route.id); if (!l || !pickSel.length) return;
+  pickSel.forEach(sid => l.items.push({ id: uid('i'), songId: sid, shift: 0, note: '' }));
+  const n = pickSel.length; pickSel = []; touchList(l);
+  go('lista', { id: l.id, back: { name: 'listas' } });
+  toast(`${n} ${n === 1 ? 'música adicionada' : 'músicas adicionadas'}. Toque no tom para mudar o tom do culto.`);
+});
+$('lp-cancel').addEventListener('click', () => $('back-btn').click());
+/* Modo culto: abre a música i da lista na cifra ou na partitura */
+function openListItem(l, i, as) {
+  const it = l.items[i]; if (!it) return;
+  const s = songById(it.songId);
+  if (!s || s.archived) { toast('Esta música não está mais no repertório.'); return; }
+  const mode = as || db.listOpen || defaultListOpen();
+  const back = { name: 'lista', params: { id: l.id, back: { name: 'listas' } } };
+  const sc = mode === 'partitura' ? scoresForSong(it.songId) : [];
+  if (sc.length) go('partitura', { id: sc[0].id, list: l.id, idx: i, back });
+  else go('cifra', { id: s.id, list: l.id, idx: i, back });
+}
+function listStep(dir) {
+  const l = listById(route.list); if (!l) return;
+  let i = route.idx + dir;
+  while (i >= 0 && i < l.items.length) { const s = songById(l.items[i].songId); if (s && !s.archived) break; i += dir; }
+  if (i < 0 || i >= l.items.length) return;
+  openListItem(l, i, route.name === 'partitura' ? 'partitura' : (db.listOpen || defaultListOpen()));
+}
+function updListNav() {
+  const nav = $('list-nav');
+  const l = (route.name === 'cifra' || route.name === 'partitura') && route.list ? listById(route.list) : null;
+  nav.hidden = !l || ink.on;
+  document.body.classList.toggle('has-listnav', !nav.hidden);
+  if (!l) return;
+  const i = route.idx, n = l.items.length;
+  const name = (k) => { const it = l.items[k]; const s = it && songById(it.songId); return s ? s.title : ''; };
+  $('ln-prev').disabled = i <= 0; $('ln-next').disabled = i >= n - 1;
+  $('ln-mid').innerHTML = `<b>${i + 1} de ${n}</b><span>${esc(listTitle(l))}</span>`;
+  $('ln-next').querySelector('span').textContent = i < n - 1 ? name(i + 1) : 'Fim da lista';
+  $('ln-prev').setAttribute('aria-label', i > 0 ? 'Anterior: ' + name(i - 1) : 'Anterior');
+  $('ln-next').setAttribute('aria-label', i < n - 1 ? 'Próxima: ' + name(i + 1) : 'Fim da lista');
+}
+$('ln-prev').addEventListener('click', () => listStep(-1));
+$('ln-next').addEventListener('click', () => listStep(1));
+$('ln-mid').addEventListener('click', () => { const id = route.list; go('lista', { id, back: { name: 'listas' } }); });
+/* Adicionar a música aberta numa lista */
+function openAddToList(btn) {
+  const lists = upcomingLists().slice(0, 6);
+  openMenuAt(btn, lists.map(l => `<button type="button" role="menuitem" data-add-to="${esc(l.id)}">${esc(listTitle(l))}<small class="rm-sub">${esc(l.date ? dateLabel(l.date) : 'sem data')}</small></button>`).join('') +
+    `<button type="button" role="menuitem" data-add-to="__new">+ Nova lista com esta música</button>`);
+}
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  if (!liPop.hidden && !t.closest('.li-pop')) closeListPop();
+  let b;
+  if ((b = t.closest('[data-list-new]'))) { go('listaform', { back: { name: 'listas' } }); return; }
+  if ((b = t.closest('[data-list-open]'))) { go('lista', { id: b.dataset.listOpen, back: { name: 'listas' } }); return; }
+  if ((b = t.closest('[data-list-more]'))) {
+    e.stopPropagation(); const id = b.dataset.listMore;
+    if (!rowMenu.hidden) { closeRowMenu(); return; }
+    openMenuAt(b, `<button type="button" role="menuitem" data-lm-edit="${esc(id)}">Editar dados</button><button type="button" role="menuitem" data-lm-clone="${esc(id)}">Clonar para outro culto</button><button type="button" role="menuitem" class="danger" data-lm-del="${esc(id)}">Excluir lista</button>`);
+    return;
+  }
+  if ((b = t.closest('[data-lm-edit]'))) { closeRowMenu(); const id = b.dataset.lmEdit; go('listaform', { id, back: { name: 'lista', params: { id, back: { name: 'listas' } } } }); return; }
+  if ((b = t.closest('[data-lm-clone]'))) { closeRowMenu(); cloneList(b.dataset.lmClone); return; }
+  if ((b = t.closest('[data-lm-del]'))) { closeRowMenu(); deleteList(b.dataset.lmDel); return; }
+  if ((b = t.closest('[data-add-to]'))) {
+    closeRowMenu(); const sid = cur.id;
+    if (b.dataset.addTo === '__new') {
+      const now = Date.now(), l = { id: uid('l'), title: '', date: nextSaturday(), time: '', leader: '', note: '', items: [{ id: uid('i'), songId: sid, shift: 0, note: '' }], created: now, updated: now };
+      db.lists.push(l); save();
+      go('listaform', { id: l.id, back: { name: 'lista', params: { id: l.id, back: { name: 'listas' } } } });
+      return;
+    }
+    const l = listById(b.dataset.addTo); if (!l) return;
+    const dup = l.items.some(it => it.songId === sid);
+    l.items.push({ id: uid('i'), songId: sid, shift: 0, note: '' }); touchList(l);
+    toast(dup ? `Adicionada de novo em "${listTitle(l)}" (ela já estava na lista).` : `Adicionada em "${listTitle(l)}".`, { label: 'Abrir lista', fn: () => go('lista', { id: l.id, back: { name: 'listas' } }) });
+    return;
+  }
+  if (route.name !== 'lista') return;
+  const l = listById(route.id); if (!l) return;
+  if ((b = t.closest('[data-li-start]'))) { const i = l.items.findIndex(it => { const s = songById(it.songId); return s && !s.archived; }); if (i >= 0) openListItem(l, i); return; }
+  if ((b = t.closest('[data-li-as]'))) { db.listOpen = b.dataset.liAs; save(); renderListDetail(l.id); if (db.listOpen === 'partitura' && !l.items.some(it => scoresForSong(it.songId).length)) toast('Nenhuma música desta lista tem partitura ligada: elas abrem na cifra.'); return; }
+  if ((b = t.closest('[data-li-add]'))) { go('listapick', { id: l.id, back: { name: 'lista', params: { id: l.id, back: { name: 'listas' } } } }); return; }
+  if ((b = t.closest('[data-li-edit]'))) { go('listaform', { id: l.id, back: { name: 'lista', params: { id: l.id, back: { name: 'listas' } } } }); return; }
+  if ((b = t.closest('[data-li-open]'))) { openListItem(l, Number(b.dataset.liOpen)); return; }
+  if ((b = t.closest('[data-li-key]'))) { e.stopPropagation(); const i = Number(b.dataset.liKey); if (!liPop.hidden && liKeyFor && liKeyFor.i === i) { closeListPop(); return; } openListKey(b, l, i); return; }
+  const mv = (from, to) => { const [x] = l.items.splice(from, 1); l.items.splice(to, 0, x); touchList(l); renderListDetail(l.id); const nb = $('li-items').querySelector(`[data-i="${to}"] [data-li-${to < from ? 'up' : 'down'}="${to}"]`); if (nb && !nb.disabled) nb.focus(); };
+  if ((b = t.closest('[data-li-up]'))) { const i = Number(b.dataset.liUp); if (i > 0) mv(i, i - 1); return; }
+  if ((b = t.closest('[data-li-down]'))) { const i = Number(b.dataset.liDown); if (i < l.items.length - 1) mv(i, i + 1); return; }
+  if ((b = t.closest('[data-li-more]'))) {
+    e.stopPropagation(); const i = b.dataset.liMore;
+    if (!rowMenu.hidden) { closeRowMenu(); return; }
+    openMenuAt(b, `<button type="button" role="menuitem" data-lim-note="${i}">${l.items[i].note ? 'Editar observação' : 'Observação para o culto'}</button><button type="button" role="menuitem" data-lim-cifra="${i}">Abrir a cifra</button>${scoresForSong(l.items[i].songId).length ? `<button type="button" role="menuitem" data-lim-pdf="${i}">Abrir a partitura</button>` : ''}<button type="button" role="menuitem" class="danger" data-lim-del="${i}">Tirar da lista</button>`);
+    return;
+  }
+  if ((b = t.closest('[data-lim-note]'))) { closeRowMenu(); liNoteFor = l.items[Number(b.dataset.limNote)].id; renderListDetail(l.id); return; }
+  if ((b = t.closest('[data-lim-cifra]'))) { closeRowMenu(); openListItem(l, Number(b.dataset.limCifra), 'cifra'); return; }
+  if ((b = t.closest('[data-lim-pdf]'))) { closeRowMenu(); openListItem(l, Number(b.dataset.limPdf), 'partitura'); return; }
+  if ((b = t.closest('[data-lim-del]'))) {
+    closeRowMenu(); const i = Number(b.dataset.limDel); const [x] = l.items.splice(i, 1); touchList(l); renderListDetail(l.id);
+    const s = songById(x.songId);
+    toast(`"${s ? s.title : 'Música'}" saiu da lista.`, { label: 'Desfazer', fn: () => { l.items.splice(i, 0, x); touchList(l); if (route.name === 'lista') renderListDetail(l.id); } });
+  }
+});
+$('li-items').addEventListener('submit', (e) => {
+  const f = e.target.closest('[data-li-note-form]'); if (!f) return;
+  e.preventDefault();
+  const l = listById(route.id); if (!l) return;
+  l.items[Number(f.dataset.liNoteForm)].note = f.querySelector('input').value.trim();
+  liNoteFor = null; touchList(l); renderListDetail(l.id);
+});
+/* Início: próximo culto */
+function renderNextList() {
+  const l = upcomingLists().find(x => x.items.length) || upcomingLists()[0];
+  $('w-next').hidden = !l;
+  if (!l) return;
+  const names = l.items.slice(0, 4).map(it => { const s = songById(it.songId); return s ? s.title : null; }).filter(Boolean);
+  $('w-next-body').innerHTML = `<button type="button" class="next-card" data-list-open="${esc(l.id)}">
+    <strong>${esc(listTitle(l))}</strong><span class="hint">${esc([l.date ? dateLabel(l.date, true) : '', l.time].filter(Boolean).join(' · ') || 'sem data')}</span>
+    ${names.length ? `<span class="next-songs">${esc(names.join(' · '))}${l.items.length > 4 ? ` · +${l.items.length - 4}` : ''}</span>` : '<span class="hint">Sem músicas ainda.</span>'}</button>`;
+}
+
 /* APK: botão voltar do Android navega dentro do app (só fecha na tela Início) */
 (function nativeBack() {
   const App = capPlugin('App');
@@ -2990,6 +3422,7 @@ pinchable($('v-partitura'), () => $('pv-pages'), (G) => {
     if (!$('drawer').hidden) { closeDrawer(); return; }
     if (!$('ink-text').hidden) { $('ink-text').hidden = true; return; }
     if (ink.on) { inkStop(); return; }
+    if (!liPop.hidden) { closeListPop(); return; }
     if (typeof rowMenu !== 'undefined' && !rowMenu.hidden) { closeRowMenu(); return; }
     if ($('fab-wrap') && $('fab-wrap').classList.contains('open')) { closeFab(); return; }
     if (!$('keypick').hidden) { closeKeypick(); return; }
@@ -3016,6 +3449,7 @@ if (!STYLES[db.prefs.style]) {
 delete db.prefs.darkSkin; delete db.prefs.lightSkin; delete db.verses; delete db.verseVersion;
 if (!Array.isArray(db.scores)) db.scores = [];
 if (!db.pdfZoom || typeof db.pdfZoom !== 'object') db.pdfZoom = {};
+if (!Array.isArray(db.lists)) db.lists = [];
 seedCatalog();
 if (!ACCENTS[db.prefs.accent]) db.prefs.accent = PREF_DEFAULT.accent;
 if (!FONTS[db.prefs.font]) db.prefs.font = PREF_DEFAULT.font;
