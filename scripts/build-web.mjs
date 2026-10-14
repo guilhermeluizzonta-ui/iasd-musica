@@ -73,7 +73,7 @@ fs.writeFileSync(path.join(www, 'pauta.html'), `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <script src="lib/capacitor.js"></script>
-<style>html,body{margin:0}</style>
+<style>html,body{margin:0}[hidden]:not([hidden=until-found i]){display:none!important}:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 </head>
 <body>
 ${pauta}

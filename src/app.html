@@ -472,6 +472,32 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
 .lsheet .lkey { color: var(--chord); }
 .body.lyr.measure .lline { width: max-content; }
 html[data-style="retro"] .lsheet .lline { font-family: var(--mono); }
+
+/* ---------- Criar partitura ---------- */
+.fab-menu button.fab-primary { background: var(--gold); color: var(--gold-ink); border-color: #8A6400; }
+.fab-menu button.fab-primary svg { color: currentColor; }
+.fab-menu button.fab-primary:hover { background: #FFD84A; }
+.sf-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.sf-keys { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; }
+@media (max-width: 640px) { .sf-keys { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.sf-keys button { min-height: 44px; border-radius: var(--r); border: var(--bw) solid var(--ctl-eff, var(--ctl)); background: var(--surface); color: var(--fg); font: inherit; font-size: 15px; cursor: pointer; padding: 0; }
+.sf-keys button[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); font-weight: 700; }
+.sf-prev-box { border: var(--bw) solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; background: var(--surface-2); }
+.sf-prev { background: #FFFFFF; color: #141413; border-radius: 8px; padding: 18px 18px 14px; display: flex; flex-direction: column; gap: 26px; }
+.sf-staff { position: relative; height: 40px; display: flex; flex-direction: column; justify-content: space-between; }
+.sf-staff i { display: block; height: 1px; background: #141413; }
+.sf-staff span { position: absolute; top: 50%; transform: translateY(-50%); background: #FFFFFF; padding: 0 6px; font-weight: 700; }
+.sf-clef { left: 0; font-size: 12px; }
+.sf-acc { left: 104px; font-size: 18px; letter-spacing: 1px; }
+.sf-meter { left: 220px; font-size: 18px; font-weight: 800 !important; }
+.sf-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .sf-grid2 { grid-template-columns: minmax(0, 1fr); } }
+.sf-outro { display: flex; align-items: center; gap: 8px; }
+.sf-outro .input { width: 90px; }
+.score-ico { color: #8A6400; }
+.badge-ed { font-size: 12px; font-weight: 600; color: #8A6400; border: 1px solid #8A6400; border-radius: 999px; padding: 2px 10px; flex: none; white-space: nowrap; }
+html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gold); border-color: var(--gold); }
+@media (max-width: 480px) { .badge-ed { display: none; } }
 </style>
 
 <!-- ================= LOGIN ================= -->
@@ -723,6 +749,48 @@ html[data-style="retro"] .lsheet .lline { font-family: var(--mono); }
       <p class="hint" id="ls-count"></p>
       <div class="ls-body" id="ls-body"></div>
     </section>
+    <!-- Ficha da nova partitura -->
+    <section class="view" id="v-scoreform" hidden>
+      <form class="box" id="sf-form" autocomplete="off" data-tipscope novalidate>
+        <div class="sf-grid2">
+          <div class="field"><label for="sf-title">Título</label><input class="input" id="sf-title" maxlength="80" placeholder="Nome da música"></div>
+          <div class="field"><label for="sf-author">Compositor ou arranjo <small>(opcional)</small></label><input class="input" id="sf-author" maxlength="80" placeholder="Ex.: arranjo de Fulano"></div>
+        </div>
+        <p class="warn" id="sf-err" hidden>Dê um título à partitura.</p>
+        <div class="field"><span class="label">Formação</span>
+          <div class="sf-chips" role="group" aria-label="Formação">
+            <button type="button" class="chip" data-sf-form="sol" aria-pressed="true">Clave de Sol</button>
+            <button type="button" class="chip" data-sf-form="fa" aria-pressed="false">Clave de Fá</button>
+            <button type="button" class="chip" data-sf-form="do" aria-pressed="false">Clave de Dó</button>
+            <button type="button" class="chip" data-sf-form="piano" aria-pressed="false">Piano (Sol + Fá)</button>
+          </div>
+        </div>
+        <div class="field"><span class="label">Tom <small>· o app desenha a armadura</small></span>
+          <div class="row">
+            <div class="group" role="group" aria-label="Maior ou menor"><button type="button" data-sf-mode="M" aria-pressed="true">Maior</button><button type="button" data-sf-mode="m" aria-pressed="false">Menor</button></div>
+            <span class="hint" id="sf-keyinfo"></span>
+          </div>
+          <div class="sf-keys" id="sf-keys" role="group" aria-label="Tom"></div>
+        </div>
+        <div class="sf-grid2">
+          <div class="field"><span class="label">Compasso</span>
+            <div class="sf-chips" role="group" aria-label="Compasso"><button type="button" class="chip" data-sf-comp="C" aria-pressed="false">C</button><button type="button" class="chip" data-sf-comp="Cc" aria-pressed="false">¢</button><button type="button" class="chip" data-sf-comp="2/4" aria-pressed="false">2/4</button><button type="button" class="chip" data-sf-comp="3/4" aria-pressed="false">3/4</button><button type="button" class="chip" data-sf-comp="4/4" aria-pressed="false">4/4</button><button type="button" class="chip" data-sf-comp="6/8" aria-pressed="false">6/8</button><button type="button" class="chip" data-sf-comp="outro" aria-pressed="false">Outro</button></div>
+            <div class="sf-outro" id="sf-outro" hidden><input class="input" id="sf-num" type="number" min="1" max="32" value="5" aria-label="Tempos por compasso"> / <select class="input" id="sf-den" aria-label="Figura de cada tempo"><option>1</option><option>2</option><option selected>4</option><option>8</option><option>16</option></select></div>
+          </div>
+          <div class="stack">
+            <div class="field"><label for="sf-uni">Unidade de tempo</label><select class="input" id="sf-uni"><option value="semibreve">Semibreve</option><option value="minima">Mínima</option><option value="seminima">Semínima</option><option value="colcheia">Colcheia</option><option value="semicolcheia">Semicolcheia</option></select><label class="hint" style="display:flex;align-items:center;gap:8px;min-height:32px"><input type="checkbox" id="sf-dot"> pontuada</label></div>
+            <div class="field"><label for="sf-and">Andamento <small>(opcional, batidas por minuto)</small></label><input class="input" id="sf-and" type="number" min="20" max="300" inputmode="numeric" placeholder="Ex.: 72"></div>
+          </div>
+        </div>
+        <div class="sf-prev-box">
+          <span class="sec-title">Como a partitura começa</span>
+          <div class="sf-prev" id="sf-prev"></div>
+          <div class="field"><label for="sf-folder">Salvar em</label><select class="input" id="sf-folder"></select></div>
+        </div>
+        <p class="tipline" aria-live="polite"></p>
+        <div class="row" style="justify-content:flex-end"><button type="button" class="btn ib" id="sf-cancel" aria-label="Cancelar" data-tip="Cancelar|Volta para Partituras sem criar."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button><button type="submit" class="btn ib primary" id="sf-save" aria-label="Criar partitura" data-tip="Criar partitura|Guarda a ficha e abre a pauta para escrever com a S Pen. Dá para mudar a ficha depois."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg></button></div>
+      </form>
+    </section>
     <!-- Lista aberta -->
     <section class="view" id="v-lista" data-tipscope hidden>
       <div id="li-head"></div>
@@ -918,9 +986,9 @@ html[data-style="retro"] .lsheet .lline { font-family: var(--mono); }
   <div class="fab-wrap" id="fab-wrap" hidden>
     <div class="fab-menu" id="fab-menu" role="menu" aria-label="Adicionar">
       <button type="button" role="menuitem" id="fab-new"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>Nova cifra</button>
+      <button type="button" role="menuitem" id="fab-score" class="fab-primary" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h14M2 8h11M2 12h9M2 16h7M2 20h6"/><path d="M13.5 19.5l-1 3 3-1 7.2-7.2a1.4 1.4 0 0 0-2-2z"/></svg>Criar partitura</button>
       <button type="button" role="menuitem" id="fab-folder" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.5h8.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"></path></svg>Nova pasta</button>
       <button type="button" role="menuitem" id="fab-pdf" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path></svg>Importar PDF</button>
-      <button type="button" role="menuitem" id="fab-score" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h13M3 11h13M3 15h9"></path><path d="M14.5 19.5l6-6-2-2-6 6-.7 2.7z"></path></svg>Criar partitura</button>
       <button type="button" role="menuitem" id="fab-import"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path></svg>Importar arquivo</button>
     </div>
     <button type="button" class="fab" id="fab" aria-label="Adicionar cifra" aria-haspopup="menu" aria-expanded="false" aria-controls="fab-menu"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
@@ -1286,7 +1354,7 @@ function viewFor(id) {
 }
 
 /* ---------- Navegação ---------- */
-const TITLES = { letra: 'Letra', lista: 'Lista', listaform: 'Nova lista', listapick: 'Adicionar músicas', letras: 'Letras', partitura: 'Partitura', inicio: 'Início', cifras: 'Cifras', favoritas: 'Favoritas', partituras: 'Partituras', listas: 'Listas de culto', config: 'Configurações', lixeira: 'Lixeira' };
+const TITLES = { scoreform: 'Nova partitura', letra: 'Letra', lista: 'Lista', listaform: 'Nova lista', listapick: 'Adicionar músicas', letras: 'Letras', partitura: 'Partitura', inicio: 'Início', cifras: 'Cifras', favoritas: 'Favoritas', partituras: 'Partituras', listas: 'Listas de culto', config: 'Configurações', lixeira: 'Lixeira' };
 const TOP = ['inicio', 'cifras', 'favoritas', 'partituras', 'letras', 'listas', 'config', 'lixeira'];
 let route = { name: 'inicio' }, lastTop = 'inicio';
 function show(id) { ['v-login', 'v-signup'].forEach(x => $(x).hidden = x !== id); $('app').hidden = id !== 'app'; }
@@ -1313,7 +1381,7 @@ function go(name, params = {}) {
   $('fab-wrap').classList.toggle('single', name === 'listas');   // pastas: todos organizam as suas
   $('fab').setAttribute('aria-label', name === 'partituras' ? 'Importar partituras em PDF' : name === 'listas' ? 'Nova lista' : 'Adicionar cifra');
   const inPdf = name === 'partituras';
-  ['fab-new', 'fab-import'].forEach(i => $(i).hidden = inPdf); $('fab-folder').hidden = !inPdf; $('fab-pdf').hidden = !inPdf; $('fab-score').hidden = !inPdf;   // todos importam os PDFs que têm no aparelho
+  ['fab-new', 'fab-import'].forEach(i => $(i).hidden = inPdf); $('fab-folder').hidden = !inPdf; $('fab-pdf').hidden = !inPdf; $('fab-score').hidden = !(inPdf && db.role === 'editor');   // todos importam os PDFs que têm no aparelho
   if (TITLES[name]) $('top-title').textContent = TITLES[name];
   if (name === 'inicio') renderWelcome();
   if (name === 'cifras') renderList();
@@ -1325,6 +1393,7 @@ function go(name, params = {}) {
   if (name === 'partituras') { if (params.q != null) $('pdf-q').value = params.q; renderPdfList(); if (params.back && params.back.name === 'cifra') { const bs = songById(params.back.params.id); if (bs) $('top-title').textContent = 'Partituras · ' + bs.title; } }
   if (name === 'partitura') openPdfView(params.id);
   if (name === 'listas') renderLists();
+  if (name === 'scoreform') openScoreForm();
   if (name === 'letras') renderLetras();
   if (name === 'letra') openLetra(params.id);
   if (name === 'lista') renderListDetail(params.id);
@@ -2053,11 +2122,11 @@ $('fab').addEventListener('click', (e) => {
   if (route.name === 'listas') { go('listaform', { back: { name: 'listas' } }); return; }
   const open = !$('fab-wrap').classList.contains('open');
   $('fab-wrap').classList.toggle('open', open); $('fab').setAttribute('aria-expanded', String(open));
-  if (open) (route.name === 'partituras' ? $('fab-folder') : $('fab-new')).focus();
+  if (open) (route.name === 'partituras' ? (db.role === 'editor' ? $('fab-score') : $('fab-folder')) : $('fab-new')).focus();
 });
 $('fab-new').addEventListener('click', () => { closeFab(); go('editor', {}); });
 $('fab-pdf').addEventListener('click', () => { closeFab(); $('pdf-file').click(); });
-$('fab-score').addEventListener('click', () => { closeFab(); location.href = 'pauta.html'; });   // editor Pauta a Mão Livre (www/pauta.html, só no APK)
+$('fab-score').addEventListener('click', () => { closeFab(); go('scoreform', { back: { name: 'partituras', params: { folder: pdfFolder } } }); });
 $('fab-folder').addEventListener('click', () => { closeFab(); folderDialog('new'); });
 $('fab-import').addEventListener('click', () => { closeFab(); $('bulk-file').click(); });
 document.addEventListener('click', (e) => { if (!e.target.closest('#fab-wrap')) closeFab(); });
@@ -2328,6 +2397,18 @@ function openFolder(id) { pdfFolder = id || null; $('pdf-q').value = ''; $('pdf-
 /* Lista: pastas primeiro, depois as partituras da pasta. Com busca, procura em todas as pastas. */
 const scoreRow = (sc, showPath) => {
   const s = scoreSong(sc);
+  if (sc.kind === 'pauta') {
+    const sub = ['Criada no app', sc.meta, s ? 'Cifra: ' + s.title : '', showPath && sc.folderId ? folderLabel(sc.folderId) : ''].filter(Boolean).join(' · ');
+    return `<div class="song">
+      <button type="button" class="song-open" data-pdf="${esc(sc.id)}">
+        <span class="keytag score-ico" aria-hidden="true">${ico('score')}</span>
+        <span class="song-text"><strong>${esc(sc.title)}</strong><span>${esc(sub)}</span></span>
+      </button>
+      <span class="badge-ed">editável</span>
+      ${db.role === 'editor' ? `<button type="button" class="icon-btn" data-pz-edit="${esc(sc.id)}" aria-label="Editar notas: ${esc(sc.title)}">${ico('pen', 20)}</button>` : ''}
+      <button type="button" class="icon-btn" data-pmore="${esc(sc.id)}" aria-haspopup="menu" aria-label="Mais opções: ${esc(sc.title)}"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg></button>
+    </div>`;
+  }
   const sub = [s ? 'Cifra: ' + s.title : 'Sem cifra ligada', showPath && sc.folderId ? folderLabel(sc.folderId) : '', sc.pages ? `${sc.pages} ${sc.pages === 1 ? 'página' : 'páginas'}` : '', sc.local ? '' : 'não baixada'].filter(Boolean).join(' · ');
   return `<div class="song${sc.local ? '' : ' not-local'}">
       <button type="button" class="song-open" data-pdf="${esc(sc.id)}">
@@ -2559,7 +2640,12 @@ document.addEventListener('click', async (e) => {
     toast(n || nf ? `Pasta excluída. O conteúdo foi para ${f.parentId ? folderLabel(f.parentId) : 'Partituras (início)'}.` : 'Pasta excluída.');
     return;
   }
+  const pze = e.target.closest('[data-pz-edit]');
+  if (pze) { closeRowMenu(); const sc = scoreById(pze.dataset.pzEdit); if (sc) openPauta({ id: sc.pautaId }); return; }
+  const pzv = e.target.closest('[data-pz-view]');
+  if (pzv) { closeRowMenu(); const sc = scoreById(pzv.dataset.pzView); if (sc) openPauta({ id: sc.pautaId, ver: '1' }); return; }
   const op = e.target.closest('[data-pdf]');
+  if (op && (scoreById(op.dataset.pdf) || {}).kind === 'pauta') { const sc = scoreById(op.dataset.pdf); openPauta({ id: sc.pautaId, ver: '1' }); return; }
   if (op) { const fromList = route.name === 'partituras' ? { name: 'partituras', params: { q: $('pdf-q').value, back: route.back, folder: pdfFolder } } : null; go('partitura', { id: op.dataset.pdf, back: fromList || undefined }); return; }
   const more = e.target.closest('[data-pmore]');
   if (more) {
@@ -2568,7 +2654,8 @@ document.addEventListener('click', async (e) => {
     const id = more.dataset.pmore;
     const scm = scoreById(id);
     const ed = db.role === 'editor', mine = scm && !scm.catId;   // importada neste aparelho = de quem importou
-    rowMenu.innerHTML = `<button type="button" role="menuitem" data-pm-mov="${esc(id)}">Mover para…</button>` +
+    rowMenu.innerHTML = (scm && scm.kind === 'pauta' ? `<button type="button" role="menuitem" data-pz-view="${esc(id)}">Abrir (como os músicos veem)</button>` + (ed ? `<button type="button" role="menuitem" data-pz-edit="${esc(id)}">Editar notas</button>` : '') : '') +
+      `<button type="button" role="menuitem" data-pm-mov="${esc(id)}">Mover para…</button>` +
       (ed || mine ? `<button type="button" role="menuitem" data-pm-link="${esc(id)}">Ligar à cifra…</button>` : '') +
       (scm && scm.catId ? (scm.local ? `<button type="button" role="menuitem" class="danger" data-pm-del="${esc(id)}">Remover deste aparelho</button>` : '')
         : `<button type="button" role="menuitem" class="danger" data-pm-del="${esc(id)}">Excluir</button>`);
@@ -2596,6 +2683,7 @@ document.addEventListener('click', async (e) => {
     closeRowMenu(); const id = dl.dataset.pmDel, scd = scoreById(id);
     if (scd && scd.catId) { scd.local = false; scd.pages = scd.pages || null; }   // continua no catálogo; só sai do aparelho
     else db.scores = db.scores.filter(x => x.id !== id);
+    if (scd && scd.kind === 'pauta') deletePauta(scd.pautaId);
     delete db.pdfZoom[id]; save();
     try { await idbDel(id); } catch (er) {}
     renderPdfList(); toast(scd && scd.catId ? 'Partitura removida deste aparelho (continua no catálogo).' : 'Partitura excluída deste aparelho.');
@@ -2632,6 +2720,12 @@ let pv = { id: null, doc: null, zoom: 1, token: 0 };
 async function openPdfView(id) {
   const sc = scoreById(id);
   if (!sc) { go('partituras'); return; }
+  if (sc.kind === 'pauta') {
+    $('top-title').textContent = sc.title; $('pv-sub').textContent = 'Criada no app · ' + (sc.meta || '');
+    $('pv-pages').innerHTML = `<div class="empty"><p>Esta partitura foi escrita no editor da pauta.</p>${HAS_PAUTA() ? `<button type="button" class="btn primary" data-pz-view="${esc(sc.id)}">Abrir</button>` : '<p>Ela abre no app instalado (APK).</p>'}</div>`;
+    if (HAS_PAUTA()) openPauta({ id: sc.pautaId, ver: '1' });
+    return;
+  }
   pv.id = id; pv.zoom = db.pdfZoom[id] || 1;
   if (pv.doc) { try { pv.doc.destroy(); } catch (e) {} pv.doc = null; }
   $('top-title').textContent = sc.title;
@@ -3542,7 +3636,7 @@ window.addEventListener('scroll', () => {
   const busy = !$('keypick').hidden;
   document.body.classList.toggle('bars-hidden', dy > 0 && y > 140 && !busy);
 }, { passive: true });
-const ICO = {"lyrics": "<path d=\"M4 6h16M4 10h16M4 14h10M4 18h7\"/><path d=\"M18 14v6\"/><circle cx=\"16.5\" cy=\"20\" r=\"1.5\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>", "listadd": "<path d=\"M4 6h11M4 12h11M4 18h7\"/><path d=\"M18 14v6M15 17h6\"/>", "clef": "<path d=\"M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9\"/><path d=\"M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5\"/><circle cx=\"10.2\" cy=\"21.2\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/>", "chord": "<path d=\"M4 5H20\" stroke-width=\"2.6\"/><path d=\"M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5\" stroke-width=\"1.3\"/><path d=\"M4 10.5H20M4 16H20M4 21.5H20\" stroke-width=\"1.3\"/><circle cx=\"4\" cy=\"18.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9.33\" cy=\"13.25\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"7.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/>", "edit": "<path d=\"M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6\"/><path d=\"M18.4 3.6a2 2 0 0 1 2.9 2.9L12.5 15.3 9 16l.7-3.5z\"/>", "pen": "<path d=\"M4 20h4L19 9l-4-4L4 16v4z\"/><path d=\"M14 6l4 4\"/>", "wand": "<path d=\"M4 20 15 9\"/><path d=\"M14 4v2M14 10v2M18 8h2M10 8h2M16.8 5.2l1.4-1.4M16.8 10.8l1.4 1.4M11.2 5.2 9.8 3.8\"/>", "fit": "<path d=\"M12 3v6M9 6l3 3 3-3M12 21v-6M9 18l3-3 3 3\"/><path d=\"M4 12h16\"/>", "full": "<path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/>", "unfull": "<path d=\"M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5\"/>", "play": "<path d=\"M7 4.5v15l12.5-7.5z\" fill=\"currentColor\"/>", "musicadd": "<path d=\"M9 18V5l8-2v6\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><path d=\"M19 14v6M16 17h6\"/>", "check": "<path d=\"M4.5 12.5l5 5L19.5 7\"/>", "x": "<path d=\"M6 6l12 12M18 6 6 18\"/>", "trash": "<path d=\"M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3\"/>", "paste": "<rect x=\"8\" y=\"2.5\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2\"/><path d=\"M9 12h6M9 16h4\"/>", "import": "<path d=\"M12 3v11M7.5 9.5 12 14l4.5-4.5\"/><path d=\"M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3\"/>", "eraser": "<path d=\"M8 20h12\"/><path d=\"M4.6 15.4l9.2-9.2a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8z\"/><path d=\"M9 11l5 5\"/>", "search": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M20 20l-3.5-3.5\"/>", "reset": "<path d=\"M4 12a8 8 0 1 0 2.3-5.6\"/><path d=\"M4 4v4h4\"/>", "more": "<circle cx=\"12\" cy=\"5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"};
+const ICO = {"score": "<path d=\"M2 4h14M2 8h11M2 12h9M2 16h7M2 20h6\"/><path d=\"M13.5 19.5l-1 3 3-1 7.2-7.2a1.4 1.4 0 0 0-2-2z\"/>", "lyrics": "<path d=\"M4 6h16M4 10h16M4 14h10M4 18h7\"/><path d=\"M18 14v6\"/><circle cx=\"16.5\" cy=\"20\" r=\"1.5\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>", "listadd": "<path d=\"M4 6h11M4 12h11M4 18h7\"/><path d=\"M18 14v6M15 17h6\"/>", "clef": "<path d=\"M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9\"/><path d=\"M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5\"/><circle cx=\"10.2\" cy=\"21.2\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/>", "chord": "<path d=\"M4 5H20\" stroke-width=\"2.6\"/><path d=\"M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5\" stroke-width=\"1.3\"/><path d=\"M4 10.5H20M4 16H20M4 21.5H20\" stroke-width=\"1.3\"/><circle cx=\"4\" cy=\"18.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9.33\" cy=\"13.25\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"7.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/>", "edit": "<path d=\"M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6\"/><path d=\"M18.4 3.6a2 2 0 0 1 2.9 2.9L12.5 15.3 9 16l.7-3.5z\"/>", "pen": "<path d=\"M4 20h4L19 9l-4-4L4 16v4z\"/><path d=\"M14 6l4 4\"/>", "wand": "<path d=\"M4 20 15 9\"/><path d=\"M14 4v2M14 10v2M18 8h2M10 8h2M16.8 5.2l1.4-1.4M16.8 10.8l1.4 1.4M11.2 5.2 9.8 3.8\"/>", "fit": "<path d=\"M12 3v6M9 6l3 3 3-3M12 21v-6M9 18l3-3 3 3\"/><path d=\"M4 12h16\"/>", "full": "<path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/>", "unfull": "<path d=\"M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5\"/>", "play": "<path d=\"M7 4.5v15l12.5-7.5z\" fill=\"currentColor\"/>", "musicadd": "<path d=\"M9 18V5l8-2v6\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><path d=\"M19 14v6M16 17h6\"/>", "check": "<path d=\"M4.5 12.5l5 5L19.5 7\"/>", "x": "<path d=\"M6 6l12 12M18 6 6 18\"/>", "trash": "<path d=\"M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3\"/>", "paste": "<rect x=\"8\" y=\"2.5\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2\"/><path d=\"M9 12h6M9 16h4\"/>", "import": "<path d=\"M12 3v11M7.5 9.5 12 14l4.5-4.5\"/><path d=\"M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3\"/>", "eraser": "<path d=\"M8 20h12\"/><path d=\"M4.6 15.4l9.2-9.2a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8z\"/><path d=\"M9 11l5 5\"/>", "search": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M20 20l-3.5-3.5\"/>", "reset": "<path d=\"M4 12a8 8 0 1 0 2.3-5.6\"/><path d=\"M4 4v4h4\"/>", "more": "<circle cx=\"12\" cy=\"5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"};
 const ico = (n, size = 22) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[n] || ''}</svg>`;
 function setFsBtn(b, on) {
   b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', on ? 'Sair da tela cheia' : 'Tela cheia');
@@ -3719,6 +3813,124 @@ document.addEventListener('click', (e) => {
   const f = e.target.closest('[data-lyr-fav]'); if (f) { toggleLyrFav(f.dataset.lyrFav); renderLetras(); }
 });
 
+/* ---------- Criar partitura (editor "Pauta a mão livre", www/pauta.html) ----------
+   O editor é uma página à parte dentro do APK. O app faz a ficha, guarda o pedido e abre a pauta;
+   as partituras criadas ficam na chave do editor (pauta-mao-livre.v2) e aparecem aqui como itens das pastas. */
+const PAUTA_KEY = 'pauta-mao-livre.v2';
+const HAS_PAUTA = () => isApk() || !window.claude;   // no visualizador do Claude a página do editor não existe
+function pautaBanco() { try { return JSON.parse(localStorage.getItem(PAUTA_KEY)) || {}; } catch (e) { return {}; } }
+const NOTE_PT = (k) => k.replace(/^([A-G])#/, '$1♯').replace(/^([A-G])b/, '$1♭');
+const tomNome = (t) => !t ? '' : /m$/.test(t) ? NOTE_PT(t.slice(0, -1)) + ' menor' : NOTE_PT(t) + ' maior';
+function pautaMeta(m) {
+  const c = m.compasso || {}, comp = c.simbolo === 'C' ? 'C' : c.simbolo === 'Cc' ? 'C cortado' : `${c.num || 4}/${c.den || 4}`;
+  const p = (m.linhas && m.linhas[0] && m.linhas[0].pautas) || [m.clave || 'sol'];
+  return [p.length > 1 ? 'piano' : { sol: 'clave de Sol', fa: 'clave de Fá', do: 'clave de Dó' }[p[0]] || 'clave de Sol', tomNome(m.tom), comp].filter(Boolean).join(' · ');
+}
+/* Traz para o app as partituras criadas no editor (novas, renomeadas, apagadas) */
+function syncPautas() {
+  const ms = Array.isArray(pautaBanco().musicas) ? pautaBanco().musicas : [];
+  if (!Array.isArray(db.scores)) db.scores = [];
+  const ids = new Set(ms.map(m => m.id)); let ch = false;
+  db.scores = db.scores.filter(sc => { if (sc.kind === 'pauta' && !ids.has(sc.pautaId)) { ch = true; return false; } return true; });
+  ms.forEach(m => {
+    let sc = db.scores.find(x => x.kind === 'pauta' && x.pautaId === m.id);
+    if (!sc) {
+      sc = { id: 'pz-' + m.id, kind: 'pauta', pautaId: m.id, title: m.titulo || 'Partitura', folderId: m.pastaApp && folderById(m.pastaApp) ? m.pastaApp : null, mine: true, local: true, songId: null, created: m.criadaApp || Date.now() };
+      db.scores.push(sc); ch = true;
+    }
+    const meta = pautaMeta(m);
+    if (sc.title !== (m.titulo || sc.title) || sc.meta !== meta) { sc.title = m.titulo || sc.title; sc.meta = meta; ch = true; }
+  });
+  if (ch) save();
+}
+function deletePauta(pautaId) {
+  const b = pautaBanco(); if (!Array.isArray(b.musicas)) return;
+  b.musicas = b.musicas.filter(m => m.id !== pautaId); if (b.atual === pautaId) b.atual = null;
+  try { localStorage.setItem(PAUTA_KEY, JSON.stringify(b)); } catch (e) {}
+}
+/* Abre o editor (ou a visualização, como os músicos veem). Guarda para onde voltar. */
+function openPauta(params) {
+  if (!HAS_PAUTA()) { toast('O editor da partitura abre no app instalado (APK). Aqui no Claude, use o "Pauta a Mão Livre".'); return false; }
+  const back = route.name === 'scoreform' ? (route.back || { name: 'partituras', params: { folder: pdfFolder } })
+    : route.name === 'partituras' ? { name: 'partituras', params: { folder: pdfFolder, q: $('pdf-q').value, back: route.back } }
+    : route.name === 'partitura' ? (route.back || { name: 'partituras', params: { folder: pdfFolder } })   // não reabrir o editor ao voltar
+    : { name: route.name, params: Object.assign({}, route, { name: undefined }) };
+  try { localStorage.setItem('app.voltar', JSON.stringify({ at: Date.now(), name: back.name, params: back.params || {} })); } catch (e) {}
+  location.href = 'pauta.html?' + new URLSearchParams(Object.assign({ app: '1' }, params)).toString();
+  return true;
+}
+function restoreAfterPauta() {
+  let v = null; try { v = JSON.parse(localStorage.getItem('app.voltar')); localStorage.removeItem('app.voltar'); } catch (e) {}
+  if (!v || !v.name || Date.now() - v.at > 6 * 3600e3) return false;
+  const p = v.params || {}; delete p.name;
+  go(v.name, p); return true;
+}
+window.addEventListener('pageshow', (e) => { if (!e.persisted) return; syncPautas(); if (route.name === 'partituras') renderPdfList(); });
+/* Ficha da nova partitura */
+const SF_MAJ = [['C', 0], ['G', 1], ['D', 2], ['A', 3], ['E', 4], ['B', 5], ['F#', 6], ['Db', -5], ['Ab', -4], ['Eb', -3], ['Bb', -2], ['F', -1]];
+const SF_MIN = [['Am', 0], ['Em', 1], ['Bm', 2], ['F#m', 3], ['C#m', 4], ['G#m', 5], ['Ebm', -6], ['Bbm', -5], ['Fm', -4], ['Cm', -3], ['Gm', -2], ['Dm', -1]];
+const SF_COMP = [['C', 'C'], ['Cc', '¢'], ['2/4', '2/4'], ['3/4', '3/4'], ['4/4', '4/4'], ['6/8', '6/8'], ['outro', 'Outro']];
+const SF_UNI = [['semibreve', 'Semibreve'], ['minima', 'Mínima'], ['seminima', 'Semínima'], ['colcheia', 'Colcheia'], ['semicolcheia', 'Semicolcheia']];
+const SHARPS = ['Fá♯', 'Dó♯', 'Sol♯', 'Ré♯', 'Lá♯', 'Mi♯', 'Si♯'], FLATS = ['Si♭', 'Mi♭', 'Lá♭', 'Ré♭', 'Sol♭', 'Dó♭', 'Fá♭'];
+let sf = null;
+function sfComp() {
+  if (sf.comp === 'C') return { num: 4, den: 4, simbolo: 'C' };
+  if (sf.comp === 'Cc') return { num: 2, den: 2, simbolo: 'Cc' };
+  if (sf.comp === 'outro') return { num: Math.min(32, Math.max(1, parseInt($('sf-num').value, 10) || 5)), den: +$('sf-den').value || 4, simbolo: '' };
+  const [n, d] = sf.comp.split('/').map(Number); return { num: n, den: d, simbolo: '' };
+}
+function sfSuggestUnit() {
+  const c = sfComp();
+  const u = c.den === 8 && c.num % 3 === 0 && c.num > 3 ? { tipo: 'seminima', ponto: true } : { tipo: { 1: 'semibreve', 2: 'minima', 4: 'seminima', 8: 'colcheia', 16: 'semicolcheia' }[c.den] || 'seminima', ponto: false };
+  $('sf-uni').value = u.tipo; $('sf-dot').checked = u.ponto;
+}
+function openScoreForm() {
+  sf = { form: 'sol', mode: 'M', key: 'C', comp: '4/4' };
+  $('top-title').textContent = 'Nova partitura';
+  $('sf-title').value = ''; $('sf-author').value = ''; $('sf-and').value = ''; $('sf-err').hidden = true;
+  const opts = ['<option value="">Partituras (início)</option>'];
+  const walk = (pid, d) => subFolders(pid).forEach(f => { opts.push(`<option value="${esc(f.id)}">${'  '.repeat(d)}${'— '.repeat(d ? 1 : 0)}${esc(f.name)}</option>`); walk(f.id, d + 1); });
+  walk(null, 0);
+  $('sf-folder').innerHTML = opts.join(''); $('sf-folder').value = (route.back && route.back.params && route.back.params.folder) || pdfFolder || '';
+  renderScoreForm(); sfSuggestUnit();
+  setTimeout(() => $('sf-title').focus(), 50);
+}
+function renderScoreForm() {
+  document.querySelectorAll('[data-sf-form]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sfForm === sf.form)));
+  document.querySelectorAll('[data-sf-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sfMode === sf.mode)));
+  const keys = sf.mode === 'M' ? SF_MAJ : SF_MIN;
+  if (!keys.some(k => k[0] === sf.key)) { const i = (sf.mode === 'M' ? SF_MIN : SF_MAJ).findIndex(k => k[0] === sf.key); sf.key = keys[Math.max(0, i)][0]; }
+  $('sf-keys').innerHTML = keys.map(([k]) => `<button type="button" data-sf-key="${k}" aria-pressed="${k === sf.key}">${NOTE_PT(k)}</button>`).join('');
+  const n = keys.find(k => k[0] === sf.key)[1];
+  $('sf-keyinfo').textContent = `${tomNome(sf.key)} · ${n === 0 ? 'sem acidentes' : n > 0 ? `${n} sustenido${n > 1 ? 's' : ''} (${SHARPS.slice(0, n).join(', ')})` : `${-n} bemo${-n > 1 ? 'is' : 'l'} (${FLATS.slice(0, -n).join(', ')})`}`;
+  document.querySelectorAll('[data-sf-comp]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sfComp === sf.comp)));
+  $('sf-outro').hidden = sf.comp !== 'outro';
+  const c = sfComp(), meter = c.simbolo === 'C' ? 'C' : c.simbolo === 'Cc' ? '¢' : `${c.num}/${c.den}`;
+  const acc = n === 0 ? '' : n > 0 ? '♯'.repeat(n) : '♭'.repeat(-n);
+  const staves = sf.form === 'piano' ? ['Sol', 'Fá'] : [{ sol: 'Sol', fa: 'Fá', do: 'Dó' }[sf.form]];
+  $('sf-prev').innerHTML = staves.map(cl => `<div class="sf-staff"><i></i><i></i><i></i><i></i><i></i><span class="sf-clef">Clave de ${cl}</span>${acc ? `<span class="sf-acc">${acc}</span>` : ''}<span class="sf-meter">${esc(meter)}</span></div>`).join('');
+}
+$('v-scoreform').addEventListener('click', (e) => {
+  let b;
+  if ((b = e.target.closest('[data-sf-form]'))) { sf.form = b.dataset.sfForm; renderScoreForm(); return; }
+  if ((b = e.target.closest('[data-sf-mode]'))) { sf.mode = b.dataset.sfMode; renderScoreForm(); return; }
+  if ((b = e.target.closest('[data-sf-key]'))) { sf.key = b.dataset.sfKey; renderScoreForm(); return; }
+  if ((b = e.target.closest('[data-sf-comp]'))) { sf.comp = b.dataset.sfComp; renderScoreForm(); sfSuggestUnit(); }
+});
+['sf-num', 'sf-den'].forEach(id => $(id).addEventListener('input', () => { renderScoreForm(); sfSuggestUnit(); }));
+$('sf-cancel').addEventListener('click', () => $('back-btn').click());
+$('sf-title').addEventListener('input', () => { $('sf-err').hidden = true; });
+$('sf-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const titulo = $('sf-title').value.trim().replace(/\s+/g, ' ');
+  if (!titulo) { $('sf-err').hidden = false; $('sf-title').focus(); return; }
+  const and = parseInt($('sf-and').value, 10);
+  const req = uid('r');
+  const pedido = { req, titulo, autor: $('sf-author').value.trim(), form: sf.form, tom: sf.key, comp: sfComp(), uni: { tipo: $('sf-uni').value, ponto: $('sf-dot').checked }, and: and >= 20 && and <= 300 ? and : null, pasta: $('sf-folder').value || null };
+  try { localStorage.setItem('pauta.pedido', JSON.stringify(pedido)); } catch (er) {}
+  openPauta({ nova: req });
+});
+
 /* APK: botão voltar do Android navega dentro do app (só fecha na tela Início) */
 (function nativeBack() {
   const App = capPlugin('App');
@@ -3761,5 +3973,6 @@ if (!ACCENTS[db.prefs.accent]) db.prefs.accent = PREF_DEFAULT.accent;
 if (!FONTS[db.prefs.font]) db.prefs.font = PREF_DEFAULT.font;
 if (!OUTLINES.includes(db.prefs.outline)) db.prefs.outline = PREF_DEFAULT.outline;
 applyTheme();
-if (db.user) enterApp(); else show('v-login');
+syncPautas();
+if (db.user) { enterApp(); restoreAfterPauta(); } else show('v-login');
 </script>

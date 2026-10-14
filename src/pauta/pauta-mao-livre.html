@@ -2758,12 +2758,69 @@ button:disabled { opacity: 0.45; cursor: default; }
     else if (!paleta.hidden) { abrirPaleta(false); fab.focus(); }
   });
 
+  // ---------- Integração com o app IASD Música ----------
+  // Aberto pelo app (Partituras): pauta.html?app=1&nova=<pedido> | &id=<música> [&ver=1]
+  const qsApp = new URLSearchParams(location.search);
+  const noApp = qsApp.get('app') === '1';
+  function voltarApp() { try { finalizar(); } catch (e) {} gravar(); if (history.length > 1) history.back(); else location.href = 'index.html'; }
+  if (noApp) {
+    document.body.classList.add('no-app');
+    const bVoltar = document.createElement('button');
+    bVoltar.type = 'button'; bVoltar.id = 'bVoltarApp'; bVoltar.className = 'ic ic-peq';
+    bVoltar.setAttribute('aria-label', 'Voltar para Partituras'); bVoltar.title = 'Voltar para Partituras';
+    bVoltar.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>';
+    bVoltar.onclick = voltarApp;
+    tituloVer.prepend(bVoltar);
+    // No app, a lista de partituras é a pasta do app: este botão abre a ficha da partitura aberta
+    const bM = $('bMusica');
+    bM.setAttribute('aria-label', 'Ficha da partitura'); bM.title = 'Ficha da partitura (título, tom, compasso)';
+    bM.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/><path d="M18.4 3.6a2 2 0 0 1 2.9 2.9L12.5 15.3 9 16l.7-3.5z"/></svg>';
+    bM.onclick = () => abrirFicha(M() ? 'editar' : 'nova');
+    // Pedido de nova partitura vindo da ficha do app
+    const req = qsApp.get('nova');
+    if (req) {
+      let p = null; try { p = JSON.parse(localStorage.getItem('pauta.pedido')); } catch (e) {}
+      if (p && p.req === req) {
+        const pautas = p.form === 'piano' ? ['sol', 'fa'] : [p.form || 'sol'];
+        const m = { id: novoId(), titulo: p.titulo || 'Nova partitura', autor: p.autor || '', tom: p.tom || 'C',
+          compasso: p.comp || { num: 4, den: 4, simbolo: '' }, unidade: p.uni || { tipo: 'seminima', ponto: false }, andamento: p.and || null,
+          clave: pautas[0], linhas: [{ pautas }], itens: [], anot: [], pastaApp: p.pasta || null, criadaApp: Date.now() };
+        banco.musicas.push(m); banco.atual = m.id; pilha = [];
+        try { localStorage.removeItem('pauta.pedido'); } catch (e) {}
+        gravar();
+      }
+    }
+    const idApp = qsApp.get('id');
+    if (idApp && banco.musicas.some(m => m.id === idApp)) { banco.atual = idApp; pilha = []; }
+    // Excluir pela ficha: volta para o app
+    const exOrig = $('fExcluir').onclick;
+    $('fExcluir').onclick = (e) => { const antes = banco.musicas.length; exOrig(e); if (banco.musicas.length < antes) voltarApp(); };
+    // Botão voltar do Android: fecha o que estiver aberto; senão volta para o app
+    const C = window.Capacitor;
+    if (C && C.isNativePlatform && C.isNativePlatform()) {
+      try {
+        const AppP = (window.capacitorExports && window.capacitorExports.App) || C.registerPlugin('App');
+        AppP.addListener('backButton', () => {
+          if (!janTreino.hidden) { $('tCancelar').click(); return; }
+          if (!janGuia.hidden) { mostrarGuia(false); return; }
+          if (!janFicha.hidden && !obrigatoria()) { fecharFicha(); return; }
+          if (!janLista.hidden) { janLista.hidden = true; return; }
+          if (!biblio.hidden) { mostrarBiblio(false); return; }
+          if (!paleta.hidden) { abrirPaleta(false); return; }
+          if (document.body.classList.contains('visualizar') && qsApp.get('ver') !== '1') { modoVisual(false); return; }
+          voltarApp();
+        });
+      } catch (e) {}
+    }
+  }
+
   // ---------- Início ----------
   if (!M() && banco.musicas.length) banco.atual = banco.musicas[banco.musicas.length - 1].id;
   if (M() && !banco.guiaNaoMostrar) mostrarGuia(true);
   aplicarZoom(zoom);
   renderizar();
   if (!M()) abrirFicha('nova');
+  if (noApp && qsApp.get('ver') === '1' && M()) modoVisual(true);   // aberto pelo app só para ver (como os músicos)
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => renderizar());
 })();
 </script>
