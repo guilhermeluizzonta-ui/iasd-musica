@@ -464,6 +464,14 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
 @media (prefers-reduced-motion: reduce) { .tipline { transition: none; } }
 .viewer-head .btn.ib.star[aria-pressed="true"] { color: var(--gold); }
 .viewer-head .btn.ib.star[aria-pressed="true"] svg { fill: currentColor; }
+
+/* ---------- Letras ---------- */
+.lsheet .lline { margin: 0; font-size: calc(19px * var(--zoom, 1)); line-height: 1.55; break-inside: avoid; }
+.lsheet .lblank { height: calc(10px * var(--zoom, 1)); }
+.lsheet .section { margin-bottom: calc(20px * var(--zoom, 1)); }
+.lsheet .lkey { color: var(--chord); }
+.body.lyr.measure .lline { width: max-content; }
+html[data-style="retro"] .lsheet .lline { font-family: var(--mono); }
 </style>
 
 <!-- ================= LOGIN ================= -->
@@ -541,7 +549,7 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
     <button type="button" class="nav-item" data-nav="inicio"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>Início</button>
     <button type="button" class="nav-item" data-nav="cifras"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5H20" stroke-width="2.6"></path><path d="M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5" stroke-width="1.3"></path><path d="M4 10.5H20M4 16H20M4 21.5H20" stroke-width="1.3"></path><circle cx="4" cy="18.75" r="2.3" fill="currentColor" stroke="none"></circle><circle cx="9.33" cy="13.25" r="2.3" fill="currentColor" stroke="none"></circle><circle cx="20" cy="7.75" r="2.3" fill="currentColor" stroke="none"></circle></svg>Cifras</button>
     <button type="button" class="nav-item" data-nav="partituras"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9"></path><path d="M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5"></path><circle cx="10.2" cy="21.2" r="1.1" fill="currentColor" stroke="none"></circle></svg>Partituras</button>
-    <button type="button" class="nav-item" data-nav="letras"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 10h16M4 14h10M4 18h7"></path><path d="M18 14v6"></path><circle cx="16.5" cy="20" r="1.5"></circle></svg>Letras<span class="soon">em breve</span></button>
+    <button type="button" class="nav-item" data-nav="letras"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 10h16M4 14h10M4 18h7"></path><path d="M18 14v6"></path><circle cx="16.5" cy="20" r="1.5"></circle></svg>Letras</button>
     <button type="button" class="nav-item" data-nav="listas"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12"></path><circle cx="4.5" cy="6" r="1"></circle><circle cx="4.5" cy="12" r="1"></circle><circle cx="4.5" cy="18" r="1"></circle></svg>Listas de culto</button>
     <button type="button" class="nav-item" data-nav="favoritas"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"></path></svg>Favoritas</button>
     <button type="button" class="nav-item" data-nav="lixeira" id="nav-trash" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"></path></svg>Lixeira<span class="soon" id="nav-trash-n">0</span></button>
@@ -662,11 +670,54 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
     </section>
 
     <section class="view" id="v-letras" hidden>
-      <div class="placeholder card">
-        <span class="sec-title">Em breve</span>
-        <h2>Letras</h2>
-        <p>A letra de cada música com o tom, sem os acordes, para o louvor e o coral estudarem em casa.</p>
+      <div class="search-box">
+        <label for="lyr-q" class="sr">Buscar letra</label>
+        <input class="input" id="lyr-q" type="search" placeholder="Buscar música, artista ou trecho da letra">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8F98" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
       </div>
+      <div class="home-grid" id="lyr-panels">
+        <div class="panel"><div class="panel-head"><span class="sec-title">Favoritas</span></div><div class="song-list" id="lyr-favs"></div></div>
+        <div class="panel"><div class="panel-head"><span class="sec-title">Abertas recentemente</span></div><div class="song-list" id="lyr-recent"></div></div>
+      </div>
+      <p class="sec-title" id="lyr-all-title">Todas as letras</p>
+      <p class="hint" id="lyr-count"></p>
+      <div class="song-list" id="lyr-all"></div>
+    </section>
+    <!-- Letra aberta -->
+    <section class="view" id="v-letra" data-tipscope hidden>
+      <div class="viewer-head">
+        <span class="hint" id="lv-sub"></span>
+        <span class="spacer"></span>
+        <button type="button" class="btn ib star" id="lv-fav" aria-pressed="false" aria-label="Favoritar" data-tip="Favoritar|Guarda a letra nas favoritas de Letras."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></button>
+        <button type="button" class="btn ib" id="lv-cifra" aria-label="Abrir cifra" data-tip="Abrir cifra|Mostra a mesma música com os acordes."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5H20" stroke-width="2.6"/><path d="M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5" stroke-width="1.3"/><path d="M4 10.5H20M4 16H20M4 21.5H20" stroke-width="1.3"/><circle cx="4" cy="18.75" r="2.3" fill="currentColor" stroke="none"/><circle cx="9.33" cy="13.25" r="2.3" fill="currentColor" stroke="none"/><circle cx="20" cy="7.75" r="2.3" fill="currentColor" stroke="none"/></svg></button>
+      </div>
+      <div class="toolbar-wrap">
+        <div class="toolbar" role="toolbar" aria-label="Ajustes da letra">
+          <div class="group" role="group" aria-label="Tom">
+            <button type="button" id="lv-down" aria-label="Descer meio tom" data-tip="Descer meio tom|Mostra em que tom cantar. Só muda na sua tela.">−</button>
+            <button type="button" class="key" id="lv-key" data-tip="Tom|Toque para escolher em que tom cantar. Só muda na sua tela.">G</button>
+            <button type="button" id="lv-up" aria-label="Subir meio tom" data-tip="Subir meio tom|Mostra em que tom cantar. Só muda na sua tela.">+</button>
+          </div>
+          <div class="group" role="group" aria-label="Colunas">
+            <button type="button" id="lv-cauto" aria-pressed="true" data-tip="Colunas automáticas|O app escolhe quantas colunas cabem na tela.">Auto</button>
+            <button type="button" data-lcols="1" aria-label="1 coluna" data-tip="1 coluna|A letra em uma coluna só.">1</button>
+            <button type="button" data-lcols="2" aria-label="2 colunas" data-tip="2 colunas|Divide a letra em 2 colunas.">2</button>
+            <button type="button" data-lcols="3" aria-label="3 colunas" data-tip="3 colunas|Divide a letra em 3 colunas.">3</button>
+          </div>
+          <div class="group" role="group" aria-label="Tamanho do texto">
+            <button type="button" id="lv-zout" aria-label="Diminuir texto" data-tip="Diminuir texto|Também dá para fechar dois dedos na tela.">A−</button>
+            <button type="button" class="zoomval" id="lv-zval" data-tip="Tamanho do texto|Toque para voltar a 100%.">100%</button>
+            <button type="button" id="lv-zin" aria-label="Aumentar texto" data-tip="Aumentar texto|Também dá para abrir dois dedos na tela (pinça).">A+</button>
+          </div>
+          <div class="group"><button type="button" class="gi" id="lv-fs" aria-pressed="false" aria-label="Tela cheia" data-tip="Tela cheia|Mostra só a letra. Toque na tela ou deslize do topo para ver os controles."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div>
+          <div class="group focus-only"><button type="button" class="mode-btn" aria-label="Mudar para o tema claro" data-tip="Claro ou escuro|Troca o tema na hora.">
+            <svg class="ico-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+            <svg class="ico-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"></path></svg>
+          </button></div>
+        </div>
+        <p class="tipline" aria-live="polite"></p>
+      </div>
+      <article class="sheet lsheet" id="lsheet"></article>
     </section>
     <section class="view" id="v-listas" hidden>
       <p class="hint" id="ls-count"></p>
@@ -760,6 +811,7 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
         <span class="spacer"></span>
         <button type="button" class="btn ib star" id="viewer-fav" aria-label="Favoritar" data-tip="Favoritar|Guarda a música em Favoritas para achar rápido." aria-pressed="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></button>
         <button type="button" class="btn ib" id="viewer-addlist" aria-label="Adicionar a uma lista" data-tip="Adicionar a uma lista|Coloca esta música numa lista de culto." hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7"/><path d="M18 14v6M15 17h6"/></svg></button>
+        <button type="button" class="btn ib" id="viewer-lyr" aria-label="Letra" data-tip="Letra|Mostra só a letra com o tom, sem os acordes (para o louvor e o coral)."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 10h16M4 14h10M4 18h7"/><path d="M18 14v6"/><circle cx="16.5" cy="20" r="1.5"/></svg></button>
         <button type="button" class="btn ib" id="viewer-pdf" aria-label="Partitura" data-tip="Partitura|Abre a partitura ligada a esta cifra." hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9"/><path d="M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5"/><circle cx="10.2" cy="21.2" r="1.1" fill="currentColor" stroke="none"/></svg></button>
         <button type="button" class="btn ib" id="viewer-edit" aria-label="Editar cifra" data-tip="Editar cifra|Abre o editor para corrigir letra, acordes e tom."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/><path d="M18.4 3.6a2 2 0 0 1 2.9 2.9L12.5 15.3 9 16l.7-3.5z"/></svg></button>
       </div>
@@ -1233,7 +1285,7 @@ function viewFor(id) {
 }
 
 /* ---------- Navegação ---------- */
-const TITLES = { lista: 'Lista', listaform: 'Nova lista', listapick: 'Adicionar músicas', letras: 'Letras', partitura: 'Partitura', inicio: 'Início', cifras: 'Cifras', favoritas: 'Favoritas', partituras: 'Partituras', listas: 'Listas de culto', config: 'Configurações', lixeira: 'Lixeira' };
+const TITLES = { letra: 'Letra', lista: 'Lista', listaform: 'Nova lista', listapick: 'Adicionar músicas', letras: 'Letras', partitura: 'Partitura', inicio: 'Início', cifras: 'Cifras', favoritas: 'Favoritas', partituras: 'Partituras', listas: 'Listas de culto', config: 'Configurações', lixeira: 'Lixeira' };
 const TOP = ['inicio', 'cifras', 'favoritas', 'partituras', 'letras', 'listas', 'config', 'lixeira'];
 let route = { name: 'inicio' }, lastTop = 'inicio';
 function show(id) { ['v-login', 'v-signup'].forEach(x => $(x).hidden = x !== id); $('app').hidden = id !== 'app'; }
@@ -1272,6 +1324,8 @@ function go(name, params = {}) {
   if (name === 'partituras') { if (params.q != null) $('pdf-q').value = params.q; renderPdfList(); if (params.back && params.back.name === 'cifra') { const bs = songById(params.back.params.id); if (bs) $('top-title').textContent = 'Partituras · ' + bs.title; } }
   if (name === 'partitura') openPdfView(params.id);
   if (name === 'listas') renderLists();
+  if (name === 'letras') renderLetras();
+  if (name === 'letra') openLetra(params.id);
   if (name === 'lista') renderListDetail(params.id);
   if (name === 'listaform') openListForm(params);
   if (name === 'listapick') openPick(params.id);
@@ -1848,8 +1902,9 @@ function exitFocus() {
   try { if (wakeLock) wakeLock.release(); } catch (e) {}
   wakeLock = null;
   if (route.name === 'cifra') renderViewer();
-  setFsBtn($('pv-fs'), false);
+  setFsBtn($('pv-fs'), false); setFsBtn($('lv-fs'), false);
   if (route.name === 'partitura') renderPdfSoon();
+  if (route.name === 'letra') renderLetra();
   refitSoon();
 }
 $('t-fs').addEventListener('click', () => document.body.classList.contains('focus') ? exitFocus() : enterFocus());
@@ -2090,6 +2145,7 @@ window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTi
   if (route.name === 'cifra' && cur.v && cur.v.fit) fitToScreen(false);
   else if (route.name === 'cifra' && cur.v && cur.v.colsMode === 'auto') renderViewer();
   if (route.name === 'editor') renderPreview();
+  if (route.name === 'letra' && lyr.v && lyr.v.colsMode === 'auto') renderLetra();
 }, 150); });
 
 /* ---------- Partituras (PDF) ----------
@@ -2773,6 +2829,7 @@ document.addEventListener('click', (e) => { if (e.target.closest('.mode-btn')) t
 function rerenderCurrent() {
   if (route.name === 'inicio') renderWelcome();
   if (route.name === 'cifra' && cur.id) renderViewer();
+  if (route.name === 'letra' && lyr.id) renderLetra();
   if (route.name === 'editor') renderPreview();
   if (route.name === 'config') renderConfig();
 }
@@ -3119,15 +3176,21 @@ function pinchable(area, content, commit) {
   area.addEventListener('touchend', end); area.addEventListener('touchcancel', end);
 }
 /* Cifra: o mesmo que A−/A+, mantendo o ponto entre os dedos no lugar */
-pinchable($('v-cifra'), () => $('sheet'), (G) => {
+pinchable(document.body, () => route.name === 'cifra' ? $('sheet') : null, (G) => {
   const z0 = cur.v.zoom; setZoom(z0 * G.s);
   const ratio = cur.v.zoom / z0, sheet = $('sheet');
   const top = sheet.getBoundingClientRect().top + window.scrollY;
   window.scrollTo(0, Math.max(0, top + G.oy * ratio - G.m.y));
   sheet.scrollLeft = Math.max(0, G.ox * ratio - (G.m.x - sheet.getBoundingClientRect().left));
 });
+/* Letra: igual à cifra */
+pinchable(document.body, () => route.name === 'letra' ? $('lsheet') : null, (G) => {
+  const z0 = lyr.v.zoom; setLyrZoom(z0 * G.s);
+  const ratio = lyr.v.zoom / z0, sh = $('lsheet');
+  window.scrollTo(0, Math.max(0, sh.getBoundingClientRect().top + window.scrollY + G.oy * ratio - G.m.y));
+});
 /* Partitura: zoom em passos de 5%, entre 50% e 300% */
-pinchable($('v-partitura'), () => $('pv-pages'), (G) => {
+pinchable(document.body, () => route.name === 'partitura' ? $('pv-pages') : null, (G) => {
   const z0 = pv.zoom, box = $('pv-pages'), lx = G.ox + box.scrollLeft, ly = G.oy;
   setPdfZoom(z0 * G.s, true, () => {
     const ratio = pv.zoom / z0;
@@ -3205,7 +3268,7 @@ function renderListDetail(id) {
   $('li-head').innerHTML = `<p class="hint">${esc(listMeta(l).join(' · '))}</p>${l.note ? `<p class="li-note">${esc(l.note)}</p>` : ''}`;
   const B = (attrs, icon, label, tip, cls = 'btn ib') => `<button type="button" class="${cls}" ${attrs} aria-label="${label}" data-tip="${tip}">${ico(icon)}</button>`;
   $('li-actions').innerHTML = B(`data-li-start="1" ${l.items.length ? '' : 'disabled'}`, 'play', 'Começar', 'Começar|Abre a primeira música no tom do culto. A barra de baixo passa para a próxima.', 'btn ib primary') +
-    `<div class="group" role="group" aria-label="Abrir as músicas em"><button type="button" class="gi" data-li-as="cifra" aria-pressed="${open === 'cifra'}" aria-label="Abrir em cifra" data-tip="Abrir em cifra|No modo culto, as músicas abrem na cifra.">${ico('chord')}</button><button type="button" class="gi" data-li-as="partitura" aria-pressed="${open === 'partitura'}" aria-label="Abrir em partitura" data-tip="Abrir em partitura|No modo culto, abrem na partitura (quando a música tiver uma).">${ico('clef')}</button></div>` +
+    `<div class="group" role="group" aria-label="Abrir as músicas em"><button type="button" class="gi" data-li-as="cifra" aria-pressed="${open === 'cifra'}" aria-label="Abrir em cifra" data-tip="Abrir em cifra|No modo culto, as músicas abrem na cifra.">${ico('chord')}</button><button type="button" class="gi" data-li-as="partitura" aria-pressed="${open === 'partitura'}" aria-label="Abrir em partitura" data-tip="Abrir em partitura|No modo culto, abrem na partitura (quando a música tiver uma).">${ico('clef')}</button><button type="button" class="gi" data-li-as="letra" aria-pressed="${open === 'letra'}" aria-label="Abrir em letra" data-tip="Abrir em letra|No modo culto, abrem só com a letra e o tom (louvor e coral).">${ico('lyrics')}</button></div>` +
     (ed ? '<span class="spacer"></span>' + B('data-li-add="1"', 'musicadd', 'Adicionar músicas', 'Adicionar músicas|Escolha as músicas na ordem do culto.') +
       B('data-li-edit="1"', 'edit', 'Editar dados da lista', 'Editar dados|Nome, data, horário, responsável e observações.') +
       B(`data-list-more="${esc(l.id)}" aria-haspopup="menu"`, 'more', 'Mais opções da lista', 'Mais opções|Clonar para outro culto ou excluir a lista.', 'btn ib') : '');
@@ -3235,17 +3298,18 @@ function renderListDetail(id) {
 }
 function defaultListOpen() {
   const g = ((db.user && db.user.groups) || []).map(x => String(x).toLowerCase());
+  if (g.length && g.every(x => x === 'louvor' || x === 'coral')) return 'letra';   // só canta: abre na letra
   return g.includes('orquestra') && !g.includes('banda') ? 'partitura' : 'cifra';
 }
 function touchList(l) { l.updated = Date.now(); save(); }
 /* Popover de tom (o mesmo desenho do seletor da cifra) */
 const liPop = document.createElement('div');
 liPop.className = 'row-menu li-pop'; liPop.hidden = true; document.body.appendChild(liPop);
-function openListKey(btn, l, i) {
-  const it = l.items[i], s = songById(it.songId), ki = songKeyInfo(s, it.shift);
+function openListKey(btn, l, i, lyrMode) {
+  const it = lyrMode ? null : l.items[i], s = lyrMode ? songById(lyr.id) : songById(it.songId), ki = songKeyInfo(s, lyrMode ? lyr.v.shift : it.shift);
   if (!ki) { toast('Esta cifra não tem tom definido. Defina o tom no editor.'); return; }
   const o = ki.orig;
-  let h = `<div class="keypick-head"><span>Tom no culto · original <strong>${esc(o.label)}</strong>${ki.sug ? ' (sugerido)' : ''}</span></div><div class="keypick-grid">`;
+  let h = `<div class="keypick-head"><span>${lyrMode ? 'Tom para cantar' : 'Tom no culto'} · original <strong>${esc(o.label)}</strong>${ki.sug ? ' (sugerido)' : ''}</span></div><div class="keypick-grid">`;
   PICK.forEach(([main, alt], j) => {
     const idx = o.minor ? (j + 9) % 12 : j, isOrig = idx === o.idx, sub = [];
     if (alt) sub.push(alt);
@@ -3253,7 +3317,7 @@ function openListKey(btn, l, i) {
     h += `<button type="button" data-lk="${idx}" aria-current="${idx === ki.cur.idx}" class="${isOrig ? 'orig' : ''}">${main}${sub.length ? `<small>${sub.join(' · ')}</small>` : ''}${isOrig ? '<small class="o">original</small>' : ''}</button>`;
   });
   liPop.innerHTML = h + '</div>';
-  liKeyFor = { id: l.id, i, orig: o.idx };
+  liKeyFor = lyrMode ? { lyr: true, orig: o.idx } : { id: l.id, i, orig: o.idx };
   liPop.hidden = false;
   const r = btn.getBoundingClientRect();
   liPop.style.top = (r.bottom + window.scrollY + 6) + 'px';
@@ -3263,6 +3327,7 @@ function closeListPop() { liPop.hidden = true; liKeyFor = null; }
 liPop.addEventListener('click', (e) => {
   e.stopPropagation();
   const b = e.target.closest('[data-lk]'); if (!b || !liKeyFor) return;
+  if (liKeyFor.lyr) { lyr.v.shift = (Number(b.dataset.lk) - liKeyFor.orig + 12) % 12; closeListPop(); renderLetra(); return; }
   const l = listById(liKeyFor.id); if (!l) return;
   l.items[liKeyFor.i].shift = (Number(b.dataset.lk) - liKeyFor.orig + 12) % 12;
   touchList(l); closeListPop(); renderListDetail(l.id);
@@ -3370,6 +3435,7 @@ function openListItem(l, i, as) {
   const back = { name: 'lista', params: { id: l.id, back: { name: 'listas' } } };
   const sc = mode === 'partitura' ? scoresForSong(it.songId) : [];
   if (sc.length) go('partitura', { id: sc[0].id, list: l.id, idx: i, back });
+  else if (mode === 'letra') go('letra', { id: s.id, list: l.id, idx: i, back });
   else go('cifra', { id: s.id, list: l.id, idx: i, back });
 }
 function listStep(dir) {
@@ -3377,11 +3443,11 @@ function listStep(dir) {
   let i = route.idx + dir;
   while (i >= 0 && i < l.items.length) { const s = songById(l.items[i].songId); if (s && !s.archived) break; i += dir; }
   if (i < 0 || i >= l.items.length) return;
-  openListItem(l, i, route.name === 'partitura' ? 'partitura' : (db.listOpen || defaultListOpen()));
+  openListItem(l, i, route.name === 'partitura' ? 'partitura' : route.name === 'letra' ? 'letra' : (db.listOpen || defaultListOpen()));
 }
 function updListNav() {
   const nav = $('list-nav');
-  const l = (route.name === 'cifra' || route.name === 'partitura') && route.list ? listById(route.list) : null;
+  const l = (route.name === 'cifra' || route.name === 'partitura' || route.name === 'letra') && route.list ? listById(route.list) : null;
   nav.hidden = !l || ink.on;
   document.body.classList.toggle('has-listnav', !nav.hidden);
   if (!l) return;
@@ -3470,16 +3536,16 @@ window.addEventListener('scroll', () => {
   const y = window.scrollY, dy = y - lastScrollY;
   if (Math.abs(dy) < 8) return;
   lastScrollY = y;
-  if (document.body.classList.contains('focus') || !(route.name === 'cifra' || route.name === 'partitura')) { document.body.classList.remove('bars-hidden'); return; }
+  if (document.body.classList.contains('focus') || !(route.name === 'cifra' || route.name === 'partitura' || route.name === 'letra')) { document.body.classList.remove('bars-hidden'); return; }
   const busy = !$('keypick').hidden;
   document.body.classList.toggle('bars-hidden', dy > 0 && y > 140 && !busy);
 }, { passive: true });
-const ICO = {"star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>", "listadd": "<path d=\"M4 6h11M4 12h11M4 18h7\"/><path d=\"M18 14v6M15 17h6\"/>", "clef": "<path d=\"M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9\"/><path d=\"M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5\"/><circle cx=\"10.2\" cy=\"21.2\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/>", "chord": "<path d=\"M4 5H20\" stroke-width=\"2.6\"/><path d=\"M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5\" stroke-width=\"1.3\"/><path d=\"M4 10.5H20M4 16H20M4 21.5H20\" stroke-width=\"1.3\"/><circle cx=\"4\" cy=\"18.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9.33\" cy=\"13.25\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"7.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/>", "edit": "<path d=\"M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6\"/><path d=\"M18.4 3.6a2 2 0 0 1 2.9 2.9L12.5 15.3 9 16l.7-3.5z\"/>", "pen": "<path d=\"M4 20h4L19 9l-4-4L4 16v4z\"/><path d=\"M14 6l4 4\"/>", "wand": "<path d=\"M4 20 15 9\"/><path d=\"M14 4v2M14 10v2M18 8h2M10 8h2M16.8 5.2l1.4-1.4M16.8 10.8l1.4 1.4M11.2 5.2 9.8 3.8\"/>", "fit": "<path d=\"M12 3v6M9 6l3 3 3-3M12 21v-6M9 18l3-3 3 3\"/><path d=\"M4 12h16\"/>", "full": "<path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/>", "unfull": "<path d=\"M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5\"/>", "play": "<path d=\"M7 4.5v15l12.5-7.5z\" fill=\"currentColor\"/>", "musicadd": "<path d=\"M9 18V5l8-2v6\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><path d=\"M19 14v6M16 17h6\"/>", "check": "<path d=\"M4.5 12.5l5 5L19.5 7\"/>", "x": "<path d=\"M6 6l12 12M18 6 6 18\"/>", "trash": "<path d=\"M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3\"/>", "paste": "<rect x=\"8\" y=\"2.5\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2\"/><path d=\"M9 12h6M9 16h4\"/>", "import": "<path d=\"M12 3v11M7.5 9.5 12 14l4.5-4.5\"/><path d=\"M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3\"/>", "eraser": "<path d=\"M8 20h12\"/><path d=\"M4.6 15.4l9.2-9.2a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8z\"/><path d=\"M9 11l5 5\"/>", "search": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M20 20l-3.5-3.5\"/>", "reset": "<path d=\"M4 12a8 8 0 1 0 2.3-5.6\"/><path d=\"M4 4v4h4\"/>", "more": "<circle cx=\"12\" cy=\"5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"};
+const ICO = {"lyrics": "<path d=\"M4 6h16M4 10h16M4 14h10M4 18h7\"/><path d=\"M18 14v6\"/><circle cx=\"16.5\" cy=\"20\" r=\"1.5\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>", "listadd": "<path d=\"M4 6h11M4 12h11M4 18h7\"/><path d=\"M18 14v6M15 17h6\"/>", "clef": "<path d=\"M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9\"/><path d=\"M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5\"/><circle cx=\"10.2\" cy=\"21.2\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/>", "chord": "<path d=\"M4 5H20\" stroke-width=\"2.6\"/><path d=\"M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5\" stroke-width=\"1.3\"/><path d=\"M4 10.5H20M4 16H20M4 21.5H20\" stroke-width=\"1.3\"/><circle cx=\"4\" cy=\"18.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9.33\" cy=\"13.25\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"7.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/>", "edit": "<path d=\"M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6\"/><path d=\"M18.4 3.6a2 2 0 0 1 2.9 2.9L12.5 15.3 9 16l.7-3.5z\"/>", "pen": "<path d=\"M4 20h4L19 9l-4-4L4 16v4z\"/><path d=\"M14 6l4 4\"/>", "wand": "<path d=\"M4 20 15 9\"/><path d=\"M14 4v2M14 10v2M18 8h2M10 8h2M16.8 5.2l1.4-1.4M16.8 10.8l1.4 1.4M11.2 5.2 9.8 3.8\"/>", "fit": "<path d=\"M12 3v6M9 6l3 3 3-3M12 21v-6M9 18l3-3 3 3\"/><path d=\"M4 12h16\"/>", "full": "<path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/>", "unfull": "<path d=\"M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5\"/>", "play": "<path d=\"M7 4.5v15l12.5-7.5z\" fill=\"currentColor\"/>", "musicadd": "<path d=\"M9 18V5l8-2v6\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><path d=\"M19 14v6M16 17h6\"/>", "check": "<path d=\"M4.5 12.5l5 5L19.5 7\"/>", "x": "<path d=\"M6 6l12 12M18 6 6 18\"/>", "trash": "<path d=\"M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3\"/>", "paste": "<rect x=\"8\" y=\"2.5\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2\"/><path d=\"M9 12h6M9 16h4\"/>", "import": "<path d=\"M12 3v11M7.5 9.5 12 14l4.5-4.5\"/><path d=\"M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3\"/>", "eraser": "<path d=\"M8 20h12\"/><path d=\"M4.6 15.4l9.2-9.2a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8z\"/><path d=\"M9 11l5 5\"/>", "search": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M20 20l-3.5-3.5\"/>", "reset": "<path d=\"M4 12a8 8 0 1 0 2.3-5.6\"/><path d=\"M4 4v4h4\"/>", "more": "<circle cx=\"12\" cy=\"5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"};
 const ico = (n, size = 22) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[n] || ''}</svg>`;
 function setFsBtn(b, on) {
   b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', on ? 'Sair da tela cheia' : 'Tela cheia');
   b.innerHTML = ico(on ? 'unfull' : 'full');
-  b.dataset.tip = on ? 'Sair da tela cheia|Volta a mostrar o menu e os botões.' : (b.id === 'pv-fs' ? 'Tela cheia|Toque na direita da página para avançar, na esquerda para voltar e no meio para ver os controles.' : 'Tela cheia|Mostra só a cifra. Toque na tela ou deslize do topo para ver os controles.');
+  b.dataset.tip = on ? 'Sair da tela cheia|Volta a mostrar o menu e os botões.' : (b.id === 'pv-fs' ? 'Tela cheia|Toque na direita da página para avançar, na esquerda para voltar e no meio para ver os controles.' : b.id === 'lv-fs' ? 'Tela cheia|Mostra só a letra. Toque na tela ou deslize do topo para ver os controles.' : 'Tela cheia|Mostra só a cifra. Toque na tela ou deslize do topo para ver os controles.');
 }
 /* Dicas: tocar (ou passar o mouse) num botão de ícone mostra embaixo o que ele faz e como usar; some sozinha */
 const TIP_MS = 5000;
@@ -3512,6 +3578,144 @@ function renderNextList() {
     <strong>${esc(listTitle(l))}</strong><span class="hint">${esc([l.date ? dateLabel(l.date, true) : '', l.time].filter(Boolean).join(' · ') || 'sem data')}</span>
     ${names.length ? `<span class="next-songs">${esc(names.join(' · '))}${l.items.length > 4 ? ` · +${l.items.length - 4}` : ''}</span>` : '<span class="hint">Sem músicas ainda.</span>'}</button>`;
 }
+
+/* ---------- Letras (louvor e coral) ----------
+   A letra não é um arquivo à parte: sai da própria cifra (os acordes são escondidos).
+   Assim toda cifra cadastrada aparece em Letras, e corrigir a cifra corrige a letra.
+   Favoritas e recentes das letras são separadas das cifras (cada um organiza do seu jeito). */
+const lyrFavs = () => (db.lyrFavs = Array.isArray(db.lyrFavs) ? db.lyrFavs : []);
+const isLyrFav = (id) => lyrFavs().includes(id);
+function toggleLyrFav(id) { db.lyrFavs = isLyrFav(id) ? lyrFavs().filter(x => x !== id) : [...lyrFavs(), id]; save(); }
+function lviewFor(id) { if (!db.lview || typeof db.lview !== 'object') db.lview = {}; if (!db.lview[id]) db.lview[id] = { shift: 0, zoom: 1, colsMode: 'auto', cols: 1 }; return db.lview[id]; }
+const LABEL_ONLY = /^(intro(du[cç][aã]o)?|solo|interl[uú]dio|final|ponte instrumental|instrumental|riff|base|outro|passagem)\b[\s:.-]*$/i;
+/* Lê a cifra (ChordPro) e devolve as partes só com a letra */
+function lyricsOf(text) {
+  const parts = []; let cur = null, has = false;
+  const open = (cls, name) => { cur = { cls, name, lines: [] }; parts.push(cur); };
+  text.split('\n').forEach(raw => {
+    const line = raw.replace(/\s+$/, '');
+    const d = line.trim().match(/^\{\s*([a-z_]+)\s*:?\s*(.*?)\s*\}$/i);
+    if (d) {
+      const k = d[1].toLowerCase(), val = d[2];
+      if (k === 'start_of_verse' || k === 'sov') open('verse', val || 'Estrofe');
+      else if (k === 'start_of_chorus' || k === 'soc') open('chorus', val || 'Refrão');
+      else if (k === 'start_of_bridge' || k === 'sob') open('verse', val || 'Ponte');
+      else if (/^end_of_|^eo[vcb]$/.test(k)) cur = null;
+      else if (k === 'comment' || k === 'c' || k === 'ci') {
+        const t = val.replace(/\[[^\]]*\]/g, ' ').replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
+        if (t && !LABEL_ONLY.test(t)) { if (!cur) open('', ''); cur.lines.push({ note: t }); }
+      }
+      return;
+    }
+    const t = line.replace(/\[[^\]]*\]/g, '').replace(/\s{2,}/g, ' ').trim();
+    if (!t) { if (cur && cur.lines.length && !line.trim()) cur.lines.push({ blank: true }); return; }
+    if (!cur) open('', '');
+    cur.lines.push({ text: t }); has = true;
+  });
+  parts.forEach(p => { while (p.lines.length && p.lines[p.lines.length - 1].blank) p.lines.pop(); });
+  return { parts: parts.filter(p => p.lines.some(l => l.text || l.note)), has };
+}
+function renderLyricSheet(el, s, v, meta) {
+  const ly = lyricsOf(s.text), ki = songKeyInfo(s, v.shift);
+  let h = `<h2 class="title">${esc(s.title)}</h2><p class="meta">${esc(s.artist || '')}${s.artist && ki ? ' · ' : ''}${ki ? `Tom: <b class="lkey">${esc(ki.cur.label)}</b>${v.shift ? ` · original ${esc(ki.orig.label)}` : ''}${ki.sug ? ' (sugerido)' : ''}` : ''}${meta ? ' · ' + esc(meta) : ''}</p>`;
+  if (!ly.has) h += `<div class="empty"><p>Esta música ainda não tem letra: a cifra tem só os acordes.${db.role === 'editor' ? ' Coloque a letra pelo editor da cifra.' : ''}</p></div>`;
+  else {
+    h += `<div class="body lyr cols-${v.cols}">`;
+    ly.parts.forEach(p => {
+      h += `<div class="section ${p.cls}">${p.name ? `<div class="section-name">${esc(secLabel(p.name))}</div>` : ''}`;
+      p.lines.forEach(l => { h += l.blank ? '<div class="lblank"></div>' : l.note ? `<p class="comment">${esc(l.note)}</p>` : `<p class="lline">${esc(l.text)}</p>`; });
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+  el.innerHTML = h;
+  el.style.setProperty('--zoom', String(v.zoom));
+  if (ly.has && v.colsMode === 'auto') {
+    const body = el.querySelector('.body'); body.classList.add('measure');
+    let widest = 0; body.querySelectorAll('.lline, .comment, .section-name').forEach(x => { widest = Math.max(widest, x.getBoundingClientRect().width + (x.closest('.chorus') ? 14 : 0)); });
+    body.classList.remove('measure');
+    const cs = getComputedStyle(el), inner = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    v.cols = Math.max(1, Math.min(4, Math.floor((inner + 28) / (widest + 36)) || 1));
+    body.className = 'body lyr cols-' + v.cols;
+  }
+  return { ki, has: ly.has };
+}
+/* Tela Letras: busca, favoritas, recentes e todas */
+function lyrRow(s) {
+  const ki = songKeyInfo(s, 0), fav = isLyrFav(s.id);
+  return `<div class="song">
+    <button type="button" class="song-open" data-lyr-open="${esc(s.id)}">
+      <span class="keytag${ki && ki.sug ? ' sug' : ''}" title="Tom">${ki && ki.sug ? '~' : ''}${esc(ki ? ki.orig.main : '—')}</span>
+      <span class="song-text"><strong>${esc(s.title)}</strong><span>${esc(s.artist || 'Sem artista')}${lyricsOf(s.text).has ? '' : ' · sem letra ainda'}</span></span>
+    </button>
+    <button type="button" class="icon-btn star" data-lyr-fav="${esc(s.id)}" aria-pressed="${fav}" aria-label="${fav ? 'Tirar das favoritas' : 'Favoritar'}: ${esc(s.title)}">${ico('star', 20).replace('fill="none"', fav ? 'fill="currentColor"' : 'fill="none"')}</button>
+  </div>`;
+}
+function renderLetras() {
+  const q = norm($('lyr-q').value.trim());
+  const all = activeSongs().sort(byTitle);
+  const list = q ? all.filter(s => norm(s.title + ' ' + (s.artist || '') + ' ' + lyricsOf(s.text).parts.map(p => p.lines.map(l => l.text || '').join(' ')).join(' ')).includes(q)) : all;
+  $('lyr-count').textContent = q ? `${list.length} de ${all.length} músicas` : `${all.length} ${all.length === 1 ? 'música' : 'músicas'}`;
+  $('lyr-all').innerHTML = list.length ? list.map(lyrRow).join('') : `<div class="empty"><p>${q ? 'Nenhuma música encontrada.' : 'Ainda não há músicas. Elas aparecem aqui quando as cifras são cadastradas.'}</p></div>`;
+  const showPanels = !q && all.length;
+  $('lyr-panels').hidden = !showPanels; $('lyr-all-title').hidden = !showPanels;
+  if (showPanels) {
+    const favs = all.filter(s => isLyrFav(s.id));
+    const recent = all.filter(s => s.lviewed).sort((a, b) => b.lviewed - a.lviewed).slice(0, 5);
+    $('lyr-favs').innerHTML = favs.length ? favs.map(lyrRow).join('') : '<div class="empty"><p>Toque na estrela de uma letra para ela aparecer aqui.</p></div>';
+    $('lyr-recent').innerHTML = recent.length ? recent.map(lyrRow).join('') : '<div class="empty"><p>As letras que você abrir aparecem aqui.</p></div>';
+  }
+}
+$('lyr-q').addEventListener('input', renderLetras);
+/* Letra aberta */
+let lyr = { id: null, v: null, base: null };
+function openLetra(id) {
+  const s = songById(id); if (!s) { go('letras'); return; }
+  lyr.id = id; lyr.base = null; lyr.v = lviewFor(id);
+  const inList = route.list ? listById(route.list) : null, item = inList ? inList.items[route.idx] : null;
+  if (item && item.songId === id) { lyr.base = lyr.v; lyr.v = Object.assign({}, lyr.v, { shift: item.shift || 0 }); }
+  s.lviewed = Date.now(); save();
+  $('top-title').textContent = s.title;
+  $('lv-sub').textContent = lyr.base ? `Lista: ${listTitle(inList)} · ${route.idx + 1} de ${inList.items.length}` : '';
+  renderLetra();
+}
+function renderLetra() {
+  const s = songById(lyr.id); if (!s) return;
+  const r = renderLyricSheet($('lsheet'), s, lyr.v, '');
+  $('lv-key').textContent = r.ki ? r.ki.cur.main : '—';
+  const fav = isLyrFav(s.id);
+  $('lv-fav').setAttribute('aria-pressed', String(fav)); $('lv-fav').setAttribute('aria-label', fav ? 'Favorita' : 'Favoritar');
+  $('lv-fav').dataset.tip = fav ? 'Favorita|Está nas favoritas das letras. Toque de novo para tirar.' : 'Favoritar|Guarda a letra nas favoritas de Letras.';
+  const pct = Math.round(lyr.v.zoom * 100);
+  $('lv-zval').textContent = pct === 100 ? '100%' : '↺ ' + pct + '%'; $('lv-zval').disabled = pct === 100;
+  const manual = lyr.v.colsMode === 'manual';
+  $('lv-cauto').setAttribute('aria-pressed', String(!manual)); $('lv-cauto').textContent = manual ? 'Auto' : `Auto · ${lyr.v.cols}`;
+  document.querySelectorAll('[data-lcols]').forEach(b => b.setAttribute('aria-pressed', String(manual && Number(b.dataset.lcols) === lyr.v.cols)));
+  if (lyr.base) ['zoom', 'cols', 'colsMode'].forEach(k => { lyr.base[k] = lyr.v[k]; });   // o tom do culto não muda o tom pessoal
+  save();
+}
+function setLyrZoom(z) { lyr.v.zoom = Math.round(Math.min(ZMAX, Math.max(ZMIN, z)) * 100) / 100; lyr.v.colsMode = 'auto'; renderLetra(); }
+$('lv-down').addEventListener('click', () => { lyr.v.shift = (lyr.v.shift + 11) % 12; renderLetra(); });
+$('lv-up').addEventListener('click', () => { lyr.v.shift = (lyr.v.shift + 1) % 12; renderLetra(); });
+$('lv-key').addEventListener('click', (e) => { e.stopPropagation(); if (!liPop.hidden) { closeListPop(); return; } openListKey(e.currentTarget, null, 0, true); });
+$('lv-zin').addEventListener('click', () => setLyrZoom(lyr.v.zoom + 0.1));
+$('lv-zout').addEventListener('click', () => setLyrZoom(lyr.v.zoom - 0.1));
+$('lv-zval').addEventListener('click', () => setLyrZoom(1));
+$('lv-cauto').addEventListener('click', () => { lyr.v.colsMode = 'auto'; renderLetra(); });
+document.querySelectorAll('[data-lcols]').forEach(b => b.addEventListener('click', () => { lyr.v.cols = Number(b.dataset.lcols); lyr.v.colsMode = 'manual'; renderLetra(); }));
+$('lv-fav').addEventListener('click', () => { toggleLyrFav(lyr.id); renderLetra(); });
+$('lv-cifra').addEventListener('click', () => { if (route.list) go('cifra', { id: lyr.id, list: route.list, idx: route.idx, back: route.back }); else go('cifra', { id: lyr.id, back: { name: 'letra', params: { id: lyr.id } } }); });
+$('viewer-lyr').addEventListener('click', () => { if (route.list) go('letra', { id: cur.id, list: route.list, idx: route.idx, back: route.back }); else go('letra', { id: cur.id, back: { name: 'cifra', params: route.back ? { id: cur.id, back: route.back } : { id: cur.id } } }); });
+$('lv-fs').addEventListener('click', async () => {
+  if (document.body.classList.contains('focus')) { exitFocus(); return; }
+  document.body.classList.add('focus'); setFsBtn($('lv-fs'), true);
+  await sysFullscreen(true); keepAwake(); window.scrollTo(0, 0); renderLetra(); focusTip();
+});
+$('lsheet').addEventListener('click', () => { if (document.body.classList.contains('focus')) { document.body.classList.contains('bars-peek') ? hideBars() : peekBars(); } });
+document.addEventListener('click', (e) => {
+  const o = e.target.closest('[data-lyr-open]'); if (o) { go('letra', { id: o.dataset.lyrOpen }); return; }
+  const f = e.target.closest('[data-lyr-fav]'); if (f) { toggleLyrFav(f.dataset.lyrFav); renderLetras(); }
+});
 
 /* APK: botão voltar do Android navega dentro do app (só fecha na tela Início) */
 (function nativeBack() {
