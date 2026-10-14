@@ -1850,7 +1850,7 @@ $('fab').addEventListener('click', (e) => {
 });
 $('fab-new').addEventListener('click', () => { closeFab(); go('editor', {}); });
 $('fab-pdf').addEventListener('click', () => { closeFab(); $('pdf-file').click(); });
-$('fab-score').addEventListener('click', () => { closeFab(); location.href = 'pauta.html'; });   // editor Pauta a Mão Livre (www/pauta.html, só no APK)
+$('fab-score').addEventListener('click', () => { closeFab(); abrirPauta({ nova: 1, pasta: pdfFolder || '' }); });
 $('fab-folder').addEventListener('click', () => { closeFab(); folderDialog('new'); });
 $('fab-import').addEventListener('click', () => { closeFab(); $('bulk-file').click(); });
 document.addEventListener('click', (e) => { if (!e.target.closest('#fab-wrap')) closeFab(); });
@@ -2140,6 +2140,28 @@ const folderRow = (f) => {
       ${true ? `<button type="button" class="icon-btn" data-fmore="${esc(f.id)}" aria-haspopup="menu" aria-label="Mais opções da pasta ${esc(f.name)}"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg></button>` : ''}
     </div>`;
 };
+/* Partituras escritas à mão (editor Pauta a Mão Livre, www/pauta.html). Ficam no aparelho, na chave da pauta. */
+const PAUTA_KEY = 'pauta-mao-livre.v2';
+function pautasEscritas() {
+  let b = null; try { b = JSON.parse(localStorage.getItem(PAUTA_KEY) || 'null'); } catch (e) {}
+  const ms = (b && Array.isArray(b.musicas)) ? b.musicas : [];
+  // pasta excluída → a partitura sobe para Partituras (nada se perde)
+  return ms.map(m => ({ id: m.id, titulo: m.titulo || 'Sem título', autor: m.autor || '', pasta: (m.pasta && folderById(m.pasta)) ? m.pasta : null }));
+}
+function abrirPauta(q) {
+  try { sessionStorage.setItem('repertorio.voltar', JSON.stringify({ folder: pdfFolder || null })); } catch (e) {}
+  const u = new URLSearchParams(Object.assign({ app: 1 }, q));
+  location.href = 'pauta.html?' + u.toString();
+}
+const pautaRow = (m, showPath) => {
+  const sub = ['Escrita à mão', m.autor, showPath && m.pasta ? folderLabel(m.pasta) : ''].filter(Boolean).join(' · ');
+  return `<div class="song">
+      <button type="button" class="song-open" data-pauta="${esc(m.id)}">
+        <span class="keytag pdf-ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13M3 11h13M3 15h9"></path><path d="M14.5 19.5l6-6-2-2-6 6-.7 2.7z"></path></svg></span>
+        <span class="song-text"><strong>${esc(m.titulo)}</strong><span>${esc(sub)}</span></span>
+      </button>
+    </div>`;
+};
 function renderPdfList() {
   autoLinkScores();
   if (pdfFolder && !folderById(pdfFolder)) pdfFolder = null;
@@ -2159,18 +2181,21 @@ function renderPdfList() {
     const list = all.filter(sc => { const s = scoreSong(sc); return norm(sc.title).includes(q) || (s && norm(s.title).includes(q)) || norm(folderLabel(sc.folderId)).includes(q); }).sort(byTitle);
     const fl = (db.folders || []).filter(f => norm(f.name).includes(q));
     $('pdf-count').textContent = `${list.length} ${list.length === 1 ? 'partitura encontrada' : 'partituras encontradas'} em todas as pastas`;
-    $('pdf-list').innerHTML = (fl.map(folderRow).join('') + list.map(sc => scoreRow(sc, true)).join('')) || `<p class="hint">Nada encontrado para essa busca.</p>`;
+    const pl = pautasEscritas().filter(m => norm(m.titulo).includes(q) || norm(m.autor).includes(q));
+    $('pdf-list').innerHTML = (fl.map(folderRow).join('') + pl.map(m => pautaRow(m, true)).join('') + list.map(sc => scoreRow(sc, true)).join('')) || `<p class="hint">Nada encontrado para essa busca.</p>`;
     return;
   }
   const folders = subFolders(pdfFolder);
   const here = all.filter(sc => (sc.folderId || null) === pdfFolder).sort(byTitle);
-  $('pdf-count').textContent = pdfFolder ? (here.length ? `${here.length} ${here.length === 1 ? 'partitura' : 'partituras'} nesta pasta` : '') : `${all.length} partituras no total · ${nLocal} neste aparelho`;
-  if (!folders.length && !here.length) {
+  const escritas = pautasEscritas().filter(m => m.pasta === (pdfFolder || null)).sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR', { numeric: true }));
+  const nAqui = here.length + escritas.length, nTodas = all.length + pautasEscritas().length;
+  $('pdf-count').textContent = pdfFolder ? (nAqui ? `${nAqui} ${nAqui === 1 ? 'partitura' : 'partituras'} nesta pasta` : '') : `${nTodas} partituras no total · ${nLocal + pautasEscritas().length} neste aparelho`;
+  if (!folders.length && !here.length && !escritas.length) {
     $('pdf-list').innerHTML = emptyBox(pdfFolder ? 'Pasta vazia. Toque no + para criar uma pasta aqui dentro ou importar PDFs do aparelho, ou mova partituras para cá pelo ⋯.'
       : 'Nenhuma partitura ainda. Toque no + para criar pastas e importar os PDFs que você tem no aparelho.');
     return;
   }
-  $('pdf-list').innerHTML = folders.map(folderRow).join('') + here.map(sc => scoreRow(sc, false)).join('');
+  $('pdf-list').innerHTML = folders.map(folderRow).join('') + escritas.map(m => pautaRow(m, false)).join('') + here.map(sc => scoreRow(sc, false)).join('');
 }
 $('pdf-crumbs').addEventListener('click', (e) => { const b = e.target.closest('[data-crumb]'); if (b && !b.hasAttribute('aria-current')) openFolder(b.dataset.crumb || null); });
 
@@ -2321,6 +2346,8 @@ $('pdf-box').addEventListener('click', async (e) => {
 document.addEventListener('click', async (e) => {
   const fo = e.target.closest('[data-folder]');
   if (fo) { openFolder(fo.dataset.folder); return; }
+  const pa = e.target.closest('[data-pauta]');
+  if (pa) { abrirPauta({ abrir: pa.dataset.pauta }); return; }
   const fm = e.target.closest('[data-fmore]');
   if (fm) {
     e.stopPropagation();
@@ -3023,5 +3050,9 @@ if (!ACCENTS[db.prefs.accent]) db.prefs.accent = PREF_DEFAULT.accent;
 if (!FONTS[db.prefs.font]) db.prefs.font = PREF_DEFAULT.font;
 if (!OUTLINES.includes(db.prefs.outline)) db.prefs.outline = PREF_DEFAULT.outline;
 applyTheme();
-if (db.user) enterApp(); else show('v-login');
+if (db.user) {
+  enterApp();
+  let volta = null; try { volta = JSON.parse(sessionStorage.getItem('repertorio.voltar') || 'null'); sessionStorage.removeItem('repertorio.voltar'); } catch (e) {}
+  if (volta) openFolder(volta.folder && folderById(volta.folder) ? volta.folder : null);   // voltando da pauta: Partituras, na mesma pasta
+} else show('v-login');
 </script>

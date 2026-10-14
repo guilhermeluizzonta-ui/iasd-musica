@@ -20,7 +20,8 @@ Estado em 13/10/2026. Editor de partitura escrita à mão com a S Pen (o app rec
 
 ## Falta para fechar o MVP
 1. **Exportar PDF** a partir do Visualizar (próximo passo). No APK, usar o plugin Share/Filesystem que o app já tem. Ideia: guardar os dados da música dentro do PDF, para reimportar 100% editável.
-2. **Entrada no app (decidido pelo Guilherme, 13/10):** em Partituras, no botão **+**, junto de "Nova pasta" e "Importar PDF", fica **"Criar partitura"**. Já colocado em `src/app.html` (`fab-score`, abre `pauta.html`). Falta: um botão Voltar na pauta (`history.back()`) e conferir o botão voltar do Android dentro da `pauta.html`; depois, listar as partituras escritas na pasta aberta.
+2. **Entrada no app — feito (14/10).** Partituras › **+** › **"Criar partitura"** (junto de "Nova pasta" e "Importar PDF") abre `pauta.html?app=1&nova=1&pasta=<pasta aberta>`: começa pela ficha, e a música fica guardada **na pasta de onde veio** (`musica.pasta`). As partituras escritas aparecem na lista da pasta (ícone de pauta com lápis, "Escrita à mão") e na busca; tocar abre `pauta.html?app=1&abrir=<id>`. Na pauta, botão **Voltar** no topo e **voltar do Android** (fecha janela/Biblioteca aberta; senão volta) levam a Partituras **na mesma pasta**. Pasta excluída → a partitura sobe para Partituras. Teste: `testes/pauta/testar13.js ../../www`.
+   - Falta: ⋯ da partitura escrita (mover de pasta, excluir pela lista) e contar as escritas no número de cada pasta.
 3. **Teste no tablet e no S20 FE com a S Pen** (calibrar os limites do reconhecedor com desenhos reais).
 
 ## Armazenamento
