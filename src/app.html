@@ -439,8 +439,8 @@ button.keytag { cursor: pointer; }
 @media (max-width: 480px) { .list-nav #ln-next span { max-width: 110px; } .list-nav #ln-mid span { max-width: 90px; } }
 body.has-listnav main { padding-bottom: 96px; }
 /* Cifra e partitura: a barra de controles some ao rolar para baixo e volta ao rolar para cima */
-body:not(.focus) .toolbar-wrap { transition: transform .2s ease; }
-body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 12px)); }
+body:not(.focus) .toolbar-wrap { transition: transform .2s ease, opacity .15s ease, visibility 0s linear 0s; }
+body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 12px)); opacity: 0; visibility: hidden; pointer-events: none; transition: transform .2s ease, opacity .15s ease, visibility 0s linear .2s; }
 @media (prefers-reduced-motion: reduce) { body:not(.focus) .toolbar-wrap { transition: none; } }
 .next-card { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 12px; border: var(--bw) solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; font: inherit; }
 .next-card:hover { background: var(--surface-2); }
