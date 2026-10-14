@@ -20,7 +20,7 @@ Estado em 13/10/2026. Editor de partitura escrita à mão com a S Pen (o app rec
 
 ## Falta para fechar o MVP
 1. **Exportar PDF** a partir do Visualizar (próximo passo). No APK, usar o plugin Share/Filesystem que o app já tem. Ideia: guardar os dados da música dentro do PDF, para reimportar 100% editável.
-2. **Botão de entrada no app**: em Partituras, "+ › Escrever partitura" (e na lista, abrir as músicas escritas). Sugestão simples: `location.href = 'pauta.html'` e, na pauta, um botão Voltar que faz `history.back()` (o botão voltar do Android já é tratado pelo app; conferir que funciona na `pauta.html`).
+2. **Entrada no app (decidido pelo Guilherme, 13/10):** em Partituras, no botão **+**, junto de "Nova pasta" e "Importar PDF", fica **"Criar partitura"**. Já colocado em `src/app.html` (`fab-score`, abre `pauta.html`). Falta: um botão Voltar na pauta (`history.back()`) e conferir o botão voltar do Android dentro da `pauta.html`; depois, listar as partituras escritas na pasta aberta.
 3. **Teste no tablet e no S20 FE com a S Pen** (calibrar os limites do reconhecedor com desenhos reais).
 
 ## Armazenamento
