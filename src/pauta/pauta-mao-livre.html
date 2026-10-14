@@ -19,6 +19,8 @@
   --tinta: #141414;
   --linha-pauta: #3B403D;
   --traco: #1F5FD6;
+  --borda-papel: rgba(20, 35, 28, 0.18);
+  --ok: #00873E; --ok-tx: #FFFFFF; --passou: #C62828; --falta: #B26A00; --rot: #6B746F;
   --sombra: rgba(20, 35, 28, 0.16);
   --f-titulo: "Merriweather", Georgia, serif;
   --f-ui: "Source Sans 3", "Segoe UI", Roboto, sans-serif;
@@ -114,8 +116,8 @@ body.visualizar .folha svg { cursor: grab; }
 
 .mesa { flex: 1; min-height: 0; overflow: auto; padding: 20px 16px 40px; }
 .folha { margin: 0 auto; aspect-ratio: 140 / 198; touch-action: none; user-select: none; -webkit-user-select: none; }
-.papel { fill: var(--papel); stroke: rgba(20, 35, 28, 0.18); stroke-width: 0.25; }
-.num-pag { font-family: var(--f-ui); font-size: 2.4px; fill: #6B746F; }
+.papel { fill: var(--papel); stroke: var(--borda-papel); stroke-width: 0.25; }
+.num-pag { font-family: var(--f-ui); font-size: 2.4px; fill: var(--rot); }
 .chave { fill: var(--tinta); }
 .toque-clave { fill: transparent; pointer-events: all; cursor: pointer; }
 .mais, .menos { cursor: pointer; }
@@ -161,12 +163,14 @@ body.recolhido .mesa { padding-top: 56px; }
 .borracha .nota:hover .cab, .borracha .nota:hover .band, .borracha .nota:hover .glifo, .borracha .nota:hover .lig, .borracha .nota:hover .ponto { fill: var(--erro); }
 .borracha .nota:hover .haste, .borracha .nota:hover .traco-fino, .borracha .nota:hover .traco-grosso { stroke: var(--erro); }
 .titulo-mus { font-family: var(--f-titulo); font-weight: 700; font-size: 3.4px; fill: var(--tinta); }
-.autor-mus { font-family: var(--f-ui); font-size: 2.2px; fill: #4A524D; }
+.autor-mus { font-family: var(--f-ui); font-size: 2.2px; fill: var(--tinta); opacity: .78; }
 .num-comp { font-family: var(--f-titulo); font-weight: 900; font-size: 6.6px; fill: var(--tinta); }
-.rot { font-family: var(--f-ui); font-size: 2.3px; font-weight: 600; fill: #6B746F; pointer-events: none; }
-.rot.completo { fill: #00873E; }
-.rot.passou { fill: #C62828; }
-.rot.falta { fill: #B26A00; }
+.rot { font-family: var(--f-ui); font-size: 2.3px; font-weight: 600; fill: var(--rot); pointer-events: none; }
+.rot.completo { fill: var(--ok); }
+.rot.passou { fill: var(--passou); }
+.rot.falta { fill: var(--falta); }
+.selo-ok { fill: var(--ok); }
+.selo-ok-tx { fill: none; stroke: var(--ok-tx); }
 .tinta path { fill: none; stroke: var(--traco); stroke-width: 2.4px; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
 .tinta path.erro { stroke: var(--erro); transition: opacity .6s; opacity: .25; }
 .previa { opacity: .5; pointer-events: none; }
@@ -316,6 +320,10 @@ button:disabled { opacity: 0.45; cursor: default; }
 .lista-mus .t { font: 700 15px/1.25 var(--f-titulo); }
 .lista-mus .m { font-weight: 400; font-size: 13px; color: var(--suave); }
 .lista-mus button[aria-current="true"] { border-color: var(--acento); }
+/* Impressão e PDF: sempre preto no branco, qualquer que seja a folha escolhida */
+@media print {
+  :root { --papel: #FFFFFF !important; --tinta: #141414 !important; --linha-pauta: #3B403D !important; --borda-papel: transparent !important; --ok: #00873E !important; --rot: #6B746F !important; }
+}
 </style>
 
 <div class="app">
@@ -370,6 +378,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       <button id="bBiblio" class="ic" data-icone="biblioteca" aria-label="Biblioteca de símbolos" title="Biblioteca de símbolos" aria-pressed="false" aria-controls="biblio"></button>
       <button id="bGuia" class="ic" data-icone="guia" aria-label="Guia: como desenhar" title="Guia: como desenhar" aria-pressed="false" aria-controls="guia"></button>
       <button id="bRecolher" class="ic" data-icone="recolher" aria-label="Recolher as barras" title="Recolher as barras"></button>
+      <button id="bTema" class="ic" data-icone="lua" aria-label="Folha escura" title="Folha escura"></button>
       <button id="bTelaCheia" class="ic" data-icone="telaCheia" aria-label="Tela cheia" title="Tela cheia"></button>
     </div>
     </div>
@@ -591,6 +600,8 @@ button:disabled { opacity: 0.45; cursor: default; }
     tempo: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4M12 2v3"/>',
     lista: '<path d="M21 15V6"/><circle cx="18.5" cy="15.5" r="2.5"/><path d="M12 12H3M16 6H3M12 18H3"/>',
     ok: '<path d="M20 6 9 17l-5-5"/>',
+    sol: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    lua: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
     fechar: '<path d="M18 6 6 18M6 6l12 12"/>',
     voltar: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
     ponteiro: '<path d="M4.04 4.04a.5.5 0 0 1 .64-.62l15.5 5.95a.5.5 0 0 1-.04.95l-6.35 1.6a2 2 0 0 0-1.42 1.42l-1.6 6.35a.5.5 0 0 1-.95.04Z"/>',
@@ -1064,8 +1075,8 @@ button:disabled { opacity: 0.45; cursor: default; }
           // compasso certo: só um selo verde discreto, sem texto
           const g = mk('g', { class: 'rot tempos ok-comp' }, camNotas);
           mk('title', {}, g).textContent = `${num} de ${num}: compasso completo`;
-          mk('circle', { cx, cy: y - 0.8, r: 1.35, fill: '#00873E' }, g);
-          mk('path', { d: `M${cx - 0.65} ${y - 0.8} l0.45 0.45 l0.85 -0.9`, fill: 'none', stroke: '#fff', 'stroke-width': 0.35, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+          mk('circle', { class: 'selo-ok', cx, cy: y - 0.8, r: 1.35 }, g);
+          mk('path', { class: 'selo-ok-tx', d: `M${cx - 0.65} ${y - 0.8} l0.45 0.45 l0.85 -0.9`, 'stroke-width': 0.35, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
           return;
         }
         // errado: em vermelho, com a conta; o último compasso ainda sendo escrito fica neutro
@@ -1084,10 +1095,10 @@ button:disabled { opacity: 0.45; cursor: default; }
       const g = mk('g', { class: 'anot', 'data-id': a.id, transform: `translate(${a.ox || 0} ${L.y0 + (a.oy || 0)})` }, camAnot);
       if (a.tipo === 'traco') {
         const d = 'M' + a.pts.map(q => q[0].toFixed(2) + ' ' + q[1].toFixed(2)).join(' L');
-        mk('path', { class: 'anot-traco', d, stroke: a.cor }, g);
+        mk('path', { class: 'anot-traco', d, stroke: corNaFolha(a.cor) }, g);
         mk('path', { class: 'alvo-linha', d }, g);
       } else {
-        const t = mk('text', { class: 'anot-texto', x: a.x, y: a.dy, fill: a.cor }, g); t.textContent = a.texto;
+        const t = mk('text', { class: 'anot-texto', x: a.x, y: a.dy, fill: corNaFolha(a.cor) }, g); t.textContent = a.texto;
       }
       if (g.isConnected) { const b = g.getBBox(); CAIXAS.set(a.id, { x: b.x + (a.ox || 0), y: b.y + L.y0 + (a.oy || 0), width: b.width, height: b.height }); }
       if (a.id === selId && g.isConnected) {
@@ -2781,6 +2792,63 @@ button:disabled { opacity: 0.45; cursor: default; }
     try { App = (window.capacitorExports && window.capacitorExports.App) || (C.Plugins && C.Plugins.App) || (C.registerPlugin ? C.registerPlugin('App') : null); } catch (e) {}
     if (App) App.addListener('backButton', () => { if (!fecharAberto()) voltarAoApp(); });
   })();
+
+  // ---------- Modo (claro/escuro) e estilo da folha ----------
+  // O estilo da folha é escolhido em Configurações do app (prefs.folha); a mesma tabela está no app (FOLHAS).
+  // Ao abrir, segue o modo do app (claro, escuro ou do aparelho). O sol/lua na barra troca só nesta tela, sem gravar.
+  // Impressão/PDF: sempre preto no branco (@media print).
+  const FOLHAS = {
+    classica: { nome: 'Clássica', claro: { papel: '#FFFFFF', tinta: '#141414', linha: '#3B403D' }, escuro: { papel: '#000000', tinta: '#F2F2F2', linha: '#A8A8A8' } },
+    creme:    { nome: 'Creme',    claro: { papel: '#F6EFDF', tinta: '#2A2118', linha: '#5A4E40' }, escuro: { papel: '#1F1A13', tinta: '#EFE4CC', linha: '#9C8F78' } },
+    suave:    { nome: 'Suave',    claro: { papel: '#ECEFED', tinta: '#1C211E', linha: '#59615C' }, escuro: { papel: '#1E2422', tinta: '#D6DDD9', linha: '#7A8580' } },
+    palco:    { nome: 'Palco',    claro: { papel: '#FFFFFF', tinta: '#000000', linha: '#000000' }, escuro: { papel: '#000000', tinta: '#FFD54A', linha: '#9E8530' } },
+    retro:    { nome: 'Retrô',    claro: { papel: '#C9D3B5', tinta: '#1E2A16', linha: '#3E4A33' }, escuro: { papel: '#0B120D', tinta: '#7FD69B', linha: '#3C7A52' } }
+  };
+  const ACENTOS = { verde: ['#00703A', '#2BC46F'], azul: ['#1F5FAD', '#6AA7F0'], vermelho: ['#B3261E', '#F07A72'], roxo: ['#6A3FB5', '#B79CF0'], laranja: ['#9A480C', '#F0A05A'], amarelo: ['#7A6200', '#E8C547'] };
+  const ANOT_ESCURO = { '#D32F2F': '#FF7B72', '#1565C0': '#79B8FF', '#2E7D32': '#6FD67A', '#EF6C00': '#FFAB5C', '#6A1B9A': '#D2A8FF' };
+  function prefsDoApp() {
+    try { const d = JSON.parse(localStorage.getItem('repertorio.v1') || 'null'); return (d && d.prefs) || {}; } catch (e) { return {}; }
+  }
+  const sistemaEscuro = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  let escuroNaTela = null; // null = segue o app; true/false = sol/lua tocado nesta tela
+  let folhaEscura = false;
+  function temaEscuro() {
+    if (escuroNaTela !== null) return escuroNaTela;
+    const m = prefsDoApp().mode;
+    if (m === 'escuro') return true;
+    if (m === 'claro') return false;
+    return !!(sistemaEscuro && sistemaEscuro.matches); // "auto" ou fora do app
+  }
+  function corNaFolha(c) { return folhaEscura ? (ANOT_ESCURO[(c || '').toUpperCase()] || c) : c; }
+  function aplicarTema(redesenhar) {
+    const pr = prefsDoApp(), escuro = temaEscuro();
+    const f = (FOLHAS[pr.folha] || FOLHAS.classica)[escuro ? 'escuro' : 'claro'];
+    folhaEscura = escuro;
+    const r = document.documentElement, st = r.style;
+    r.setAttribute('data-theme', escuro ? 'dark' : 'light');
+    r.setAttribute('data-folha', FOLHAS[pr.folha] ? pr.folha : 'classica');
+    st.setProperty('--papel', f.papel); st.setProperty('--tinta', f.tinta); st.setProperty('--linha-pauta', f.linha);
+    st.setProperty('--borda-papel', escuro ? 'rgba(255,255,255,0.16)' : 'rgba(20,35,28,0.18)');
+    st.setProperty('--traco', escuro ? '#6AA7F0' : '#1F5FD6');
+    st.setProperty('--ok', escuro ? '#3DDC84' : '#00873E'); st.setProperty('--ok-tx', escuro ? '#06210F' : '#FFFFFF');
+    st.setProperty('--passou', escuro ? '#FF7A7A' : '#C62828'); st.setProperty('--falta', escuro ? '#FFB74D' : '#B26A00');
+    st.setProperty('--rot', escuro ? '#9AA59F' : '#6B746F');
+    const ac = ACENTOS[pr.accent];
+    if (ac) {
+      const c = ac[escuro ? 1 : 0];
+      st.setProperty('--acento', c); st.setProperty('--acento-tx', escuro ? ac[1] : ac[0]);
+      st.setProperty('--acento-fundo', `color-mix(in srgb, ${c} ${escuro ? 22 : 12}%, var(--barra))`);
+    } else ['--acento', '--acento-tx', '--acento-fundo'].forEach(k => st.removeProperty(k));
+    const b = $('bTema');
+    if (b) {
+      b.querySelector('svg').innerHTML = ICONES[escuro ? 'sol' : 'lua'];
+      b.setAttribute('aria-label', escuro ? 'Folha clara' : 'Folha escura'); b.title = escuro ? 'Folha clara (só nesta tela)' : 'Folha escura (só nesta tela)';
+    }
+    if (redesenhar) renderizar();
+  }
+  $('bTema').onclick = () => { escuroNaTela = !temaEscuro(); aplicarTema(true); };
+  if (sistemaEscuro && sistemaEscuro.addEventListener) sistemaEscuro.addEventListener('change', () => { if (escuroNaTela === null) aplicarTema(true); });
+  aplicarTema(false);
 
   // ---------- Início ----------
   if (PEDIDO.abrir && banco.musicas.some(x => x.id === PEDIDO.abrir)) banco.atual = PEDIDO.abrir;

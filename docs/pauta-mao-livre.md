@@ -43,3 +43,11 @@ Estado em 13/10/2026. Editor de partitura escrita à mão com a S Pen (o app rec
 - O app sincroniza com a chave `pauta-mao-livre.v2` ao abrir e ao voltar (inclusive voltando pelo histórico).
 - Build: `www/pauta.html` ganhou a regra `[hidden]{display:none!important}` (sem ela as janelas da pauta apareciam todas abertas no APK).
 - No visualizador do Claude a página da pauta não existe: "Criar partitura" mostra a ficha e avisa que o editor abre no APK.
+
+## Modo e folha da partitura (14/10)
+- **Ao abrir, segue o modo do app** (Claro, Escuro ou Seguir o aparelho) e a **cor de destaque**.
+- **Sol/lua na barra da pauta** troca folha clara/escura **só naquela hora** (não grava, não muda o app).
+- **Configurações › Folha da partitura**: Clássica (padrão), Creme, Suave, Palco (âmbar no preto), Retrô (LED/cristal líquido). Cada uma com versão clara e escura; gravado em `prefs.folha`. A tabela `FOLHAS` existe no app e na pauta (manter iguais).
+- Na folha escura, as cores das anotações ficam mais claras para continuar legíveis; o selo ✓ e os avisos do compasso também se ajustam.
+- **Impressão/PDF: sempre preto no branco** (`@media print`).
+- Teste: `testes/pauta/testar14.js ../../www`.

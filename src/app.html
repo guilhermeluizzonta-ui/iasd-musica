@@ -335,6 +335,8 @@ body.focus .focus-only { display: flex; }
 .theme-thumb i { display: block; height: 6px; border-radius: 3px; }
 .theme-thumb.split { flex-direction: row; padding: 0; overflow: hidden; gap: 0; }
 .theme-thumb.split > span { flex: 1; padding: 8px; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; }
+.folha-thumb { height: 70px; border-radius: 8px; overflow: hidden; display: flex; border: 1px solid rgba(128,128,128,.35); }
+.folha-thumb svg { flex: 1; height: 100%; display: block; }
 .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
 .swatch { min-width: 64px; min-height: 64px; border: 0; background: transparent; color: var(--fg); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-family: var(--sans); font-size: 12px; border-radius: 12px; }
 .swatch .dot { width: 34px; height: 34px; border-radius: 17px; border: 2px solid rgba(128,128,128,.4); }
@@ -850,6 +852,11 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
         <p class="hint">Vale para botões, campos e caixas, em todos os estilos. Padrão: Suave. "Com contorno" é o mais fácil de enxergar no palco com pouca luz.</p>
       </div>
       <div class="box">
+        <p class="sec-title">Folha da partitura</p>
+        <div class="theme-grid" id="folhas" role="group" aria-label="Folha da partitura"></div>
+        <p class="hint">Vale para as partituras escritas no app. Cada folha tem versão escura e clara e segue o Modo acima; o sol/lua na partitura troca só naquela hora. PDF e impressão saem sempre preto no branco.</p>
+      </div>
+      <div class="box">
         <p class="sec-title">Fonte</p>
         <div class="font-grid" id="fonts" role="group" aria-label="Fonte"></div>
         <p class="hint">Só a fonte escolhida é carregada. Os acordes continuam numa fonte de largura fixa, para não desalinhar.</p>
@@ -866,7 +873,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
       <p class="hint">A aparência vale só para você, neste aparelho. As mudanças aparecem na hora como prévia e só ficam gravadas ao tocar em Salvar.</p>
       <div class="editor-actions" data-tipscope>
         <p class="tipline" aria-live="polite" style="flex-basis:100%;order:-1"></p>
-        <button type="button" class="btn ib left" id="cfg-reset" aria-label="Restaurar padrão" data-tip="Restaurar padrão|Volta para claro, Simples, contorno suave, fonte Padrão e verde IASD."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/></svg></button>
+        <button type="button" class="btn ib left" id="cfg-reset" aria-label="Restaurar padrão" data-tip="Restaurar padrão|Volta para claro, Simples, contorno suave, fonte Padrão, verde IASD e folha Clássica."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/></svg></button>
         <span class="hint" id="cfg-status" aria-live="polite"></span>
         <button type="button" class="btn ib primary" id="cfg-save" aria-label="Salvar aparência" data-tip="Salvar aparência|Grava estas escolhas neste aparelho." disabled><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg></button>
       </div>
@@ -2891,8 +2898,16 @@ function loadFontCss(id, url) {
   const l = document.createElement('link'); l.id = id; l.rel = 'stylesheet'; l.href = url; document.head.appendChild(l);
 }
 const OUTLINES = ['sem', 'suave', 'forte'];
+/* Folha da partitura escrita no app (pauta.html lê prefs.folha; a mesma tabela está lá, em FOLHAS) */
+const FOLHAS = {
+  classica: { name: 'Clássica', hint: 'Preto no branco, como impressa. No escuro, inverte.', light: { papel: '#FFFFFF', tinta: '#141414', linha: '#3B403D' }, dark: { papel: '#000000', tinta: '#F2F2F2', linha: '#A8A8A8' } },
+  creme:    { name: 'Creme',    hint: 'Papel de partitura antiga. Cansa menos a vista.', light: { papel: '#F6EFDF', tinta: '#2A2118', linha: '#5A4E40' }, dark: { papel: '#1F1A13', tinta: '#EFE4CC', linha: '#9C8F78' } },
+  suave:    { name: 'Suave',    hint: 'Contraste mais baixo, para estudo e ensaios longos.', light: { papel: '#ECEFED', tinta: '#1C211E', linha: '#59615C' }, dark: { papel: '#1E2422', tinta: '#D6DDD9', linha: '#7A8580' } },
+  palco:    { name: 'Palco',    hint: 'No escuro, notas âmbar no preto: brilha pouco na igreja.', light: { papel: '#FFFFFF', tinta: '#000000', linha: '#000000' }, dark: { papel: '#000000', tinta: '#FFD54A', linha: '#9E8530' } },
+  retro:    { name: 'Retrô',    hint: 'Visor de LED no escuro, cristal líquido no claro.', light: { papel: '#C9D3B5', tinta: '#1E2A16', linha: '#3E4A33' }, dark: { papel: '#0B120D', tinta: '#7FD69B', linha: '#3C7A52' } }
+};
 /* Padrão definido pelo Guilherme: claro, Simples, contorno suave, fonte Padrão, Verde IASD */
-const PREF_DEFAULT = { mode: 'claro', style: 'simples', outline: 'suave', accent: 'verde', font: 'padrao' };
+const PREF_DEFAULT = { mode: 'claro', style: 'simples', outline: 'suave', accent: 'verde', font: 'padrao', folha: 'classica' };
 const sysDark = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 /* Em Configurações, as mudanças ficam num rascunho (prévia ao vivo) até tocar em Salvar */
 let prefDraft = null;
@@ -2938,9 +2953,24 @@ function styleOpt(id) {
     <span class="theme-thumb split">${half(s.dark, a.dark)}${half(s.light, a.light)}</span>
     <strong>${s.name}</strong><small>${s.hint}</small></button>`;
 }
+function folhaMini(c) {
+  const ys = [10, 16, 22, 28, 34];
+  const nota = (x, y, cheia) => `<ellipse cx="${x}" cy="${y}" rx="3.3" ry="2.4" transform="rotate(-20 ${x} ${y})" fill="${cheia ? c.tinta : c.papel}" stroke="${c.tinta}" stroke-width="${cheia ? 0 : 1.1}"/><line x1="${x + 3}" y1="${y - 0.6}" x2="${x + 3}" y2="${y - 17}" stroke="${c.tinta}" stroke-width="1"/>`;
+  return `<svg viewBox="0 0 80 44" preserveAspectRatio="none" style="background:${c.papel}" aria-hidden="true">
+    ${ys.map(y => `<line x1="4" y1="${y}" x2="76" y2="${y}" stroke="${c.linha}" stroke-width=".7"/>`).join('')}
+    <line x1="52" y1="10" x2="52" y2="34" stroke="${c.linha}" stroke-width=".9"/>
+    ${nota(16, 31, true)}${nota(28, 25, true)}${nota(40, 22, false)}${nota(63, 28, true)}</svg>`;
+}
+function folhaOpt(id) {
+  const f = FOLHAS[id];
+  return `<button type="button" class="theme-opt" data-folha-pick="${id}" aria-pressed="${(P().folha || 'classica') === id}">
+    <span class="folha-thumb">${folhaMini(f.dark)}${folhaMini(f.light)}</span>
+    <strong>${f.name}</strong><small>${f.hint}</small></button>`;
+}
 function renderConfig() {
   document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === P().mode)));
   $('styles').innerHTML = Object.keys(STYLES).map(styleOpt).join('');
+  $('folhas').innerHTML = Object.keys(FOLHAS).map(folhaOpt).join('');
   $('cfg-save').disabled = !prefsDirty();
   $('cfg-status').textContent = prefsDirty() ? 'Não salvo' : 'Salvo';
   document.querySelectorAll('[data-outline-pick]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.outlinePick === P().outline)));
@@ -2957,6 +2987,8 @@ document.addEventListener('click', (e) => {
   if (m) { P().mode = m.dataset.mode; applyTheme(); renderConfig(); return; }
   const st = e.target.closest('[data-style-pick]');
   if (st) { P().style = st.dataset.stylePick; applyTheme(); renderConfig(); return; }
+  const fp = e.target.closest('[data-folha-pick]');
+  if (fp) { P().folha = fp.dataset.folhaPick; renderConfig(); return; }
   const ol = e.target.closest('[data-outline-pick]');
   if (ol) { P().outline = ol.dataset.outlinePick; applyTheme(); renderConfig(); return; }
   const ac = e.target.closest('[data-accent]');
@@ -3973,6 +4005,7 @@ seedCatalog();
 if (!ACCENTS[db.prefs.accent]) db.prefs.accent = PREF_DEFAULT.accent;
 if (!FONTS[db.prefs.font]) db.prefs.font = PREF_DEFAULT.font;
 if (!OUTLINES.includes(db.prefs.outline)) db.prefs.outline = PREF_DEFAULT.outline;
+if (!FOLHAS[db.prefs.folha]) db.prefs.folha = PREF_DEFAULT.folha;
 applyTheme();
 syncPautas();
 if (db.user) { enterApp(); restoreAfterPauta(); } else show('v-login');
