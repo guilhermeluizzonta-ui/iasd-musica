@@ -500,6 +500,83 @@ html[data-style="retro"] .lsheet .lline { font-family: var(--mono); }
 .badge-ed { font-size: 12px; font-weight: 600; color: #8A6400; border: 1px solid #8A6400; border-radius: 999px; padding: 2px 10px; flex: none; white-space: nowrap; }
 html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gold); border-color: var(--gold); }
 @media (max-width: 480px) { .badge-ed { display: none; } }
+
+/* ---------- Criar cifra (editor visual: letra por partes + acordes arrastados até a sílaba) ---------- */
+#v-criar { --cc-target: color-mix(in srgb, var(--gold) 38%, transparent); gap: 14px; }
+.cc-bar .toolbar { gap: 8px; flex-wrap: wrap; overflow: visible; }  /* no celular quebra em 2 linhas: Salvar nunca fica escondido */
+.cc-bar .spacer { flex: 1; }
+body.cc-pal main { padding-bottom: 50vh; }
+body.cc-pal .toast { bottom: calc(var(--cc-palh, 46vh) + 12px); }
+.cc-doc { display: flex; flex-direction: column; gap: 14px; }
+.cc-sec { border: var(--bw) solid var(--line); border-radius: 12px; background: var(--surface); padding: 8px 14px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.cc-sec.chorus { border-left: 3px solid var(--accent); }
+.cc-sec-head { display: flex; align-items: center; gap: 8px; }
+.cc-sec-name { background: none; border: 0; padding: 0 2px; min-height: 40px; cursor: pointer; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); display: inline-flex; align-items: center; gap: 6px; }
+.cc-sec-kind { font-size: 12px; color: var(--muted); }
+textarea.cc-lyr { min-height: 3.4em; resize: none; overflow: hidden; font-family: var(--sans); font-size: 17px; line-height: 1.6; }
+.cc-empty { margin: 0; font-size: 13px; color: var(--muted); }
+.cc-lines { display: flex; flex-direction: column; min-width: 0; }
+.cc-ln { display: flex; flex-wrap: wrap; align-items: flex-end; padding-top: 1.55em; font-size: 18px; line-height: 1.55; }
+.cc-ln.blank { padding-top: .4em; }
+.cc-w { display: inline-flex; white-space: pre; }
+.cc-ch { position: relative; cursor: pointer; border-radius: 3px; }
+.cc-ch.sp { min-width: .3em; }
+.cc-ch.eol { min-width: 1.2em; color: transparent; }
+.cc-ch:hover { background: var(--surface-2); }
+.cc-ch.hot { background: var(--cc-target); }
+.cc-ch::after { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 1.4em; }
+.cc-cd { position: absolute; z-index: 1; left: 0; bottom: 100%; font-family: var(--mono); font-weight: 600; font-size: 15px; line-height: 1.5; color: var(--chord); white-space: nowrap; cursor: grab; touch-action: none; padding: 0 2px; margin-left: -2px; border-radius: 4px; user-select: none; -webkit-user-select: none; }
+.cc-cd.sel { background: var(--gold); color: var(--gold-ink); }
+.cc-cd.dragging, .cc-ic.dragging { opacity: .25; }
+.cc-irow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cc-ic { font-family: var(--mono); font-weight: 600; font-size: 16px; color: var(--chord); min-height: 42px; min-width: 46px; padding: 0 10px; border: var(--bw) solid var(--line); border-radius: 8px; background: var(--bg); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.cc-ic.hot { box-shadow: -4px 0 0 var(--gold); }
+.cc-ic.sel { background: var(--gold); color: var(--gold-ink); }
+.cc-islot { min-height: 42px; min-width: 46px; border: 1px dashed var(--ctl); border-radius: 8px; background: none; color: var(--muted); cursor: pointer; font-size: 20px; }
+.cc-islot.hot { background: var(--cc-target); }
+/* paleta presa embaixo (modo Acordes) */
+.cc-palette { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(0,0,0,.25); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.cc-pal { max-width: 1400px; margin: 0 auto; padding: 10px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 8px; max-height: 44vh; overflow-y: auto; }
+.cc-status { margin: 0; font-size: 13px; color: var(--muted); min-height: 20px; }
+.cc-status b { color: var(--fg); }
+.cc-row { display: flex; flex-direction: column; gap: 6px; }
+.cc-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
+.cc-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
+.cc-pc { flex: none; min-width: 52px; min-height: 48px; padding: 3px 10px; border: var(--bw) solid var(--line); border-radius: 10px; background: var(--bg); color: var(--fg); cursor: grab; touch-action: pan-x; user-select: none; -webkit-user-select: none; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
+.cc-pc b { font-family: var(--mono); font-weight: 600; font-size: 16px; color: var(--chord); }
+.cc-pc small { font-size: 11px; color: var(--muted); }
+.cc-pc[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); }
+.cc-pc[aria-pressed="true"] b, .cc-pc[aria-pressed="true"] small { color: var(--gold-ink); }
+.cc-pc.tool { cursor: pointer; touch-action: manipulation; }
+.cc-pc.tool b { color: var(--fg); font-family: var(--sans); font-size: 14px; }
+.cc-trash { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; gap: 10px; background: color-mix(in srgb, var(--warn) 22%, var(--surface)); color: var(--fg); font-weight: 600; border-top: 2px dashed var(--warn); }
+.cc-palette.droptrash .cc-trash { display: flex; }
+.cc-palette.droptrash.over .cc-trash { background: color-mix(in srgb, var(--warn) 45%, var(--surface)); }
+.cc-builder { border: var(--bw) solid var(--line); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
+.cc-bgrid { display: flex; flex-wrap: wrap; gap: 6px; }
+.cc-bb { min-width: 44px; min-height: 40px; padding: 0 10px; border: var(--bw) solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); cursor: pointer; font-family: var(--mono); font-size: 14px; }
+.cc-bb[aria-pressed="true"] { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); font-weight: 600; }
+.cc-bres { display: flex; align-items: center; gap: 10px; }
+.cc-bres .big { font-family: var(--mono); font-weight: 600; font-size: 22px; color: var(--chord); min-width: 90px; }
+.cc-ghost { position: fixed; z-index: 70; pointer-events: none; transform: translate(-50%, -100%); font-family: var(--mono); font-weight: 600; font-size: 20px; background: var(--gold); color: var(--gold-ink); padding: 4px 12px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+body.cc-dragging { user-select: none; -webkit-user-select: none; }
+.cc-pop { position: fixed; z-index: 55; min-width: 230px; max-width: calc(100vw - 32px); background: var(--surface); border: 1px solid var(--ctl); border-radius: 12px; box-shadow: 0 14px 36px rgba(0,0,0,.45); padding: 6px; display: flex; flex-direction: column; max-height: 70vh; overflow-y: auto; }
+.cc-pop button.mi { min-height: 46px; text-align: left; background: none; border: 0; border-radius: 8px; padding: 0 12px; cursor: pointer; font-size: 15px; color: var(--fg); display: flex; align-items: center; gap: 10px; }
+.cc-pop button.mi:hover { background: var(--surface-2); }
+.cc-pop button.mi:disabled { opacity: .4; cursor: default; }
+.cc-pop button.mi.danger { color: var(--warn); }
+.cc-pop .sep { height: 1px; background: var(--line); margin: 4px 6px; }
+.cc-pop .ttl { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); padding: 6px 12px 2px; }
+.cc-pop .input { margin: 4px 0 6px; height: 44px; }
+/* ficha */
+.cc-ficha .keypick-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.cc-ficha .keypick-grid button { min-height: 52px; }
+@media (max-width: 480px) { .cc-ficha .keypick-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.cc-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.cc-transp { border: 1px dashed var(--ctl); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.cc-draft { border: 1px solid var(--gold); border-radius: 10px; padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.cc-draft span { flex: 1 1 220px; font-size: 14px; }
+@media (prefers-reduced-motion: no-preference) { .cc-ch.hot, .cc-islot.hot { transition: background .08s; } }
 </style>
 
 <!-- ================= LOGIN ================= -->
@@ -888,7 +965,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
         <button type="button" class="btn ib" id="viewer-addlist" aria-label="Adicionar a uma lista" data-tip="Adicionar a uma lista|Coloca esta música numa lista de culto." hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7"/><path d="M18 14v6M15 17h6"/></svg></button>
         <button type="button" class="btn ib" id="viewer-lyr" aria-label="Letra" data-tip="Letra|Mostra só a letra com o tom, sem os acordes (para o louvor e o coral)."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 10h16M4 14h10M4 18h7"/><path d="M18 14v6"/><circle cx="16.5" cy="20" r="1.5"/></svg></button>
         <button type="button" class="btn ib" id="viewer-pdf" aria-label="Partitura" data-tip="Partitura|Abre a partitura ligada a esta cifra." hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9"/><path d="M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5"/><circle cx="10.2" cy="21.2" r="1.1" fill="currentColor" stroke="none"/></svg></button>
-        <button type="button" class="btn ib" id="viewer-edit" aria-label="Editar cifra" data-tip="Editar cifra|Abre o editor para corrigir letra, acordes e tom."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/><path d="M18.4 3.6a2 2 0 0 1 2.9 2.9L12.5 15.3 9 16l.7-3.5z"/></svg></button>
+        <button type="button" class="btn ib" id="viewer-edit" aria-label="Editar cifra" data-tip="Editar cifra|Abre o editor para corrigir letra, acordes e tom (arrastando os acordes)."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/><path d="M18.4 3.6a2 2 0 0 1 2.9 2.9L12.5 15.3 9 16l.7-3.5z"/></svg></button>
       </div>
       <div class="toolbar-wrap">
         <div class="pop-anchor">
@@ -926,6 +1003,30 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
       <p class="status" id="fit-status" aria-live="polite" hidden></p>
       <p class="status" id="ink-warn" hidden>A cifra foi editada depois das suas anotações. Confira se elas continuam no lugar.<button type="button" class="link" id="ink-warn-ok">Já conferi</button></p>
       <article class="sheet" id="sheet"></article>
+    </section>
+
+
+    <!-- Criar cifra: editor visual (letra por partes, acordes arrastados até a sílaba). Salva em ChordPro, igual às importadas. -->
+    <section class="view" id="v-criar" hidden>
+      <div class="toolbar-wrap cc-bar" data-tipscope id="cc-bar">
+        <div class="toolbar" role="toolbar" aria-label="Criar cifra">
+          <div class="group">
+            <button type="button" class="gi" id="cc-m-lyr" aria-pressed="false" aria-label="Letra" data-tip="Letra|Escreva a letra de cada parte. Os acordes já colocados acompanham o texto."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6V4h12v2M10 4v14M7.5 18h5"/><path d="M15 13h6M15 17h5M15 21h6"/></svg></button>
+            <button type="button" class="gi" id="cc-m-chd" aria-pressed="false" aria-label="Acordes" data-tip="Acordes|Puxe um acorde da paleta até a sílaba. Ou toque no acorde e depois nas sílabas."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5H20" stroke-width="2.6"/><path d="M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5" stroke-width="1.3"/><path d="M4 10.5H20M4 16H20M4 21.5H20" stroke-width="1.3"/><circle cx="4" cy="18.75" r="2.3" fill="currentColor" stroke="none"/><circle cx="9.33" cy="13.25" r="2.3" fill="currentColor" stroke="none"/><circle cx="20" cy="7.75" r="2.3" fill="currentColor" stroke="none"/></svg></button>
+          </div>
+          <button type="button" class="btn ib" id="cc-add" aria-label="Adicionar parte" aria-haspopup="menu" data-tip="Adicionar parte|Intro, Estrofe, Refrão, Ponte, Final… ou repetir uma parte que já existe, com os acordes."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg></button>
+          <button type="button" class="btn ib" id="cc-undo" aria-label="Desfazer" data-tip="Desfazer|Volta a última mudança." disabled><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+          <span class="spacer"></span>
+          <button type="button" class="btn ib" id="cc-ficha-btn" aria-label="Ficha da cifra" data-tip="Ficha da cifra|Título, artista e tom. Mudar o tom pode transpor os acordes já colocados."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></button>
+          <button type="button" class="btn ib" id="cc-text" aria-label="Editar como texto" data-tip="Editar como texto|Abre o editor de texto (ChordPro) com o que está aqui."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg></button>
+          <button type="button" class="btn ib" id="cc-view-btn" aria-label="Visualizar" aria-pressed="false" data-tip="Visualizar|Mostra a cifra como ela vai aparecer para os músicos."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button type="button" class="btn ib primary" id="cc-save" aria-label="Salvar cifra" data-tip="Salvar cifra|Guarda a cifra em Cifras (e ela aparece também em Letras)."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg></button>
+        </div>
+        <p class="tipline" aria-live="polite"></p>
+      </div>
+      <form class="box cc-ficha" id="cc-ficha" autocomplete="off" novalidate hidden></form>
+      <div class="cc-doc" id="cc-doc" aria-label="Partes da música"></div>
+      <article class="sheet" id="cc-sheet" hidden></article>
     </section>
 
     <!-- Editor -->
@@ -983,6 +1084,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
       <div class="editor-actions" data-tipscope>
         <p class="tipline" aria-live="polite" style="flex-basis:100%;order:-1"></p>
         <button type="button" class="btn ib danger left" id="ed-archive" aria-label="Excluir cifra" data-tip="Excluir cifra|Manda a cifra para a Lixeira. Dá para restaurar por 30 dias." hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+        <button type="button" class="btn ib" id="ed-visual" aria-label="Editor visual" data-tip="Editor visual|Abre esta cifra no editor de arrastar os acordes até a sílaba."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5H20" stroke-width="2.6"/><path d="M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5" stroke-width="1.3"/><path d="M4 10.5H20M4 16H20M4 21.5H20" stroke-width="1.3"/><circle cx="4" cy="18.75" r="2.3" fill="currentColor" stroke="none"/><circle cx="9.33" cy="13.25" r="2.3" fill="currentColor" stroke="none"/><circle cx="20" cy="7.75" r="2.3" fill="currentColor" stroke="none"/></svg></button>
         <button type="button" class="btn ib" id="ed-cancel" aria-label="Cancelar" data-tip="Cancelar|Sai sem salvar as mudanças."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
         <button type="button" class="btn ib primary" id="ed-save" aria-label="Salvar cifra" data-tip="Salvar cifra|Guarda a cifra no repertório."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg></button>
       </div>
@@ -992,7 +1094,8 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
 
   <div class="fab-wrap" id="fab-wrap" hidden>
     <div class="fab-menu" id="fab-menu" role="menu" aria-label="Adicionar">
-      <button type="button" role="menuitem" id="fab-new"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>Nova cifra</button>
+      <button type="button" role="menuitem" id="fab-create" class="fab-primary"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h12M3 10h9M3 15h7"/><path d="M14.5 19.5l-1 3 3-1 6.2-6.2a1.4 1.4 0 0 0-2-2z"/></svg>Criar cifra</button>
+      <button type="button" role="menuitem" id="fab-new"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>Importar da internet</button>
       <button type="button" role="menuitem" id="fab-score" class="fab-primary" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h14M2 8h11M2 12h9M2 16h7M2 20h6"/><path d="M13.5 19.5l-1 3 3-1 7.2-7.2a1.4 1.4 0 0 0-2-2z"/></svg>Criar partitura</button>
       <button type="button" role="menuitem" id="fab-folder" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.5h8.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"></path></svg>Nova pasta</button>
       <button type="button" role="menuitem" id="fab-pdf" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path></svg>Importar PDF</button>
@@ -1001,6 +1104,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
     <button type="button" class="fab" id="fab" aria-label="Adicionar cifra" aria-haspopup="menu" aria-expanded="false" aria-controls="fab-menu"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
   </div>
 </div>
+<div class="cc-palette" id="cc-palette" hidden><div class="cc-pal" id="cc-pal"></div><div class="cc-trash"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Solte aqui para tirar o acorde</div></div>
 <nav class="list-nav" id="list-nav" aria-label="Músicas da lista" hidden>
   <button type="button" id="ln-prev" aria-label="Anterior"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
   <button type="button" id="ln-mid" aria-label="Voltar para a lista"></button>
@@ -1361,7 +1465,7 @@ function viewFor(id) {
 }
 
 /* ---------- Navegação ---------- */
-const TITLES = { scoreform: 'Nova partitura', letra: 'Letra', lista: 'Lista', listaform: 'Nova lista', listapick: 'Adicionar músicas', letras: 'Letras', partitura: 'Partitura', inicio: 'Início', cifras: 'Cifras', favoritas: 'Favoritas', partituras: 'Partituras', listas: 'Listas de culto', config: 'Configurações', lixeira: 'Lixeira' };
+const TITLES = { criar: 'Criar cifra', scoreform: 'Nova partitura', letra: 'Letra', lista: 'Lista', listaform: 'Nova lista', listapick: 'Adicionar músicas', letras: 'Letras', partitura: 'Partitura', inicio: 'Início', cifras: 'Cifras', favoritas: 'Favoritas', partituras: 'Partituras', listas: 'Listas de culto', config: 'Configurações', lixeira: 'Lixeira' };
 const TOP = ['inicio', 'cifras', 'favoritas', 'partituras', 'letras', 'listas', 'config', 'lixeira'];
 let route = { name: 'inicio' }, lastTop = 'inicio';
 function show(id) { ['v-login', 'v-signup'].forEach(x => $(x).hidden = x !== id); $('app').hidden = id !== 'app'; }
@@ -1376,6 +1480,7 @@ function go(name, params = {}) {
     if (unsaved) toast('Aparência não salva: voltou ao que estava.', { label: 'Salvar', fn: () => { db.prefs = unsaved; save(); applyTheme(); rerenderCurrent(); } });
   }
   if (name === 'config' && !prefDraft) prefDraft = Object.assign({}, db.prefs);
+  if (route && route.name === 'criar') CC.leave();
   route = { name, ...params };
   if (TOP.includes(name) && !(params && params.back)) lastTop = name;
   document.querySelectorAll('main > .view').forEach(s => s.hidden = s.id !== 'v-' + name);
@@ -1388,7 +1493,7 @@ function go(name, params = {}) {
   $('fab-wrap').classList.toggle('single', name === 'listas');   // pastas: todos organizam as suas
   $('fab').setAttribute('aria-label', name === 'partituras' ? 'Importar partituras em PDF' : name === 'listas' ? 'Nova lista' : 'Adicionar cifra');
   const inPdf = name === 'partituras';
-  ['fab-new', 'fab-import'].forEach(i => $(i).hidden = inPdf); $('fab-folder').hidden = !inPdf; $('fab-pdf').hidden = !inPdf; $('fab-score').hidden = !(inPdf && db.role === 'editor');   // todos importam os PDFs que têm no aparelho
+  ['fab-create', 'fab-new', 'fab-import'].forEach(i => $(i).hidden = inPdf); $('fab-folder').hidden = !inPdf; $('fab-pdf').hidden = !inPdf; $('fab-score').hidden = !(inPdf && db.role === 'editor');   // todos importam os PDFs que têm no aparelho
   if (TITLES[name]) $('top-title').textContent = TITLES[name];
   if (name === 'inicio') renderWelcome();
   if (name === 'cifras') renderList();
@@ -1396,7 +1501,8 @@ function go(name, params = {}) {
   if (name === 'config') renderConfig();
   if (name === 'lixeira') renderTrash();
   if (name === 'cifra') openViewer(params.id);
-  if (name === 'editor') openEditor(params.id);
+  if (name === 'editor') openEditor(params.id, params.text);
+  if (name === 'criar') CC.open(params);
   if (name === 'partituras') { if (params.q != null) $('pdf-q').value = params.q; renderPdfList(); if (params.back && params.back.name === 'cifra') { const bs = songById(params.back.params.id); if (bs) $('top-title').textContent = 'Partituras · ' + bs.title; } }
   if (name === 'partitura') openPdfView(params.id);
   if (name === 'listas') renderLists();
@@ -1431,7 +1537,7 @@ function songRow(s) {
 const norm = (t) => String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const byTitle = (a, b) => a.title.localeCompare(b.title, 'pt-BR');
 function emptyBox(msg, withAdd) {
-  return `<div class="empty"><p>${msg}</p>${withAdd && db.role === 'editor' ? '<button type="button" class="btn primary" data-act="new">Nova cifra</button>' : ''}</div>`;
+  return `<div class="empty"><p>${msg}</p>${withAdd && db.role === 'editor' ? '<button type="button" class="btn primary" data-act="new">Criar cifra</button>' : ''}</div>`;
 }
 function renderList() {
   const q = norm($('list-q').value.trim());
@@ -1752,7 +1858,7 @@ document.addEventListener('click', (e) => {
   const nav = e.target.closest('[data-nav]');
   if (nav) { closeDrawer(); go(nav.dataset.nav); return; }
   const nw = e.target.closest('[data-act="new"]');
-  if (nw) { go('editor', {}); }
+  if (nw) { go('criar', { back: { name: route.name } }); }
 });
 $('list-q').addEventListener('input', renderList);
 /* ---------- Boas-vindas: saudação e versículos que alternam ---------- */
@@ -1854,7 +1960,8 @@ $('t-zin').addEventListener('click', () => setZoom(cur.v.zoom + 0.1));
 $('t-zout').addEventListener('click', () => setZoom(cur.v.zoom - 0.1));
 $('t-zval').addEventListener('click', () => setZoom(1));
 $('viewer-fav').addEventListener('click', () => { toggleFav(cur.id); renderViewer(); });
-$('viewer-edit').addEventListener('click', () => go('editor', { id: cur.id }));
+/* Editar: abre o editor visual; se a cifra tiver algo que ele ainda não mostra, abre o editor de texto */
+$('viewer-edit').addEventListener('click', () => { const s = songById(cur.id); if (s && CC.visualOk(s.text)) go('criar', { id: cur.id, back: { name: 'cifra', params: { id: cur.id } } }); else go('editor', { id: cur.id }); });
 $('viewer-addlist').addEventListener('click', (e) => { e.stopPropagation(); if (!rowMenu.hidden) { closeRowMenu(); return; } openAddToList(e.currentTarget); });
 $('sheet').addEventListener('click', (e) => {
   if (e.target.closest('[data-act="edit"]')) { go('editor', { id: cur.id }); return; }
@@ -1995,15 +2102,15 @@ document.addEventListener('visibilitychange', () => { if (document.body.classLis
 /* ---------- Editor ---------- */
 let ed = { id: null, prevV: { shift: 0, simplify: false, colsMode: 'auto', cols: 1, zoom: 1 }, armed: false };
 const search = { title: '', artist: '', source: '', at: 0 };
-function openEditor(id) {
+function openEditor(id, text) {
   if (db.role !== 'editor') { toast('Só o editor pode criar ou editar cifras.'); go(lastTop); return; }
   const s = id ? songById(id) : null;
   ed.id = s ? s.id : null; ed.armed = false;
   $('top-title').textContent = s ? 'Editar cifra' : 'Nova cifra';
-  $('ed-src').value = s ? s.text : '{title: }\n\n';
+  $('ed-src').value = text != null ? text : s ? s.text : '{title: }\n\n';
   $('imp').value = ''; $('imp-status').textContent = '';
   $('q-song').value = ''; $('q-artist').value = ''; updLinks();
-  $('ed-search-box').hidden = !!s;
+  $('ed-search-box').hidden = !!s || text != null;
   $('ed-archive').hidden = !s;
   $('ed-err').hidden = true;
   syncFields(); renderPreview();
@@ -2112,6 +2219,12 @@ $('ed-save').addEventListener('click', () => {
   save(); toast('Cifra salva.');
   go('cifra', { id: s.id });
 });
+$('ed-visual').addEventListener('click', () => {
+  const t = $('ed-src').value;
+  if (!/\S/.test(t.replace(/^\s*\{\s*(title|t)\s*:.*\}\s*$/gim, ''))) { go('criar', { back: ed.id ? { name: 'cifra', params: { id: ed.id } } : { name: 'cifras' } }); return; }
+  if (!CC.visualOk(t)) { toast('Esta cifra tem trechos que o editor visual ainda não mostra (ex.: comentário no meio da letra). Continue no texto.'); return; }
+  go('criar', { id: ed.id, text: t, back: ed.id ? { name: 'cifra', params: { id: ed.id } } : { name: 'cifras' } });
+});
 $('ed-cancel').addEventListener('click', () => { if (ed.id) go('cifra', { id: ed.id }); else back(); });
 $('ed-archive').addEventListener('click', () => { const id = ed.id; go('cifras'); moveToTrash(id); });
 
@@ -2129,9 +2242,10 @@ $('fab').addEventListener('click', (e) => {
   if (route.name === 'listas') { go('listaform', { back: { name: 'listas' } }); return; }
   const open = !$('fab-wrap').classList.contains('open');
   $('fab-wrap').classList.toggle('open', open); $('fab').setAttribute('aria-expanded', String(open));
-  if (open) (route.name === 'partituras' ? (db.role === 'editor' ? $('fab-score') : $('fab-folder')) : $('fab-new')).focus();
+  if (open) (route.name === 'partituras' ? (db.role === 'editor' ? $('fab-score') : $('fab-folder')) : $('fab-create')).focus();
 });
 $('fab-new').addEventListener('click', () => { closeFab(); go('editor', {}); });
+$('fab-create').addEventListener('click', () => { closeFab(); go('criar', { back: { name: 'cifras' } }); });
 $('fab-pdf').addEventListener('click', () => { closeFab(); $('pdf-file').click(); });
 $('fab-score').addEventListener('click', () => { closeFab(); go('scoreform', { back: { name: 'partituras', params: { folder: pdfFolder } } }); });
 $('fab-folder').addEventListener('click', () => { closeFab(); folderDialog('new'); });
@@ -2144,7 +2258,7 @@ function applyRole() {
 }
 document.querySelectorAll('[data-role]').forEach(b => b.addEventListener('click', () => {
   db.role = b.dataset.role; save(); applyRole(); updTrashNav(); closeDrawer();
-  if ((route.name === 'editor' || route.name === 'lixeira') && db.role !== 'editor') go('inicio'); else go(route.name, route);
+  if ((route.name === 'editor' || route.name === 'criar' || route.name === 'lixeira') && db.role !== 'editor') go('inicio'); else go(route.name, route);
   toast(db.role === 'editor' ? 'Agora você está como Editor.' : 'Agora você está como Músico: só visualização.');
 }));
 function fillWho() {
@@ -3964,6 +4078,588 @@ $('sf-form').addEventListener('submit', (e) => {
   openPauta({ nova: req });
 });
 
+/* ---------- Criar cifra: editor visual ----------
+   A cifra é montada por partes (Intro, Estrofe, Refrão…). Cada parte com letra guarda o texto e os acordes por posição
+   ({ at: índice da letra, ch }); as partes só de acordes (Intro, Solo, Final) guardam a lista de acordes.
+   Entra e sai em ChordPro (o mesmo texto das cifras importadas), então o visualizador, Letras e Listas não mudam.
+   Rascunho em localStorage['cifra-criar.rascunho']: nada se perde ao sair sem salvar. Protótipo aprovado em 14/10. */
+const CC = (() => {
+  const note = (i, flats) => (flats ? FLAT : SHARP)[(i + 120) % 12];
+  const flatsFor = (key) => FLAT_KEYS.has(key);
+  function keyParts(key) { const p = parseChord(key || ''); if (!p || !(p.root in IDX)) return null; return { idx: IDX[p.root], minor: /^m(?!aj)/.test(p.quality) }; }
+  function moveChord(ch, shift, flats) {
+    const p = parseChord(ch); if (!p || !(p.root in IDX)) return ch;
+    return note(IDX[p.root] + shift, flats) + p.quality + (p.bass && p.bass in IDX ? '/' + note(IDX[p.bass] + shift, flats) : '');
+  }
+  /* Paleta: campo harmônico do tom (com o grau) e os acordes "de fora" mais comuns no louvor */
+  function keyChords(key) {
+    const k = keyParts(key); if (!k) return { main: [], more: [] };
+    const f = flatsFor(key), n = (d) => note(k.idx + d, f);
+    if (!k.minor) return {
+      main: [[n(0),'I'],[n(2)+'m','ii'],[n(4)+'m','iii'],[n(5),'IV'],[n(7),'V'],[n(9)+'m','vi'],[n(11)+'°','vii°']],
+      more: [[n(7)+'7','V7'],[n(7)+'sus4','V sus'],[n(2),'II'],[n(4),'III'],[n(9),'VI'],[n(5)+'m','iv'],[n(10),'♭VII'],[n(0)+'/'+n(4),'I/3'],[n(7)+'/'+n(11),'V/7']]
+    };
+    return {
+      main: [[n(0)+'m','i'],[n(2)+'°','ii°'],[n(3),'III'],[n(5)+'m','iv'],[n(7)+'m','v'],[n(8),'VI'],[n(10),'VII']],
+      more: [[n(7),'V'],[n(7)+'7','V7'],[n(7)+'sus4','V sus'],[n(5),'IV'],[n(2)+'m7(b5)','ii ø'],[n(0)+'m/'+n(3),'i/3'],[n(1),'♭II']]
+    };
+  }
+
+  /* ----- partes ----- */
+  const TYPES = {
+    intro:   { label: 'Intro', inst: true },
+    estrofe: { label: 'Estrofe' },
+    pre:     { label: 'Pré-refrão' },
+    refrao:  { label: 'Refrão', chorus: true },
+    ponte:   { label: 'Ponte' },
+    solo:    { label: 'Solo', inst: true },
+    inter:   { label: 'Interlúdio', inst: true },
+    final:   { label: 'Final', inst: true },
+  };
+  const isInst = (sec) => !!TYPES[sec.type].inst;
+  let n0 = 1; const newId = () => 'p' + Date.now().toString(36) + (n0++);
+  function secName(sec, song) {
+    if (sec.bare) return 'Acordes';
+    if (sec.label) return sec.label;
+    if (sec.type === 'estrofe') { let n = 0; for (const s of song.sections) { if (s.type === 'estrofe' && !s.label) n++; if (s === sec) break; } return `${n}ª Estrofe`; }
+    return TYPES[sec.type].label;
+  }
+  const newSection = (type) => TYPES[type].inst ? { id: newId(), type, label: '', chords: [] } : { id: newId(), type, label: '', text: '', chords: [] };
+
+  /* ----- ChordPro ----- */
+  const DIR = /^\{\s*([a-z_]+)\s*:?\s*(.*?)\s*\}$/i;
+  function lineStarts(text) { const st = [0]; for (let i = 0; i < text.length; i++) if (text[i] === '\n') st.push(i + 1); return st; }
+  function toChordPro(song) {
+    const out = [`{title: ${song.title}}`];
+    if (song.artist) out.push(`{artist: ${song.artist}}`);
+    if (song.key) out.push(`{key: ${song.key}}`);
+    (song.extra || []).forEach(l => out.push(l));
+    for (const sec of song.sections) {
+      out.push('');
+      const name = secName(sec, song);
+      if (isInst(sec)) {
+        const chs = sec.chords.map(c => `[${c}]`).join(' ');
+        out.push(sec.bare ? `{c: ${chs}}` : chs ? `{c: ${name}: ${chs}}` : `{c: ${name}}`);
+        continue;
+      }
+      const tag = TYPES[sec.type].chorus ? 'chorus' : (sec.type === 'ponte' ? 'bridge' : 'verse');
+      out.push(`{start_of_${tag}: ${name}}`);
+      const text = sec.text.replace(/\s+$/, ''), st = lineStarts(text);
+      st.forEach((s, li) => {
+        const e = li + 1 < st.length ? st[li + 1] - 1 : text.length;
+        let line = text.slice(s, e);
+        sec.chords.filter(c => c.at >= s && c.at <= e).sort((a, b) => b.at - a.at).forEach(c => { const p = c.at - s; line = line.padEnd(p, ' '); line = line.slice(0, p) + `[${c.ch}]` + line.slice(p); });
+        out.push(line.replace(/\s+$/, ''));
+      });
+      out.push(`{end_of_${tag}}`);
+    }
+    return out.join('\n').replace(/\n{3,}/g, '\n\n') + '\n';
+  }
+  function typeFromName(name, inst) {
+    const t = name.toLowerCase();
+    if (inst) return /solo/.test(t) ? 'solo' : /interl/.test(t) ? 'inter' : /final|fim/.test(t) ? 'final' : 'intro';
+    if (/pr[eé].?refr/.test(t)) return 'pre';
+    if (/refr|coro|chorus/.test(t)) return 'refrao';
+    if (/ponte|bridge/.test(t)) return 'ponte';
+    return 'estrofe';
+  }
+  function fromChordPro(cp) {
+    const song = { title: '', artist: '', key: '', extra: [], sections: [] };
+    let cur = null;
+    const pushLine = (raw) => {
+      if (!cur) { cur = newSection('estrofe'); song.sections.push(cur); }
+      let text = ''; const base = cur.started ? cur.text + '\n' : '';
+      raw.split(/(\[[^\]]*\])/).forEach(p => { if (/^\[.*\]$/.test(p)) cur.chords.push({ at: base.length + text.length, ch: p.slice(1, -1) }); else text += p; });
+      cur.text = base + text; cur.started = true;
+    };
+    for (const raw of String(cp).replace(/\r/g, '').split('\n')) {
+      const line = raw.replace(/\s+$/, '');
+      const d = line.trim().match(DIR);
+      if (d) {
+        const k = d[1].toLowerCase(), v = d[2];
+        if (k === 'title' || k === 't') song.title = v;
+        else if (k === 'artist' || k === 'subtitle' || k === 'st') song.artist = v;
+        else if (k === 'key' || k === 'k') song.key = v;
+        else if (/^start_of_|^so[vcb]$/.test(k)) {
+          const chorus = /chorus|soc/.test(k), name = v || (chorus ? 'Refrão' : /bridge|sob/.test(k) ? 'Ponte' : 'Estrofe');
+          cur = newSection(chorus ? 'refrao' : typeFromName(name, false));
+          if (!/^\d+ª Estrofe$/.test(name) && name !== TYPES[cur.type].label) cur.label = name;
+          song.sections.push(cur);
+        } else if (/^end_of_|^eo[vcb]$/.test(k)) cur = null;
+        else if (k === 'c' || k === 'comment' || k === 'ci') {
+          const m = v.match(/^([^\[:]*?)\s*:?\s*((?:\[[^\]]+\]\s*)*)$/);
+          const name = (m ? m[1] : v).trim();
+          const sec = newSection(typeFromName(name || 'intro', true));
+          if (!name) sec.bare = true; else if (name !== TYPES[sec.type].label) sec.label = name;
+          sec.chords = [...v.matchAll(/\[([^\]]+)\]/g)].map(x => x[1]);
+          song.sections.push(sec); cur = null;
+        } else song.extra.push(line.trim());
+        continue;
+      }
+      if (!line.trim()) { if (cur && cur.started) cur.text += '\n'; continue; }
+      pushLine(line);
+    }
+    song.sections.forEach(s => { delete s.started; if (!isInst(s)) s.text = s.text.replace(/\n+$/, ''); });
+    return song;
+  }
+  /* O modo visual só abre uma cifra se, ida e volta, nada da letra, dos acordes e dos comentários se perde */
+  function norm(t) {
+    const words = [], other = [];
+    String(t).replace(/\r/g, '').split('\n').forEach(l => {
+      const d = l.trim().match(DIR);
+      if (d) {
+        const k = d[1].toLowerCase(), v = d[2].replace(/\s+/g, ' ');
+        if (/^(c|comment|ci)$/.test(k)) words.push('#' + v);
+        else if (/^(title|t)$/.test(k)) other.push('T:' + v);
+        else if (/^(artist|subtitle|st)$/.test(k)) other.push('A:' + v);
+        else if (/^(key|k)$/.test(k)) other.push('K:' + v);
+        else if (!/^(start_of_|end_of_|so[vcb]$|eo[vcb]$)/.test(k)) other.push(k + ':' + v);
+        return;
+      }
+      l.split(/(\[[^\]]*\])/).forEach(p => { if (/^\[/.test(p)) words.push(p); else words.push(...p.split(/\s+/).filter(Boolean)); });
+    });
+    return words.join(' ') + '|' + other.sort().join('|');
+  }
+  const visualOk = (text) => { try { return norm(text) === norm(toChordPro(fromChordPro(text))); } catch (e) { return false; } };
+
+  /* ----- estado ----- */
+  const DRAFT = 'cifra-criar.rascunho';
+  const st = { song: null, id: null, mode: 'chords', dirty: false, view: false, ficha: null, back: null };
+  let undoStack = [];
+  const readDraft = () => { try { return JSON.parse(localStorage.getItem(DRAFT) || 'null'); } catch (e) { return null; } };
+  const clearDraft = () => { try { localStorage.removeItem(DRAFT); } catch (e) {} };
+  function saveDraft() { if (!st.song) return; try { localStorage.setItem(DRAFT, JSON.stringify({ id: st.id, song: st.song, mode: st.mode, at: Date.now() })); } catch (e) {} }
+  function snap() { undoStack.push(JSON.stringify(st.song)); if (undoStack.length > 120) undoStack.shift(); $('cc-undo').disabled = false; }
+  function undo() { const s = undoStack.pop(); if (!s) return; st.song = JSON.parse(s); $('cc-undo').disabled = !undoStack.length; changed(); render(); toast('Desfeito.'); }
+  function changed() { st.dirty = true; saveDraft(); }
+  const blank = () => ({ title: '', artist: '', key: '', extra: [], sections: [] });
+  const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'agora' : m < 60 ? `há ${m} min` : m < 1440 ? `há ${Math.round(m / 60)} h` : `há ${Math.round(m / 1440)} dias`; };
+
+  /* ----- abrir e sair ----- */
+  function open(p) {
+    if (db.role !== 'editor') { toast('Só o editor pode criar ou editar cifras.'); go(lastTop); return; }
+    undoStack = []; $('cc-undo').disabled = true;
+    st.armed = null; st.replacing = null; st.view = false; st.ficha = null; st.back = p.back || null;
+    st.id = p.id && songById(p.id) ? p.id : null;
+    if (p.draft) { const d = readDraft(); st.song = d.song; st.id = d.id && songById(d.id) ? d.id : null; st.mode = d.mode || 'chords'; st.dirty = true; }
+    else if (p.text != null) { st.song = fromChordPro(p.text); st.mode = 'chords'; st.dirty = true; saveDraft(); }
+    else if (st.id) {
+      st.song = fromChordPro(songById(st.id).text); st.mode = 'chords'; st.dirty = false;
+      const d = readDraft();
+      if (d && d.id === st.id && d.at > (songById(st.id).updated || 0)) setTimeout(() => toast(`Há mudanças não salvas desta cifra (${ago(d.at)}).`, { label: 'Abrir', fn: () => go('criar', { draft: 1, back: st.back }) }), 300);
+    } else { st.song = blank(); st.mode = 'lyrics'; st.dirty = false; st.ficha = { isNew: true }; }
+    render();
+  }
+  function leave() {
+    closePop(); endDrag(null, true);
+    $('cc-palette').hidden = true; document.body.classList.remove('cc-pal');
+    if (st.dirty && st.song && st.song.sections.length && !st.silent) setTimeout(() => toast(st.id ? 'Mudanças não salvas guardadas. Toque em Editar para continuar.' : 'Rascunho guardado. Para continuar: Cifras › + › Criar cifra.'), 50);
+    st.silent = false;
+  }
+  /* voltar do Android e Esc: fecha o que estiver aberto antes de sair da tela */
+  function handleBack() {
+    if (route.name !== 'criar') return false;
+    if (pop) { closePop(); return true; }
+    if (st.armed || st.replacing) { st.armed = null; st.replacing = null; clearSel(); setStatus(); return true; }
+    if (st.view) { setView(false); return true; }
+    if (st.ficha && !st.ficha.isNew) { st.ficha = null; render(); return true; }
+    return false;
+  }
+
+  /* ----- desenho ----- */
+  const ICON_DOWN = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  function render() {
+    const song = st.song, fichaOnly = st.ficha && st.ficha.isNew;
+    $('top-title').textContent = song.title ? song.title + (song.key ? ' · ' + song.key : '') : 'Criar cifra';
+    $('cc-m-lyr').setAttribute('aria-pressed', String(st.mode === 'lyrics'));
+    $('cc-m-chd').setAttribute('aria-pressed', String(st.mode === 'chords'));
+    $('cc-view-btn').setAttribute('aria-pressed', String(st.view));
+    $('cc-bar').hidden = fichaOnly;
+    renderFicha();
+    $('cc-sheet').hidden = !st.view; $('cc-doc').hidden = st.view || fichaOnly;
+    const pal = st.mode === 'chords' && !st.view && !fichaOnly && route.name === 'criar';
+    $('cc-palette').hidden = !pal; document.body.classList.toggle('cc-pal', pal);
+    if (pal) requestAnimationFrame(() => document.body.style.setProperty('--cc-palh', $('cc-palette').offsetHeight + 'px'));
+    if (st.view) { renderSheet($('cc-sheet'), toChordPro(song), { shift: 0, simplify: false, colsMode: 'auto', cols: 1, zoom: 1 }, 'cc'); return; }
+    if (fichaOnly) return;
+    let h = '';
+    song.sections.forEach((sec, si) => {
+      const name = secName(sec, song), inst = isInst(sec);
+      h += `<section class="cc-sec${TYPES[sec.type].chorus ? ' chorus' : ''}" data-s="${si}">
+        <div class="cc-sec-head"><button type="button" class="cc-sec-name" data-secmenu="${si}" aria-haspopup="menu">${esc(name)}${ICON_DOWN}</button>${inst ? '<span class="cc-sec-kind">só acordes</span>' : ''}</div>`;
+      if (inst) {
+        h += `<div class="cc-irow">` + sec.chords.map((c, k) => `<button type="button" class="cc-ic" data-s="${si}" data-k="${k}">${esc(c)}</button>`).join('') +
+          (st.mode === 'chords' ? `<button type="button" class="cc-islot" data-s="${si}" aria-label="Pôr acorde no fim de ${esc(name)}">+</button>` : '') + `</div>`;
+        if (!sec.chords.length) h += `<p class="cc-empty">${st.mode === 'chords' ? 'Puxe os acordes até o + (ou toque num acorde e depois no +).' : 'Esta parte é só de acordes: coloque-os no modo Acordes.'}</p>`;
+      } else if (st.mode === 'lyrics') {
+        h += `<label class="sr" for="cc-ta-${sec.id}">Letra de ${esc(name)}</label><textarea class="input cc-lyr" id="cc-ta-${sec.id}" data-s="${si}" spellcheck="true" rows="2" placeholder="Escreva a letra de ${esc(name)}. Uma linha por verso.">${esc(sec.text)}</textarea>`;
+      } else if (!sec.text.trim()) {
+        h += `<p class="cc-empty">Ainda sem letra. Toque em <b>Letra</b> (na barra) e escreva esta parte.</p>`;
+      } else h += `<div class="cc-lines">${linesHtml(sec, si)}</div>`;
+      h += `</section>`;
+    });
+    if (!song.sections.length) h = `<p class="cc-empty">A música ainda não tem partes. Toque em Adicionar parte (o quadrado com +).</p>`;
+    $('cc-doc').innerHTML = h;
+    if (st.mode === 'lyrics') document.querySelectorAll('textarea.cc-lyr').forEach(grow);
+    else { fixOverlaps(); renderPalette(); }
+  }
+  function linesHtml(sec, si) {
+    const text = sec.text, starts = lineStarts(text), at = new Map(sec.chords.map(c => [c.at, c.ch]));
+    let h = '';
+    starts.forEach((s, li) => {
+      const e = li + 1 < starts.length ? starts[li + 1] - 1 : text.length, line = text.slice(s, e);
+      const cell = (i, c, cls) => `<span class="cc-ch${cls}" data-s="${si}" data-i="${i}">${c}${at.has(i) ? `<b class="cc-cd" data-s="${si}" data-i="${i}">${esc(at.get(i))}</b>` : ''}</span>`;
+      let row = '', word = '';
+      for (let j = 0; j < line.length; j++) {
+        const sp = line[j] === ' ';
+        word += cell(s + j, sp ? '&nbsp;' : esc(line[j]), sp ? ' sp' : '');
+        if (sp && line[j + 1] !== ' ') { row += `<span class="cc-w">${word}</span>`; word = ''; }
+      }
+      row += `<span class="cc-w">${word}${cell(e, '·', ' eol')}</span>`;
+      h += `<div class="cc-ln${line.trim() ? '' : ' blank'}">${row}</div>`;
+    });
+    return h;
+  }
+  /* acordes vizinhos não ficam um em cima do outro: a sílaba seguinte anda para a direita */
+  function fixOverlaps() {
+    document.querySelectorAll('#cc-doc .cc-ln').forEach(ln => {
+      let prev = null;
+      ln.querySelectorAll('.cc-cd').forEach(cd => {
+        const r = cd.getBoundingClientRect();
+        if (prev && Math.abs(r.top - prev.top) < 4 && r.left < prev.right + 8) { cd.parentElement.style.marginLeft = (prev.right + 8 - r.left) + 'px'; prev = cd.getBoundingClientRect(); }
+        else prev = r;
+      });
+    });
+  }
+  function grow(ta) { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
+  /* ao digitar, os acordes andam junto com o texto */
+  function applyText(sec, nt) {
+    const ot = sec.text; let p = 0; const ml = Math.min(ot.length, nt.length);
+    while (p < ml && ot[p] === nt[p]) p++;
+    let s = 0; while (s < ml - p && ot[ot.length - 1 - s] === nt[nt.length - 1 - s]) s++;
+    const oldEnd = ot.length - s, d = nt.length - ot.length, m = new Map();
+    sec.chords.forEach(c => { const at = c.at < p ? c.at : c.at >= oldEnd ? c.at + d : p; m.set(Math.max(0, Math.min(at, nt.length)), c.ch); });
+    sec.chords = [...m].map(([at, ch]) => ({ at, ch })).sort((a, b) => a.at - b.at);
+    sec.text = nt;
+  }
+  let typingSnap = false;
+  $('cc-doc').addEventListener('focusin', (e) => { if (e.target.matches('textarea.cc-lyr')) typingSnap = false; });
+  $('cc-doc').addEventListener('input', (e) => {
+    const ta = e.target.closest('textarea.cc-lyr'); if (!ta) return;
+    if (!typingSnap) { snap(); typingSnap = true; }
+    applyText(st.song.sections[+ta.dataset.s], ta.value); grow(ta); changed();
+  });
+
+  /* ----- ficha (título, artista, tom) ----- */
+  function renderFicha() {
+    const F = st.ficha, form = $('cc-ficha');
+    form.hidden = !F; if (!F) return;
+    if (!F.ready) {
+      const k = keyParts(st.song.key);
+      Object.assign(F, { ready: true, title: st.song.title, artist: st.song.artist, idx: k ? k.idx : null, minor: k ? k.minor : false, transpose: true, draft: F.isNew ? readDraft() : null });
+      if (F.draft && !(F.draft.song && F.draft.song.sections && F.draft.song.sections.length)) F.draft = null;
+    }
+    const kn = F.idx == null ? '' : PICK[F.idx][0] + (F.minor ? 'm' : '');
+    const hasChords = !F.isNew && st.song.sections.some(s => s.chords.length);
+    const changing = hasChords && kn && st.song.key && kn !== st.song.key;
+    form.innerHTML = `<p class="sec-title">${F.isNew ? 'Nova cifra' : 'Ficha da cifra'}</p>
+      ${F.draft ? `<div class="cc-draft"><span>Rascunho não salvo: <strong>${esc(F.draft.song.title || 'sem título')}</strong> (${ago(F.draft.at)}).</span><button type="button" class="btn primary" data-f="draft">Continuar</button><button type="button" class="btn" data-f="nodraft">Descartar</button></div>` : ''}
+      <div class="cc-two">
+        <div class="field"><label for="cc-f-title">Título</label><input class="input" id="cc-f-title" maxlength="80" placeholder="Nome da música" value="${esc(F.title)}"></div>
+        <div class="field"><label for="cc-f-artist">Artista ou versão <small>(opcional)</small></label><input class="input" id="cc-f-artist" maxlength="80" placeholder="Grupo, cantor ou ministério" value="${esc(F.artist)}"></div>
+      </div>
+      <div class="field"><span class="label">Tom em que você vai escrever</span>
+        <div class="row"><div class="group" role="group" aria-label="Maior ou menor"><button type="button" data-f-min="0" aria-pressed="${!F.minor}">Maior</button><button type="button" data-f-min="1" aria-pressed="${F.minor}">Menor</button></div></div>
+        <div class="keypick-grid" role="group" aria-label="Tom">${PICK.map(([m, alt], i) => `<button type="button" data-f-key="${i}" aria-current="${F.idx === i}">${m}${F.minor ? 'm' : ''}${alt ? `<small>${alt}${F.minor ? 'm' : ''}</small>` : ''}</button>`).join('')}</div>
+        <p class="hint">O tom define os acordes da paleta. Quem toca ainda pode mudar o tom na hora, na cifra aberta.</p>
+      </div>
+      ${changing ? `<div class="cc-transp"><span class="label">O tom mudou de ${esc(st.song.key)} para ${esc(kn)}. E os acordes já colocados?</span>
+        <div class="group" role="group"><button type="button" data-f-tr="1" aria-pressed="${F.transpose}">Transpor junto</button><button type="button" data-f-tr="0" aria-pressed="${!F.transpose}">Deixar como estão</button></div></div>` : ''}
+      <p class="warn" id="cc-f-err" hidden></p>
+      <div class="row" style="justify-content:flex-end">
+        <button type="button" class="btn" data-f="cancel">Cancelar</button>
+        <button type="button" class="btn primary" data-f="ok">${F.isNew ? 'Começar' : 'Salvar ficha'}</button>
+      </div>`;
+    if (F.isNew && !F.focused) { F.focused = true; setTimeout(() => { const t = $('cc-f-title'); if (t && !F.draft) t.focus(); }, 0); }
+  }
+  $('cc-ficha').addEventListener('input', (e) => { const F = st.ficha; if (!F) return; if (e.target.id === 'cc-f-title') F.title = e.target.value; if (e.target.id === 'cc-f-artist') F.artist = e.target.value; });
+  $('cc-ficha').addEventListener('submit', (e) => { e.preventDefault(); fichaOk(); });
+  $('cc-ficha').addEventListener('click', (e) => {
+    const F = st.ficha, b = e.target.closest('button'); if (!F || !b) return;
+    if (b.dataset.fMin != null) { F.minor = b.dataset.fMin === '1'; renderFicha(); return; }
+    if (b.dataset.fKey != null) { F.idx = +b.dataset.fKey; renderFicha(); return; }
+    if (b.dataset.fTr != null) { F.transpose = b.dataset.fTr === '1'; renderFicha(); return; }
+    if (b.dataset.f === 'draft') { go('criar', { draft: 1, back: st.back }); return; }
+    if (b.dataset.f === 'nodraft') { clearDraft(); F.draft = null; renderFicha(); toast('Rascunho descartado.'); return; }
+    if (b.dataset.f === 'cancel') { if (F.isNew) { st.silent = true; $('back-btn').click(); } else { st.ficha = null; render(); } return; }
+    if (b.dataset.f === 'ok') fichaOk();
+  });
+  function fichaOk() {
+    const F = st.ficha, err = $('cc-f-err');
+    if (!F.title.trim()) { err.textContent = 'Escreva o título da música.'; err.hidden = false; $('cc-f-title').focus(); return; }
+    if (F.idx == null) { err.textContent = 'Escolha o tom.'; err.hidden = false; return; }
+    const kn = PICK[F.idx][0] + (F.minor ? 'm' : ''), song = st.song;
+    snap();
+    if (F.isNew) { Object.assign(song, { title: F.title.trim(), artist: F.artist.trim(), key: kn, sections: [newSection('intro'), newSection('estrofe'), newSection('refrao')] }); st.mode = 'lyrics'; }
+    else {
+      if (song.key && kn !== song.key && F.transpose && keyParts(song.key)) {
+        const shift = keyParts(kn).idx - keyParts(song.key).idx, fl = flatsFor(kn);
+        song.sections.forEach(s => { s.chords = isInst(s) ? s.chords.map(c => moveChord(c, shift, fl)) : s.chords.map(c => ({ at: c.at, ch: moveChord(c.ch, shift, fl) })); });
+      }
+      Object.assign(song, { title: F.title.trim(), artist: F.artist.trim(), key: kn });
+    }
+    const wasNew = F.isNew; st.ficha = null; changed(); render(); window.scrollTo(0, 0);
+    if (wasNew) { const ta = document.querySelector('textarea.cc-lyr'); if (ta) ta.focus(); toast('Escreva a letra. Depois toque em Acordes, na barra.'); }
+  }
+
+  /* ----- paleta ----- */
+  let builderOpen = false; const bld = { root: null, q: '', bass: '' };
+  const QUAL = [['', 'maior'], ['m', 'menor'], ['7', '7'], ['m7', 'm7'], ['7M', '7M'], ['6', '6'], ['9', '9'], ['add9', 'add9'], ['sus4', 'sus4'], ['sus2', 'sus2'], ['°', '°'], ['m7(b5)', 'm7(b5)'], ['5', '5']];
+  const buildRes = () => bld.root ? bld.root + bld.q + (bld.bass && bld.bass !== bld.root ? '/' + bld.bass : '') : '';
+  function usedChords() { const seen = []; st.song.sections.forEach(s => (isInst(s) ? s.chords : s.chords.map(c => c.ch)).forEach(c => { if (!seen.includes(c)) seen.push(c); })); return seen; }
+  const chip = (ch, sub) => `<button type="button" class="cc-pc" data-ch="${esc(ch)}" aria-pressed="${st.armed === ch}" aria-label="${esc(ch)}${sub ? ', ' + esc(sub) : ''}"><b>${esc(ch)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</button>`;
+  function palStatus() {
+    if (st.replacing) return `Escolha o acorde que vai no lugar de <b>${esc(st.replacing.ch)}</b>. <button type="button" class="link" data-act="cancel-rep">Cancelar</button>`;
+    if (st.armed) return `<b>${esc(st.armed)}</b> escolhido: toque nas sílabas para colocar. Toque de novo no ${esc(st.armed)} para parar.`;
+    return 'Puxe um acorde para cima até a sílaba, ou toque nele e depois nas sílabas.';
+  }
+  function renderPalette() {
+    const key = st.song.key, kc = keyChords(key), used = usedChords(), f = flatsFor(key);
+    let h = `<p class="cc-status" id="cc-status">${palStatus()}</p>`;
+    if (kc.main.length) h += `<div class="cc-row"><span class="cc-label">Do tom ${esc(key)}</span><div class="cc-chips">${kc.main.map(([c, d]) => chip(c, d)).join('')}</div></div>
+      <div class="cc-row"><span class="cc-label">Também comuns</span><div class="cc-chips">${kc.more.map(([c, d]) => chip(c, d)).join('')}</div></div>`;
+    const extra = used.filter(c => !kc.main.some(x => x[0] === c) && !kc.more.some(x => x[0] === c));
+    h += `<div class="cc-row"><span class="cc-label">Nesta música · outros</span><div class="cc-chips">${extra.map(c => chip(c, '')).join('')}<button type="button" class="cc-pc tool" data-act="builder" aria-expanded="${builderOpen}"><b>${builderOpen ? 'Fechar' : 'Montar acorde'}</b></button></div></div>`;
+    if (builderOpen) {
+      const res = buildRes();
+      h += `<div class="cc-builder"><span class="cc-label">Nota</span><div class="cc-bgrid">${[...Array(12)].map((_, i) => { const n = note(i, f); return `<button type="button" class="cc-bb" data-broot="${n}" aria-pressed="${bld.root === n}">${n}</button>`; }).join('')}</div>
+        <span class="cc-label">Tipo</span><div class="cc-bgrid">${QUAL.map(([q, l]) => `<button type="button" class="cc-bb" data-bq="${esc(q)}" aria-pressed="${bld.q === q}">${esc(l)}</button>`).join('')}</div>
+        <span class="cc-label">Baixo (inversão)</span><div class="cc-bgrid"><button type="button" class="cc-bb" data-bbass="" aria-pressed="${!bld.bass}">sem</button>${[...Array(12)].map((_, i) => { const n = note(i, f); return `<button type="button" class="cc-bb" data-bbass="${n}" aria-pressed="${bld.bass === n}">/${n}</button>`; }).join('')}</div>
+        <div class="cc-bres"><span class="big">${res ? esc(res) : '—'}</span>${res ? chip(res, 'puxe ou toque') : '<span class="hint">Escolha a nota.</span>'}</div></div>`;
+    }
+    const pal = $('cc-pal'), keep = pal.scrollTop;
+    pal.innerHTML = h; pal.scrollTop = keep;
+    document.body.style.setProperty('--cc-palh', $('cc-palette').offsetHeight + 'px');
+  }
+  function setStatus() { const el = $('cc-status'); if (el) el.innerHTML = palStatus(); document.querySelectorAll('#cc-pal .cc-pc[data-ch]').forEach(b => b.setAttribute('aria-pressed', String(st.armed === b.dataset.ch))); }
+  function flashStatus(t) { const el = $('cc-status'); if (!el) return; el.textContent = t; clearTimeout(flashStatus.t); flashStatus.t = setTimeout(setStatus, 3500); }
+  $('cc-pal').addEventListener('click', (e) => {
+    const t = e.target.closest('button'); if (!t) return;
+    if (t.dataset.act === 'builder') { builderOpen = !builderOpen; renderPalette(); return; }
+    if (t.dataset.act === 'cancel-rep') { st.replacing = null; clearSel(); setStatus(); return; }
+    if (t.dataset.broot != null) { bld.root = t.dataset.broot; renderPalette(); return; }
+    if (t.dataset.bq != null) { bld.q = t.dataset.bq; renderPalette(); return; }
+    if (t.dataset.bbass != null) { bld.bass = t.dataset.bbass; renderPalette(); }
+  });
+  function pickChord(ch) {
+    if (st.replacing) { snap(); setChordAt(st.replacing, ch); st.replacing = null; changed(); render(); toast(`Trocado por ${ch}.`); return; }
+    st.armed = st.armed === ch ? null : ch; setStatus();
+  }
+
+  /* ----- colocar, mover e tirar ----- */
+  function setChordAt(t, ch) {
+    const sec = st.song.sections[t.s];
+    if (t.k != null) { sec.chords[t.k] = ch; return; }
+    sec.chords = sec.chords.filter(c => c.at !== t.i); sec.chords.push({ at: t.i, ch }); sec.chords.sort((a, b) => a.at - b.at);
+  }
+  function removeSrc(src) { const sec = st.song.sections[src.s]; if (src.k != null) sec.chords.splice(src.k, 1); else sec.chords = sec.chords.filter(c => c.at !== src.i); }
+  function dropOn(src, tgt) {
+    snap();
+    if (src.type !== 'pal') removeSrc(src);
+    if (tgt.trash) { changed(); render(); toast(`${src.ch} tirado.`, { label: 'Desfazer', fn: undo }); return; }
+    if (tgt.i != null) setChordAt(tgt, src.ch);
+    else { const sec = st.song.sections[tgt.s]; let k = tgt.k == null ? sec.chords.length : tgt.k; if (src.type === 'inst' && src.s === tgt.s && src.k < k) k--; sec.chords.splice(k, 0, src.ch); }
+    changed(); render();
+  }
+  function clearSel() { document.querySelectorAll('#cc-doc .sel').forEach(x => x.classList.remove('sel')); }
+
+  /* arrastar com dedo, S Pen ou mouse */
+  let drag = null;
+  function startPress(e, src, el) {
+    if (e.button > 0) return;
+    drag = { src, el, x0: e.clientX, y0: e.clientY, on: false, tgt: null, id: e.pointerId };
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
+  }
+  document.addEventListener('pointerdown', (e) => {
+    if (route.name !== 'criar' || st.mode !== 'chords' || st.view || !e.target.closest) return;
+    const pc = e.target.closest('#cc-pal .cc-pc[data-ch]');
+    if (pc) { startPress(e, { type: 'pal', ch: pc.dataset.ch }, pc); return; }
+    const cd = e.target.closest('#cc-doc .cc-cd');
+    if (cd) { startPress(e, { type: 'placed', s: +cd.dataset.s, i: +cd.dataset.i, ch: cd.textContent }, cd); return; }
+    const ic = e.target.closest('#cc-doc .cc-ic');
+    if (ic) startPress(e, { type: 'inst', s: +ic.dataset.s, k: +ic.dataset.k, ch: ic.textContent }, ic);
+  });
+  document.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.on) {
+      if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 7) return;
+      /* na paleta, deslizar para o lado é rolar a fileira; só vira arrasto puxando para cima */
+      if (drag.src.type === 'pal' && Math.abs(e.clientX - drag.x0) > Math.abs(e.clientY - drag.y0)) { drag = null; return; }
+      drag.on = true; closePop();
+      drag.ghost = document.createElement('div'); drag.ghost.className = 'cc-ghost'; drag.ghost.textContent = drag.src.ch; document.body.appendChild(drag.ghost);
+      document.body.classList.add('cc-dragging');
+      if (drag.src.type !== 'pal') { drag.el.classList.add('dragging'); $('cc-palette').classList.add('droptrash'); }
+      autoScroll();
+    }
+    e.preventDefault();
+    drag.x = e.clientX; drag.y = e.clientY;
+    drag.ghost.style.left = e.clientX + 'px'; drag.ghost.style.top = (e.clientY - 34) + 'px';
+    findTarget();
+  }, { passive: false });
+  function findTarget() {
+    const x = drag.x, y = drag.y;
+    document.querySelectorAll('#cc-doc .hot').forEach(h => h.classList.remove('hot'));
+    const pr = $('cc-palette').getBoundingClientRect();
+    const overTrash = drag.src.type !== 'pal' && y >= pr.top;
+    $('cc-palette').classList.toggle('over', overTrash);
+    if (overTrash) { drag.tgt = { trash: true }; return; }
+    if (y >= pr.top) { drag.tgt = null; return; }
+    let best = null, bs = Infinity;
+    document.querySelectorAll('#cc-doc .cc-ch, #cc-doc .cc-ic, #cc-doc .cc-islot').forEach(el => {
+      const r = el.getBoundingClientRect(), isCh = el.classList.contains('cc-ch');
+      const top = r.top - (isCh ? r.height * 0.95 : 0), bot = r.bottom;
+      const dy = y < top ? top - y : y > bot ? y - bot : 0;
+      if (dy > 36) return;
+      const dx = isCh ? Math.abs(x - (r.left + r.width / 2)) : (x < r.left ? r.left - x : x > r.right ? x - r.right : 0);
+      const sc = dy * 4 + dx;
+      if (sc < bs) { bs = sc; best = el; }
+    });
+    if (best && bs > 160) best = null;
+    if (!best) { drag.tgt = null; return; }
+    best.classList.add('hot');
+    drag.tgt = best.classList.contains('cc-ch') ? { s: +best.dataset.s, i: +best.dataset.i } : best.classList.contains('cc-ic') ? { s: +best.dataset.s, k: +best.dataset.k } : { s: +best.dataset.s };
+  }
+  function autoScroll() {
+    if (!drag || !drag.on) return;
+    const edge = 44, top = $('cc-bar').getBoundingClientRect().bottom, bottom = $('cc-palette').getBoundingClientRect().top;
+    if (drag.y != null) {
+      if (drag.y < top + edge) window.scrollBy(0, -Math.ceil((top + edge - drag.y) / 6));
+      else if (drag.y > bottom - edge && drag.y < bottom) window.scrollBy(0, Math.ceil((drag.y - (bottom - edge)) / 6));
+    }
+    requestAnimationFrame(autoScroll);
+  }
+  function endDrag(e, cancel) {
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    const d = drag; drag = null;
+    document.querySelectorAll('#cc-doc .hot').forEach(h => h.classList.remove('hot'));
+    $('cc-palette').classList.remove('droptrash', 'over');
+    document.body.classList.remove('cc-dragging');
+    if (d.ghost) d.ghost.remove();
+    if (d.el) d.el.classList.remove('dragging');
+    if (cancel) return;
+    if (!d.on) { tapSource(d.src, d.el); return; }
+    if (d.tgt) dropOn(d.src, d.tgt);
+  }
+  document.addEventListener('pointerup', (e) => endDrag(e, false));
+  document.addEventListener('pointercancel', (e) => endDrag(e, true));
+  function tapSource(src, el) {
+    if (src.type === 'pal') { pickChord(src.ch); return; }
+    if (st.armed && !st.replacing) { snap(); setChordAt(src.type === 'inst' ? { s: src.s, k: src.k } : { s: src.s, i: src.i }, st.armed); changed(); render(); return; }
+    chordMenu(src, el);
+  }
+  $('cc-doc').addEventListener('click', (e) => {
+    const sm = e.target.closest('[data-secmenu]'); if (sm) { e.stopPropagation(); secMenu(+sm.dataset.secmenu, sm); return; }
+    if (st.mode !== 'chords' || e.target.closest('.cc-cd, .cc-ic')) return;
+    const slot = e.target.closest('.cc-islot'), ch = e.target.closest('.cc-ch');
+    if (!slot && !ch) return;
+    const tgt = slot ? { s: +slot.dataset.s } : { s: +ch.dataset.s, i: +ch.dataset.i };
+    if (st.armed && !st.replacing) { dropOn({ type: 'pal', ch: st.armed }, tgt); return; }
+    if (!st.replacing) flashStatus('Primeiro escolha um acorde na paleta (toque nele), depois toque aqui.');
+  });
+
+  /* ----- menus ----- */
+  let pop = null;
+  function closePop() { if (pop) { pop.remove(); pop = null; clearSel(); } }
+  function openPop(anchor, html, onClick) {
+    closePop();
+    pop = document.createElement('div'); pop.className = 'cc-pop'; pop.setAttribute('role', 'menu'); pop.innerHTML = html;
+    document.body.appendChild(pop);
+    const r = anchor.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
+    pop.style.left = Math.min(Math.max(8, r.left), innerWidth - pw - 8) + 'px';
+    let top = r.bottom + 6; if (top + ph > innerHeight - 8) top = Math.max(8, r.top - ph - 6);
+    pop.style.top = top + 'px';
+    pop.addEventListener('click', (e) => { e.stopPropagation(); const b = e.target.closest('button'); if (b && !b.disabled) onClick(b.dataset.v, b); });
+    setTimeout(() => { const f = pop && pop.querySelector('input, button'); if (f) f.focus(); }, 0);
+  }
+  document.addEventListener('pointerdown', (e) => { if (pop && !pop.contains(e.target) && !(e.target.closest && e.target.closest('[data-secmenu], #cc-add'))) closePop(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && route.name === 'criar') handleBack(); });
+  function chordMenu(src, el) {
+    openPop(el, `<div class="ttl">Acorde ${esc(src.ch)}</div>
+      <button type="button" class="mi" data-v="rep">Trocar por outro</button>
+      <button type="button" class="mi danger" data-v="del">Tirar o acorde</button>`, (v) => {
+      closePop();
+      if (v === 'del') { snap(); removeSrc(src); changed(); render(); toast(`${src.ch} tirado.`, { label: 'Desfazer', fn: undo }); }
+      if (v === 'rep') { st.armed = null; st.replacing = src.type === 'inst' ? { s: src.s, k: src.k, ch: src.ch } : { s: src.s, i: src.i, ch: src.ch }; setStatus(); }
+    });
+    el.classList.add('sel');
+  }
+  function secMenu(si, anchor) {
+    const S = st.song.sections, sec = S[si], name = secName(sec, st.song);
+    openPop(anchor, `<div class="ttl">Parte</div>
+      <label class="sr" for="cc-sec-label">Nome da parte</label><input class="input" id="cc-sec-label" type="text" value="${esc(name)}" placeholder="${esc(TYPES[sec.type].label)}">
+      <button type="button" class="mi" data-v="ren">Usar este nome</button>
+      <div class="sep"></div>
+      <button type="button" class="mi" data-v="up" ${si ? '' : 'disabled'}>Mover para cima</button>
+      <button type="button" class="mi" data-v="down" ${si < S.length - 1 ? '' : 'disabled'}>Mover para baixo</button>
+      <button type="button" class="mi" data-v="dup">Repetir logo abaixo (com os acordes)</button>
+      <div class="sep"></div>
+      <button type="button" class="mi danger" data-v="del">Apagar esta parte</button>`, (v) => {
+      if (v === 'ren') { const t = $('cc-sec-label').value.trim(); snap(); delete sec.bare; sec.label = ''; const def = secName(sec, st.song); sec.label = t && t !== def ? t : ''; closePop(); changed(); render(); return; }
+      closePop();
+      if (v === 'up') { snap(); [S[si - 1], S[si]] = [S[si], S[si - 1]]; }
+      else if (v === 'down') { snap(); [S[si + 1], S[si]] = [S[si], S[si + 1]]; }
+      else if (v === 'dup') { snap(); const c = JSON.parse(JSON.stringify(sec)); c.id = newId(); if (sec.type === 'estrofe' && !sec.label) c.label = name; S.splice(si + 1, 0, c); }
+      else if (v === 'del') { snap(); S.splice(si, 1); changed(); render(); toast(`${name} apagada.`, { label: 'Desfazer', fn: undo }); return; }
+      else return;
+      changed(); render();
+    });
+    $('cc-sec-label').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); pop.querySelector('[data-v="ren"]').click(); } });
+  }
+  $('cc-add').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const reps = []; st.song.sections.forEach((s, i) => { const n = secName(s, st.song); if (!reps.some(r => r.n === n)) reps.push({ n, i }); });
+    openPop($('cc-add'), `<div class="ttl">Nova parte</div>` +
+      Object.entries(TYPES).map(([k, t]) => `<button type="button" class="mi" data-v="t:${k}">${t.label}${t.inst ? ' <span class="hint">só acordes</span>' : ''}</button>`).join('') +
+      (reps.length ? `<div class="sep"></div><div class="ttl">Repetir no fim</div>` + reps.map(r => `<button type="button" class="mi" data-v="r:${r.i}">${esc(r.n)}</button>`).join('') : ''), (v) => {
+      closePop(); snap();
+      let sec;
+      if (v.startsWith('t:')) sec = newSection(v.slice(2));
+      else { const o = st.song.sections[+v.slice(2)]; sec = JSON.parse(JSON.stringify(o)); sec.id = newId(); if (o.type === 'estrofe' && !o.label) sec.label = secName(o, st.song); }
+      st.song.sections.push(sec);
+      if (!isInst(sec) && !sec.text && st.mode === 'chords') st.mode = 'lyrics';
+      changed(); render();
+      const el = document.querySelector(`#cc-doc .cc-sec[data-s="${st.song.sections.length - 1}"]`);
+      if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); const ta = el.querySelector('textarea'); if (ta) ta.focus({ preventScroll: true }); }
+    });
+  });
+
+  /* ----- barra ----- */
+  function setMode(m) { st.mode = m; st.armed = null; st.replacing = null; closePop(); saveDraft(); render(); }
+  function setView(on) { st.view = on; closePop(); render(); window.scrollTo(0, 0); }
+  $('cc-m-lyr').addEventListener('click', () => { if (st.view) st.view = false; setMode('lyrics'); });
+  $('cc-m-chd').addEventListener('click', () => { if (st.view) st.view = false; setMode('chords'); });
+  $('cc-undo').addEventListener('click', undo);
+  $('cc-view-btn').addEventListener('click', () => setView(!st.view));
+  $('cc-ficha-btn').addEventListener('click', () => { st.ficha = st.ficha ? null : { isNew: false }; render(); if (st.ficha) window.scrollTo(0, 0); });
+  $('cc-text').addEventListener('click', () => { st.silent = true; go('editor', { id: st.id, text: toChordPro(st.song), fromVisual: 1 }); });
+  $('cc-save').addEventListener('click', () => {
+    const song = st.song;
+    if (!song.title.trim()) { st.ficha = { isNew: false }; render(); window.scrollTo(0, 0); toast('Escreva o título antes de salvar.'); return; }
+    if (!song.sections.some(s => isInst(s) ? s.chords.length : s.text.trim())) { toast('A cifra está vazia. Escreva a letra ou coloque acordes antes de salvar.'); return; }
+    const text = toChordPro(song), m = parseMeta(text), now = Date.now();
+    let s = st.id ? songById(st.id) : null;
+    if (!s) { s = { id: 's' + now, created: now, archived: false }; db.songs.push(s); }
+    Object.assign(s, { title: m.title.trim(), artist: m.artist.trim(), source: m.source, text, updated: now });
+    save(); clearDraft(); st.dirty = false; st.id = s.id;
+    toast('Cifra salva.');
+    go('cifra', { id: s.id });
+  });
+  let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (route.name === 'criar' && st.mode === 'chords' && !st.view) { document.querySelectorAll('#cc-doc .cc-ch').forEach(c => c.style.marginLeft = ''); fixOverlaps(); } }, 150); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (route.name === 'criar' && st.mode === 'chords' && !st.view) { document.querySelectorAll('#cc-doc .cc-ch').forEach(c => c.style.marginLeft = ''); fixOverlaps(); } });
+
+  return { open, leave, handleBack, visualOk, toChordPro, fromChordPro, applyText, dropOn, undo, keyChords, moveChord, st };
+})();
+
 /* APK: botão voltar do Android navega dentro do app (só fecha na tela Início) */
 (function nativeBack() {
   const App = capPlugin('App');
@@ -3971,6 +4667,7 @@ $('sf-form').addEventListener('submit', (e) => {
   const P = { App };
   App.addListener('backButton', () => {
     if (!$('drawer').hidden) { closeDrawer(); return; }
+    if (CC.handleBack()) return;
     if (!$('ink-text').hidden) { $('ink-text').hidden = true; return; }
     if (ink.on) { inkStop(); return; }
     if (!liPop.hidden) { closeListPop(); return; }

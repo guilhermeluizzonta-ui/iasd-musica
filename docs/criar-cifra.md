@@ -18,7 +18,17 @@ Iniciado em 14/10/2026, ramo `cifra-criar`. Mesmo caminho da Pauta a Mão Livre:
 - Desfazer (até 120 passos), Visualizar (igual à cifra aberta no app + texto ChordPro), Salvar (no protótipo, localStorage `cifra-criar.v1`).
 - Saída em **ChordPro**, o mesmo formato das cifras importadas; também abre ChordPro existente (`fromChordPro`), então serve como editor visual das cifras já cadastradas.
 
+## Integração com o app (feita em 14/10/2026, protótipo aprovado pelo Guilherme)
+- Tudo dentro de `src/app.html` (tela `v-criar`, rota `criar`), sem página separada: funciona no APK e no visualizador do Claude. Estilos com prefixo `cc-`; código no bloco `CC` (perto do fim do script).
+- **Cifras › + › Criar cifra** (primeiro item, amarelo; só Editor). O antigo "Nova cifra" passou a se chamar **Importar da internet** (é o editor de colar/ChordPro). O botão do repertório vazio também abre o Criar cifra.
+- Começa pela **ficha** (título, artista, tom). Depois: Letra / Acordes, Adicionar parte, Desfazer, Ficha, **Editar como texto**, Visualizar (mesmo desenho da cifra aberta), **Salvar** (grava em `db.songs` como ChordPro e abre a cifra).
+- **Editar** na cifra aberta agora abre o editor visual. Se a cifra tiver algo que ele ainda não representa (ex.: comentário com acorde no meio da letra), abre o editor de texto, como antes. A checagem compara letra, acordes e comentários na ida e volta (`CC.visualOk`).
+- No editor de texto há o botão **Editor visual** (leva o texto como está). Do visual, **Editar como texto** faz o caminho inverso.
+- **Rascunho**: cada mudança fica em `localStorage['cifra-criar.rascunho']`. Saindo sem salvar, um aviso diz onde continuar; a ficha de "Criar cifra" oferece Continuar / Descartar; ao Editar uma cifra com mudanças guardadas, aparece "Abrir".
+- Voltar do Android e Esc: fecham menu, acorde escolhido, Visualizar e ficha antes de sair da tela.
+- No celular a barra quebra em duas linhas (o Salvar nunca fica escondido); o aviso (toast) aparece logo acima da paleta.
+- Testes: `testes/cifra/testar-app.js ../../src/app.html` (15 testes do fluxo completo no app).
+
 ## Próximos passos
-1. Guilherme testar no tablet/celular (dedo e S Pen) e aprovar o jeito de usar.
-2. Integrar no app: Cifras › + › **Criar cifra** (junto de Nova cifra / Importar arquivo); salvar em `db.songs`; botão "Editar no modo visual" no editor de cifra.
-3. Ideias: tom − / + na própria tela; marcar repetições (2x); copiar acordes de uma estrofe para a outra.
+1. Testar no tablet e no S20 FE com dedo e S Pen; gerar APK quando juntar com o `main`.
+2. Ideias: tom − / + na própria tela; marcar repetições (2x); copiar acordes de uma estrofe para a outra; comentários no meio da letra no editor visual.
