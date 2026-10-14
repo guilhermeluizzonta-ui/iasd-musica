@@ -1,0 +1,36 @@
+const fs=require('fs');const {JSDOM}=require('jsdom');
+let html=fs.readFileSync(process.argv[2],'utf8').replace('  // ---------- Início ----------','  window.__t={planoAcorde,aplicarAcorde,nomeSpec,acordesDoTom,vozes,M,nomeAcorde,itens,posicaoAcorde};\n  // ---------- Início ----------');
+function abrir(tom){const banco={musicas:[{id:'m1',titulo:'Acordes prontos',autor:'',clave:'sol',tom,compasso:{num:4,den:4,simbolo:'C'},unidade:{tipo:'seminima',ponto:false},andamento:null,itens:[]}],atual:'m1'};
+ const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://exemplo.test/',beforeParse(w){w.localStorage.setItem('pauta-mao-livre.v2',JSON.stringify(banco));w.SVGElement.prototype.getBBox=()=>({x:0,y:0,width:0,height:0});}});return dom;}
+let ok=0,tot=0;const chk=(n,c,info)=>{tot++;if(c)ok++;console.log((c?'OK   ':'FALHA')+' '+n+(info?' → '+info:''));};
+let dom=abrir('C'),t=dom.window.__t;
+const L=c=>'CDEFGAB'.indexOf(c);
+chk('acordes do tom de Dó', t.acordesDoTom().map(t.nomeSpec).join(' ')==='C Dm Em F G Am B° G7', t.acordesDoTom().map(t.nomeSpec).join(' '));
+let p=t.planoAcorde({L:L('D'),ac:0,tipo:'7',inv:0},-1,60,'minima');
+chk('D7 em Dó maior pede Fá♯', p.acids.length===1&&p.acids[0].tipo==='sustenido', p.nomes.join(',')+' acids '+JSON.stringify(p.acids));
+t.aplicarAcorde(p,null); const n=t.itens().find(i=>i.ss&&i.ss.length===4);
+chk('cifra do D7 aplicado', t.nomeAcorde(n)==='D7', t.nomeAcorde(n));
+p=t.planoAcorde({L:L('C'),ac:0,tipo:'',inv:1},0,80,'minima');
+chk('C/E (1ª inversão)', t.nomeSpec({L:0,ac:0,tipo:'',inv:1})==='C/E' && p.nomes.join(',')==='Mi,Sol,Dó', p.nomes.join(','));
+p=t.planoAcorde({L:L('A'),ac:-1,tipo:'7M',inv:0},3,90,'minima');
+chk('Ab7M pede bemóis', p.acids.filter(a=>a.tipo==='bemol').length===2, p.nomes.join(',')+' '+p.acids.map(a=>a.tipo).join(','));
+dom=abrir('G');t=dom.window.__t;
+chk('acordes do tom de Sol', t.acordesDoTom().map(t.nomeSpec).join(' ')==='G Am Bm C D Em F#° D7', t.acordesDoTom().map(t.nomeSpec).join(' '));
+p=t.planoAcorde({L:L('D'),ac:0,tipo:'7',inv:0},-1,60,'minima');
+chk('D7 em Sol maior sem acidente', p.acids.length===0, p.nomes.join(','));
+p=t.planoAcorde({L:L('C'),ac:0,tipo:'',inv:0},0,70,'minima');
+chk('C em Sol maior sem acidente (Fá não aparece)', p.acids.length===0, p.nomes.join(','));
+p=t.planoAcorde({L:L('F'),ac:0,tipo:'',inv:0},1,80,'minima');
+chk('F em Sol maior pede bequadro no Fá', p.acids.length===1&&p.acids[0].tipo==='bequadro', p.acids.map(a=>a.tipo).join(','));
+dom=abrir('Am');t=dom.window.__t;
+chk('acordes do tom de Lá menor', t.acordesDoTom().map(t.nomeSpec).join(' ')==='Am B° C Dm E F G E7', t.acordesDoTom().map(t.nomeSpec).join(' '));
+p=t.planoAcorde({L:L('E'),ac:0,tipo:'',inv:0},0,60,'minima');
+chk('E em Lá menor pede Sol♯', p.acids.length===1&&p.acids[0].tipo==='sustenido', p.nomes.join(','));
+console.log(`\n${ok} de ${tot}`);
+// imagem: alguns acordes no tom de Dó
+dom=abrir('C');t=dom.window.__t;
+const add=(spec,s,x)=>t.aplicarAcorde(t.planoAcorde(spec,s,x,'minima'),null);
+add({L:0,ac:0,tipo:'',inv:0},-2,30);add({L:0,ac:0,tipo:'',inv:1},0,42);add({L:1,ac:0,tipo:'7',inv:0},-1,56);add({L:4,ac:0,tipo:'7(sus4)',inv:0},2,70);add({L:0,ac:0,tipo:'(add9)',inv:0},-2,84);add({L:5,ac:-1,tipo:'7M',inv:0},3,100);add({L:1,ac:0,tipo:'m7(b5)',inv:0},-1,116);
+const svg=dom.window.document.getElementById('pauta');
+const css=`.linhas line{stroke:#3B403D;stroke-width:.2}.cab,.band,.glifo,.ponto,.lig{fill:#141414}.furo{fill:#fff}.haste,.traco-fino{stroke:#141414;stroke-width:.32;fill:none}.traco-grosso{stroke:#141414;stroke-width:.9}.supl{stroke:#141414;stroke-width:.3}.alvo,.alvo-linha{fill:none;stroke:none}.titulo-mus{font:700 3.4px serif}.num-comp{font:900 6.6px serif}.rot{font:600 2.3px sans-serif;fill:#6B746F}.rot.completo{fill:#00873E}.rot.passou{fill:#C62828}.rot.falta{fill:#B26A00}`;
+fs.writeFileSync('prontos.svg',svg.outerHTML.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="500" ').replace(/(<svg[^>]*>)/,`$1<style>${css}</style><rect width="140" height="50" fill="#fff"/>`));

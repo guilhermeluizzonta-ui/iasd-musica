@@ -60,5 +60,26 @@ ${html}
 </html>
 `;
 fs.writeFileSync(path.join(www, 'index.html'), page);
+// 4) Pauta a mão livre (escrever partitura com a S Pen): tela separada em www/pauta.html
+//    Fonte: src/pauta/pauta-mao-livre.html (o mesmo protótipo publicado no Claude). Fontes locais, sem internet.
+let pauta = fs.readFileSync(path.join(root, 'src', 'pauta', 'pauta-mao-livre.html'), 'utf8');
+pauta = pauta.replace(/<link rel="preconnect"[^>]*>\n?/, '')
+  .replace(/<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com[^>]*>\n?/, '<link rel="stylesheet" href="fonts/fonts.css">\n')
+  .replace(/"Source Sans 3", /g, '"Noto Sans", ');
+if (/https:\/\/fonts\.googleapis/.test(pauta)) throw new Error('pauta: ainda há fonte da internet');
+fs.writeFileSync(path.join(www, 'pauta.html'), `<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<script src="lib/capacitor.js"></script>
+<style>html,body{margin:0}</style>
+</head>
+<body>
+${pauta}
+</body>
+</html>
+`);
+
 const kb = (p) => Math.round(fs.statSync(p).size / 1024);
-console.log(`www pronto: index.html ${kb(path.join(www, 'index.html'))} KB · ${fs.readdirSync(path.join(www, 'fonts')).length - 1} fontes · PDF.js`);
+console.log(`www pronto: index.html ${kb(path.join(www, 'index.html'))} KB · pauta.html ${kb(path.join(www, 'pauta.html'))} KB · ${fs.readdirSync(path.join(www, 'fonts')).length - 1} fontes · PDF.js`);

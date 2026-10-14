@@ -1,0 +1,16 @@
+const fs=require('fs');const {JSDOM}=require('jsdom');
+const html=fs.readFileSync(process.argv[2],'utf8').replace('  // ---------- Início ----------','  window.__t={adicionar,usar};\n  // ---------- Início ----------');
+const banco={musicas:[{id:'m1',titulo:'Prévia',autor:'',clave:'sol',tom:'C',compasso:{num:4,den:4,simbolo:'C'},unidade:{tipo:'seminima',ponto:false},andamento:null,itens:[],anot:[{id:'a1',tipo:'texto',l:0,x:60,dy:4,texto:'nota pessoal',cor:'#D32F2F'}]}],atual:'m1'};
+const erros=[];
+const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://exemplo.test/',pretendToBeVisual:true,beforeParse(w){w.localStorage.setItem('pauta-mao-livre.v2',JSON.stringify(banco));w.SVGElement.prototype.getBBox=()=>({x:0,y:0,width:1,height:1});w.Element.prototype.setPointerCapture=()=>{};w.addEventListener('error',e=>erros.push(e.message));}});
+const d=dom.window.document,t=dom.window.__t;
+t.usar(0,0); t.adicionar({id:'n1',tipo:'minima',s:4,ss:[4],x:50,dir:'down'});
+console.log('aviso de tempos existe no editor:', !!d.querySelector('.rot.tempos'));
+d.getElementById('segVer').click();
+const cs=sel=>{const e=d.querySelector(sel);return e?dom.window.getComputedStyle(e).display:'(sem elemento)';};
+console.log('visualizar ligado:', d.body.classList.contains('visualizar'));
+console.log('tempos escondidos:', cs('.rot.tempos'), '| (+):', cs('.mais'), '| anotações:', cs('.anotacoes'), '| ícones:', cs('.linha-icones'), '| barra da prévia:', cs('.linha-vis'));
+d.getElementById('cVisAnot').click();
+console.log('mostrar anotações →', cs('.anotacoes'));
+d.getElementById('segEditar').click();
+console.log('voltou ao editor:', !d.body.classList.contains('visualizar'), '| tempos:', cs('.rot.tempos'), '| erros:', erros.length?erros:'nenhum');

@@ -1,0 +1,18 @@
+const fs=require('fs');const {JSDOM}=require('jsdom');
+const html=fs.readFileSync(process.argv[2],'utf8');
+const banco={musicas:[{id:'m1',titulo:'Lindo país',autor:'',clave:'sol',tom:'C',compasso:{num:4,den:4,simbolo:'C'},unidade:{tipo:'seminima',ponto:false},andamento:null,itens:[]}],atual:'m1'};
+const erros=[];
+const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://exemplo.test/',beforeParse(w){w.localStorage.setItem('pauta-mao-livre.v2',JSON.stringify(banco));w.SVGElement.prototype.getBBox=()=>({x:0,y:0,width:1,height:1});w.Element.prototype.setPointerCapture=()=>{};w.addEventListener('error',e=>erros.push(e.message));}});
+const d=dom.window.document, W=dom.window;
+const vis=id=>!d.getElementById(id).hidden;
+console.log('título no topo:', d.getElementById('tMusica').textContent, '| ícones na linha:', d.querySelectorAll('.linha-icones .ic').length);
+d.getElementById('bTitulo').click();
+console.log('editando:', vis('tituloEd'), '| valor:', d.getElementById('tituloInput').value);
+d.getElementById('tituloInput').value='Lindo país (arranjo 2)';
+d.getElementById('tituloEd').dispatchEvent(new W.Event('submit',{cancelable:true}));
+console.log('salvo:', d.getElementById('tMusica').textContent, '| fechou:', !vis('tituloEd'));
+d.getElementById('bTitulo').click(); d.getElementById('tituloInput').value='outro nome';
+d.getElementById('pauta').dispatchEvent(new W.MouseEvent('pointerdown',{bubbles:true,cancelable:true}));
+console.log('clicar fora cancela:', !vis('tituloEd'), '| nome mantido:', d.getElementById('tMusica').textContent);
+d.getElementById('bTitulo').click(); d.getElementById('bTituloCancelar').click();
+console.log('✕ cancela:', !vis('tituloEd'), '| erros:', erros.length?erros:'nenhum');
