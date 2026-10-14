@@ -485,13 +485,7 @@ html[data-style="retro"] .lsheet .lline { font-family: var(--mono); }
 .sf-keys button { min-height: 44px; border-radius: var(--r); border: var(--bw) solid var(--ctl-eff, var(--ctl)); background: var(--surface); color: var(--fg); font: inherit; font-size: 15px; cursor: pointer; padding: 0; }
 .sf-keys button[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); font-weight: 700; }
 .sf-prev-box { border: var(--bw) solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; background: var(--surface-2); }
-.sf-prev { background: #FFFFFF; color: #141413; border-radius: 8px; padding: 18px 18px 14px; display: flex; flex-direction: column; gap: 26px; }
-.sf-staff { position: relative; height: 40px; display: flex; flex-direction: column; justify-content: space-between; }
-.sf-staff i { display: block; height: 1px; background: #141413; }
-.sf-staff span { position: absolute; top: 50%; transform: translateY(-50%); background: #FFFFFF; padding: 0 6px; font-weight: 700; }
-.sf-clef { left: 0; font-size: 12px; }
-.sf-acc { left: 104px; font-size: 18px; letter-spacing: 1px; }
-.sf-meter { left: 220px; font-size: 18px; font-weight: 800 !important; }
+.sf-prev { border-radius: 8px; overflow: hidden; }
 .sf-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 @media (max-width: 560px) { .sf-grid2 { grid-template-columns: minmax(0, 1fr); } }
 .sf-outro { display: flex; align-items: center; gap: 8px; }
@@ -786,7 +780,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
         </div>
         <div class="sf-prev-box">
           <span class="sec-title">Como a partitura começa</span>
-          <div class="sf-prev" id="sf-prev"></div>
+          <div class="sf-prev" id="sf-prev" role="img"></div>
           <div class="field"><label for="sf-folder">Salvar em</label><select class="input" id="sf-folder"></select></div>
         </div>
         <p class="tipline" aria-live="polite"></p>
@@ -3928,6 +3922,41 @@ function openScoreForm() {
   renderScoreForm(); sfSuggestUnit();
   setTimeout(() => $('sf-title').focus(), 50);
 }
+/* Prévia da ficha: desenha a pauta como a partitura vai começar (mesmos símbolos e medidas da pauta.html, em mm) */
+const SF_GL = {"claveSol":{"d":"M185 -245Q185 -197 211.5 -165.0Q238 -133 287 -133Q329 -133 355.5 -163.5Q382 -194 382 -236Q382 -272 357.0 -299.0Q332 -326 292 -326H282Q308 -365 364 -365Q433 -365 472.0 -320.0Q511 -275 511 -205Q511 -188 507.0 -159.5Q503 -131 493.0 -91.0Q483 -51 477.5 -25.0Q472 1 470 12Q436 2 390 2Q304 2 222 52Q142 102 96.0 184.0Q50 266 50 361Q50 451 91.0 530.0Q132 609 192.5 675.0Q253 741 314 801Q300 854 291.0 906.0Q282 958 282 1012Q282 1059 288.5 1100.5Q295 1142 307 1177Q320 1217 341.0 1252.5Q362 1288 385.5 1311.0Q409 1334 427 1334Q451 1334 493 1249Q514 1206 524.0 1156.0Q534 1106 534 1049Q534 978 515.0 907.5Q496 837 459.5 775.0Q423 713 372 666L407 498Q422 500 432.0 501.0Q442 502 447 502Q508 502 556.0 467.5Q604 433 632.5 377.0Q661 321 661 254Q661 177 621.5 115.5Q582 54 503 25Q508 8 532 -117Q538 -147 541.0 -164.5Q544 -182 545.0 -195.0Q546 -208 546 -225Q546 -275 521.5 -314.5Q497 -354 455.5 -376.0Q414 -398 363 -398Q311 -398 271.0 -378.5Q231 -359 208.0 -324.5Q185 -290 185 -245ZM380 31Q400 31 420.5 35.0Q441 39 464 45L398 379Q371 373 347.0 353.5Q323 334 308.5 306.5Q294 279 294 248Q294 223 307.0 196.5Q320 170 339 154Q352 142 365 136Q380 129 380 123Q380 120 370 117Q332 126 301.5 151.0Q271 176 253.5 211.5Q236 247 236 287Q236 330 253.5 370.0Q271 410 302.5 442.0Q334 474 374 490L345 641Q229 547 174.5 456.5Q120 366 120 277Q120 212 154.0 156.0Q188 100 247.0 65.5Q306 31 380 31ZM495 55Q593 97 593 227Q593 270 571.0 305.5Q549 341 512.0 362.0Q475 383 429 383ZM341 826Q364 838 390.0 870.5Q416 903 440.0 945.0Q464 987 479.0 1029.5Q494 1072 494 1106Q494 1142 483.0 1163.0Q472 1184 445 1184Q421 1184 398.5 1162.0Q376 1140 358.5 1103.5Q341 1067 331.0 1022.0Q321 977 321 930Q321 898 327.5 872.0Q334 846 341 826Z","b":[50,-398,661,1334],"w":711},"claveFa":{"d":"M50 123Q216 231 288 301Q336 348 373.0 408.5Q410 469 431.5 536.0Q453 603 453 669Q453 728 435.0 773.5Q417 819 383.0 845.0Q349 871 302 871Q284 871 264.5 867.0Q245 863 224 855Q181 839 158.0 813.5Q135 788 135 765Q135 756 143.0 752.0Q151 748 158 748Q168 748 183 752Q190 754 196.5 755.0Q203 756 210 756Q248 756 272.0 733.5Q296 711 296 674Q296 638 266.0 612.0Q236 586 195 586Q146 586 111.0 617.0Q76 648 76 697Q76 756 109.0 802.0Q142 848 198.5 874.0Q255 900 324 900Q400 900 460.0 867.0Q520 834 555.5 776.5Q591 719 591 646Q591 551 538 464Q511 419 476.5 379.0Q442 339 389.0 297.5Q336 256 256.0 208.0Q176 160 57 101ZM648.0 495.5Q632 511 632.0 534.0Q632 557 648.0 573.0Q664 589 687.0 589.0Q710 589 726.0 573.0Q742 557 742.0 534.0Q742 511 726.0 495.5Q710 480 687.0 480.0Q664 480 648.0 495.5ZM648.0 715.5Q632 731 632.0 754.0Q632 777 648.0 793.0Q664 809 687.0 809.0Q710 809 726.0 793.0Q742 777 742.0 754.0Q742 731 726.0 715.5Q710 700 687.0 700.0Q664 700 648.0 715.5Z","b":[50,101,742,900],"w":791},"claveDo":{"d":"M323 115Q323 145 342.5 166.5Q362 188 392 188Q425 188 442.5 168.5Q460 149 460 125Q460 106 443 88Q434 78 427.5 69.0Q421 60 421 52Q421 40 434.0 31.5Q447 23 470 23Q532 23 563.5 68.5Q595 114 595 219Q595 311 574.0 358.5Q553 406 503 406Q457 406 427.0 367.0Q397 328 388 260Q379 309 360.0 355.0Q341 401 316.0 437.0Q291 473 263 492V0H226V1000H263V510Q281 519 301.0 546.0Q321 573 339.0 608.5Q357 644 370.0 679.5Q383 715 386 742Q396 673 427.0 633.5Q458 594 503.0 594.0Q548 594 570 631Q593 668 593 775Q593 818 590.5 848.5Q588 879 582 898Q569 942 541.0 960.5Q513 979 470 979Q447 979 434.0 969.5Q421 960 421 951Q421 944 428.0 934.0Q435 924 443 914Q460 894 460 877Q460 853 442.5 833.5Q425 814 392 814Q362 814 342.5 835.5Q323 857 323 887Q323 924 347.5 952.0Q372 980 411.5 996.0Q451 1012 497 1012Q561 1012 612.0 982.0Q663 952 693.5 899.0Q724 846 724 777Q724 734 714.5 698.0Q705 662 685 633Q658 595 616.0 573.5Q574 552 527 552Q505 552 481.5 557.5Q458 563 437 574L390 500L437 426Q460 435 484.0 440.0Q508 445 532 445Q587 445 630.5 414.0Q674 383 699.0 332.0Q724 281 724.0 219.0Q724 157 694.0 104.5Q664 52 613.0 21.0Q562 -10 497 -10Q413 -10 368.0 23.5Q323 57 323 115ZM50 1000H167V0H50Z","b":[50,-10,724,1012],"w":774},"sustenido":{"d":"M97 -59 50 -71V32L97 46V189L50 177V277L97 290V486H128V298L195 314V509H226V322L275 333V234L226 220V77L275 89V-14L226 -26V-214H195V-34L128 -52V-247H97ZM128 54 195 70V214L128 197Z","b":[50,-247,275,509],"w":325},"bemol":{"d":"M50 615H81V225Q118 262 165 262Q197 262 223.0 240.5Q249 219 249 178Q249 146 230.0 119.0Q211 92 179 65L110 6Q91 -10 76.0 -25.5Q61 -41 50 -55ZM81 12Q107 40 125.0 63.5Q143 87 153 105Q164 124 169.5 140.0Q175 156 175 170Q175 198 162.0 210.5Q149 223 134 223Q118 223 102.5 211.5Q87 200 81 180Z","b":[50,-55,249,615],"w":299},"compC":{"d":"M50 514Q50 562 68.5 605.0Q87 648 119.0 681.5Q151 715 193.0 734.5Q235 754 282.0 754.0Q329 754 371.5 734.5Q414 715 441.0 681.5Q468 648 468 606Q468 569 443.0 542.5Q418 516 380 516Q346 516 324.0 535.5Q302 555 302 589Q302 615 317.0 633.0Q332 651 353 661Q364 666 380.0 669.5Q396 673 396 679Q396 695 368.0 709.0Q340 723 308 723Q267 723 238.0 704.0Q209 685 194.5 639.0Q180 593 180 511V433Q180 396 191.5 360.5Q203 325 230.0 302.0Q257 279 301 279Q351 279 392.0 324.0Q433 369 445 445H472Q468 387 442.0 341.5Q416 296 372.0 270.0Q328 244 271 244Q208 244 158.0 280.5Q108 317 79.0 378.0Q50 439 50 514Z","b":[50,244,472,754],"w":522},"compCortado":{"d":"M239 246Q183 255 140.5 293.5Q98 332 74.0 390.0Q50 448 50 514Q50 569 75.5 618.5Q101 668 144.0 703.5Q187 739 239 749V922H269V753Q274 754 282 754Q329 754 371.5 734.0Q414 714 441.0 680.5Q468 647 468 605Q468 568 443.0 542.0Q418 516 380 516Q346 516 324.0 536.5Q302 557 302 588Q302 616 318.0 634.5Q334 653 353 661Q364 666 380.0 669.0Q396 672 396 679Q396 691 381.5 701.0Q367 711 346.5 717.0Q326 723 306 723Q296 723 287.0 721.5Q278 720 269 718V282Q283 279 301 279Q351 279 392.0 324.0Q433 369 445 445H472Q468 387 442.0 341.5Q416 296 372.0 270.0Q328 244 271 244H269V72H239ZM239 294V704Q210 683 194.5 641.0Q179 599 179 510Q179 488 179.5 467.5Q180 447 181 427Q183 386 196.0 349.0Q209 312 239 294Z","b":[50,72,472,922],"w":522}}; // símbolos da fonte Noto Music (licença OFL)
+const SF_CLAVE = { sol: { g: 'claveSol', sust: [8, 5, 9, 6, 3, 7, 4], bem: [4, 7, 3, 6, 2, 5, 1] }, fa: { g: 'claveFa', sust: [6, 3, 7, 4, 1, 5, 2], bem: [2, 5, 1, 4, 0, 3, -1] }, do: { g: 'claveDo', sust: [7, 4, 8, 5, 2, 6, 3], bem: [3, 6, 2, 5, 1, 4, 0] } };
+function sfPrevSvg(claves, n, c) {
+  const larguraPx = ($('sf-prev') && $('sf-prev').clientWidth) || 624;
+  const SP = 2.5, K = SP / 244, W = Math.max(70, Math.min(240, larguraPx / 5.5)), X0 = 4, X1 = W - 2, GAPP = 9; // ~5,5 px por mm: a pauta ocupa a largura toda
+  const f = (FOLHAS[P().folha] || FOLHAS.classica)[isDarkNow() ? 'dark' : 'light'];
+  const larg = g => (SF_GL[g].b[2] - SF_GL[g].b[0]) * K;
+  const gl = (g, x, base, off = 0) => `<path fill="${f.tinta}" d="${SF_GL[g].d}" transform="translate(${(x - SF_GL[g].b[0] * K).toFixed(3)} ${base}) scale(${K} ${-K}) translate(0 ${off - 12})"/>`;
+  const alvo = s => 12 + s * 122;
+  let out = '', topo = 7;
+  const topos = claves.map((cl, i) => topo + i * (4 * SP + GAPP));
+  claves.forEach((cl, i) => {
+    const t = topos[i], b = t + 4 * SP, C = SF_CLAVE[cl] || SF_CLAVE.sol;
+    for (let k = 0; k < 5; k++) out += `<line x1="${X0}" x2="${X1}" y1="${t + k * SP}" y2="${t + k * SP}" stroke="${f.linha}" stroke-width=".2"/>`;
+    let x = X0 + 1.2;
+    out += gl(C.g, x, b); x += larg(C.g) + 1.2;
+    const pos = n > 0 ? C.sust : C.bem, ga = n > 0 ? 'sustenido' : 'bemol';
+    for (let k = 0; k < Math.abs(n); k++) { out += gl(ga, x, b, alvo(pos[k]) - 131); x += larg(ga) + 0.35; }
+    if (n) x += 0.8;
+    if (c.simbolo === 'C' || c.simbolo === 'Cc') out += gl(c.simbolo === 'C' ? 'compC' : 'compCortado', x, b);
+    else {
+      const fs = 6.6, w = Math.max(String(c.num).length, String(c.den).length) * fs * 0.62, cx = x + w / 2;
+      const txt = (v, y) => `<text x="${cx}" y="${y}" text-anchor="middle" fill="${f.tinta}" style="font: 900 ${fs}px Merriweather, Georgia, serif">${esc(String(v))}</text>`;
+      out += txt(c.num, b - 6 * SP / 2 + 2.44) + txt(c.den, b - 2 * SP / 2 + 2.44);
+    }
+  });
+  if (claves.length > 1) {
+    const y0 = topos[0], y1 = topos[topos.length - 1] + 4 * SP, xr = X0 - 0.7, h = y1 - y0, ym = (y0 + y1) / 2, xl = xr - 2.2;
+    out += `<line x1="${X0}" x2="${X0}" y1="${y0}" y2="${y1}" stroke="${f.tinta}" stroke-width=".32"/>`;
+    out += `<path fill="${f.tinta}" d="M${xr} ${y0} C${xr - 1.7} ${y0 + h * 0.06} ${xr - 0.1} ${ym - h * 0.14} ${xl} ${ym} C${xr - 0.1} ${ym + h * 0.14} ${xr - 1.7} ${y1 - h * 0.06} ${xr} ${y1} C${xr - 1.1} ${y1 - h * 0.08} ${xr + 0.5} ${ym + h * 0.1} ${xl + 0.6} ${ym} C${xr + 0.5} ${ym - h * 0.1} ${xr - 1.1} ${y0 + h * 0.08} ${xr} ${y0} Z"/>`;
+  }
+  const H = topos[topos.length - 1] + 4 * SP + 7;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;background:${f.papel};border-radius:6px" aria-hidden="true">${out}</svg>`;
+}
 function renderScoreForm() {
   document.querySelectorAll('[data-sf-form]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sfForm === sf.form)));
   document.querySelectorAll('[data-sf-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sfMode === sf.mode)));
@@ -3939,9 +3968,8 @@ function renderScoreForm() {
   document.querySelectorAll('[data-sf-comp]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sfComp === sf.comp)));
   $('sf-outro').hidden = sf.comp !== 'outro';
   const c = sfComp(), meter = c.simbolo === 'C' ? 'C' : c.simbolo === 'Cc' ? '¢' : `${c.num}/${c.den}`;
-  const acc = n === 0 ? '' : n > 0 ? '♯'.repeat(n) : '♭'.repeat(-n);
-  const staves = sf.form === 'piano' ? ['Sol', 'Fá'] : [{ sol: 'Sol', fa: 'Fá', do: 'Dó' }[sf.form]];
-  $('sf-prev').innerHTML = staves.map(cl => `<div class="sf-staff"><i></i><i></i><i></i><i></i><i></i><span class="sf-clef">Clave de ${cl}</span>${acc ? `<span class="sf-acc">${acc}</span>` : ''}<span class="sf-meter">${esc(meter)}</span></div>`).join('');
+  $('sf-prev').innerHTML = sfPrevSvg(sf.form === 'piano' ? ['sol', 'fa'] : [sf.form], n, c);
+  $('sf-prev').setAttribute('aria-label', `Prévia: ${sf.form === 'piano' ? 'piano, clave de Sol e de Fá' : 'clave de ' + { sol: 'Sol', fa: 'Fá', do: 'Dó' }[sf.form]}, ${tomNome(sf.key)}, compasso ${meter}`);
 }
 $('v-scoreform').addEventListener('click', (e) => {
   let b;
