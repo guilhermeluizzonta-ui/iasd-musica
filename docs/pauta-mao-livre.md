@@ -36,9 +36,10 @@ Estado em 13/10/2026. Editor de partitura escrita à mão com a S Pen (o app rec
 
 ## Integração com o app (feita em 14/10/2026, design aprovado no quadro "Criar partitura")
 - **Partituras › + › Criar partitura** (primeiro item, amarelo; só Editor) abre a **ficha no app**: título, compositor/arranjo, formação, tom (maior/menor + grade de 12, com a armadura escrita), compasso, unidade, andamento, prévia "Como a partitura começa" e **Salvar em** (pasta).
-- Ao confirmar, o app grava o pedido em `localStorage['pauta.pedido']` e abre `pauta.html?app=1&nova=<id do pedido>`; a pauta cria a música com esses dados (sem abrir a ficha dela) e guarda `pastaApp`.
-- Na pauta aberta pelo app (`?app=1`): botão **Voltar** antes do título; o ícone de lista vira **Ficha da partitura**; o **botão voltar do Android** fecha o que estiver aberto e depois volta ao app; excluir pela ficha volta ao app.
-- No app, as músicas da pauta aparecem **na pasta escolhida** como "Criada no app · piano · G maior · 4/4", etiqueta **editável**, lápis **Editar notas** (`pauta.html?app=1&id=…`) e ⋯ com **Abrir (como os músicos veem)** (`&ver=1`, modo Visualizar), Editar notas, Mover, Ligar à cifra, Excluir (apaga também na pauta).
+- Ao confirmar, o app grava o pedido em `localStorage['pauta.pedido']` e abre `pauta.html?app=1&nova=<id do pedido>`; a pauta cria a música com esses dados (sem abrir a ficha dela) e guarda a pasta em `musica.pasta`.
+- Na pauta aberta pelo app (`?app=1`): botão **Voltar** antes do título e **voltar do Android** (feitos no ramo `pauta-mao-livre`, commit 7454f66: fecha janela/Biblioteca aberta; senão volta com `location.replace('index.html')`); o ícone de lista vira **Ficha da partitura**; excluir pela ficha volta ao app.
+- Parâmetros aceitos pela pauta: `nova=1&pasta=<id>` (começa pela ficha da pauta), `nova=<id do pedido>` (ficha feita no app), `abrir=<id da música>`, `ver=1` (abre em Visualizar). A pasta fica em `musica.pasta`.
+- No app, as músicas da pauta aparecem **na pasta escolhida** como "Criada no app · piano · G maior · 4/4", etiqueta **editável**, lápis **Editar notas** (`pauta.html?app=1&abrir=…`) e ⋯ com **Abrir (como os músicos veem)** (`&ver=1`, modo Visualizar), Editar notas, Mover, Ligar à cifra, Excluir (apaga também na pauta).
 - O app sincroniza com a chave `pauta-mao-livre.v2` ao abrir e ao voltar (inclusive voltando pelo histórico).
 - Build: `www/pauta.html` ganhou a regra `[hidden]{display:none!important}` (sem ela as janelas da pauta apareciam todas abertas no APK).
 - No visualizador do Claude a página da pauta não existe: "Criar partitura" mostra a ficha e avisa que o editor abre no APK.

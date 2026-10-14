@@ -2641,11 +2641,11 @@ document.addEventListener('click', async (e) => {
     return;
   }
   const pze = e.target.closest('[data-pz-edit]');
-  if (pze) { closeRowMenu(); const sc = scoreById(pze.dataset.pzEdit); if (sc) openPauta({ id: sc.pautaId }); return; }
+  if (pze) { closeRowMenu(); const sc = scoreById(pze.dataset.pzEdit); if (sc) openPauta({ abrir: sc.pautaId }); return; }
   const pzv = e.target.closest('[data-pz-view]');
-  if (pzv) { closeRowMenu(); const sc = scoreById(pzv.dataset.pzView); if (sc) openPauta({ id: sc.pautaId, ver: '1' }); return; }
+  if (pzv) { closeRowMenu(); const sc = scoreById(pzv.dataset.pzView); if (sc) openPauta({ abrir: sc.pautaId, ver: '1' }); return; }
   const op = e.target.closest('[data-pdf]');
-  if (op && (scoreById(op.dataset.pdf) || {}).kind === 'pauta') { const sc = scoreById(op.dataset.pdf); openPauta({ id: sc.pautaId, ver: '1' }); return; }
+  if (op && (scoreById(op.dataset.pdf) || {}).kind === 'pauta') { const sc = scoreById(op.dataset.pdf); openPauta({ abrir: sc.pautaId, ver: '1' }); return; }
   if (op) { const fromList = route.name === 'partituras' ? { name: 'partituras', params: { q: $('pdf-q').value, back: route.back, folder: pdfFolder } } : null; go('partitura', { id: op.dataset.pdf, back: fromList || undefined }); return; }
   const more = e.target.closest('[data-pmore]');
   if (more) {
@@ -2723,7 +2723,7 @@ async function openPdfView(id) {
   if (sc.kind === 'pauta') {
     $('top-title').textContent = sc.title; $('pv-sub').textContent = 'Criada no app · ' + (sc.meta || '');
     $('pv-pages').innerHTML = `<div class="empty"><p>Esta partitura foi escrita no editor da pauta.</p>${HAS_PAUTA() ? `<button type="button" class="btn primary" data-pz-view="${esc(sc.id)}">Abrir</button>` : '<p>Ela abre no app instalado (APK).</p>'}</div>`;
-    if (HAS_PAUTA()) openPauta({ id: sc.pautaId, ver: '1' });
+    if (HAS_PAUTA()) openPauta({ abrir: sc.pautaId, ver: '1' });
     return;
   }
   pv.id = id; pv.zoom = db.pdfZoom[id] || 1;
@@ -3835,9 +3835,10 @@ function syncPautas() {
   ms.forEach(m => {
     let sc = db.scores.find(x => x.kind === 'pauta' && x.pautaId === m.id);
     if (!sc) {
-      sc = { id: 'pz-' + m.id, kind: 'pauta', pautaId: m.id, title: m.titulo || 'Partitura', folderId: m.pastaApp && folderById(m.pastaApp) ? m.pastaApp : null, mine: true, local: true, songId: null, created: m.criadaApp || Date.now() };
+      sc = { id: 'pz-' + m.id, kind: 'pauta', pautaId: m.id, title: m.titulo || 'Partitura', folderId: m.pasta && folderById(m.pasta) ? m.pasta : null, mine: true, local: true, songId: null, wantFolder: m.pasta || null, created: m.criadaApp || Date.now() };
       db.scores.push(sc); ch = true;
     }
+    if (!sc.folderId && sc.wantFolder && folderById(sc.wantFolder)) { sc.folderId = sc.wantFolder; delete sc.wantFolder; ch = true; }   // a pasta ainda não existia neste aparelho
     const meta = pautaMeta(m);
     if (sc.title !== (m.titulo || sc.title) || sc.meta !== meta) { sc.title = m.titulo || sc.title; sc.meta = meta; ch = true; }
   });
