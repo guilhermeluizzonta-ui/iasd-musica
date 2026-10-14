@@ -313,7 +313,7 @@ body.focus .sheet { border-color: transparent; min-height: calc(100vh - 16px); }
 #imp-go.ready { box-shadow: 0 0 0 3px rgba(255, 203, 8, .4); }
 .editor-actions { position: sticky; bottom: 0; z-index: 12; background: var(--bg); border-top: 1px solid var(--line); margin-inline: -16px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .editor-actions .left { margin-right: auto; }
-#v-config .editor-actions { flex-wrap: nowrap; align-items: center; }
+#v-config .editor-actions { flex-wrap: wrap; align-items: center; }
 #cfg-status { white-space: nowrap; }
 
 /* ---------- Botão claro/escuro ---------- */
@@ -379,7 +379,7 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
 .ink-layer { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; z-index: 2; }
 .ink-layer text { font-family: 'Noto Sans', system-ui, sans-serif; font-weight: 700; }
 .inking, #sheet.inking, #pv-pages.inking { touch-action: none; -webkit-user-select: none; user-select: none; cursor: crosshair; }
-.ink-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 55; display: flex; gap: 4px; align-items: center; background: var(--surface); border: var(--bw) solid var(--line); border-radius: 16px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.35); max-width: calc(100vw - 16px); overflow-x: auto; scrollbar-width: none; }
+.ink-bar { overflow: visible !important; position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 55; display: flex; gap: 4px; align-items: center; background: var(--surface); border: var(--bw) solid var(--line); border-radius: 16px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.35); max-width: calc(100vw - 16px); overflow-x: auto; scrollbar-width: none; }
 .ink-bar::-webkit-scrollbar { display: none; }
 .ink-bar button { min-width: 44px; min-height: 44px; padding: 0 8px; border-radius: 12px; border: 0; background: transparent; color: var(--fg); display: flex; align-items: center; justify-content: center; gap: 6px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; flex: none; }
 .ink-bar button:hover { background: var(--surface-2); }
@@ -426,6 +426,7 @@ button.keytag { cursor: pointer; }
 .pick-row[aria-pressed="true"] .pick-check { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
 .pick-row .song-text { flex: 1; min-width: 0; }
 .pick-bar { position: sticky; bottom: 0; z-index: 5; background: var(--bg); padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; border-top: 1px solid var(--line); margin-top: 8px; }
+.pick-bar { position: sticky; }
 .pick-bar .btn.primary { flex: 1; }
 .pick-bar .btn.primary:disabled { opacity: .5; cursor: default; }
 .list-nav { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 25; display: flex; align-items: stretch; background: var(--surface); border: var(--bw) solid var(--line); border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.3); max-width: calc(100vw - 16px); overflow: hidden; }
@@ -447,6 +448,22 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
 .next-card strong { font-size: 17px; }
 .next-songs { font-size: 14px; }
 .rm-sub { margin-left: auto; padding-left: 12px; color: var(--muted); font-size: 12px; }
+
+/* ---------- Padrão: botão de ícone + linha de dica embaixo ---------- */
+.btn.ib { width: 48px; padding: 0; flex: none; }
+.btn.ib.wide { width: auto; padding: 0 14px; }
+.btn.ib svg { flex: none; }
+.btn.ib .cnt { font-weight: 700; font-variant-numeric: tabular-nums; }
+.group button svg { display: block; }
+.group button.gi { display: inline-flex; align-items: center; justify-content: center; min-width: 46px; }
+.tipline { margin: 0; font-size: 13px; line-height: 1.4; color: var(--fg); max-height: 0; opacity: 0; overflow: hidden; transition: max-height .18s ease, opacity .18s ease, padding .18s ease; }
+.tipline b { color: var(--accent); font-weight: 700; }
+.tipline.on { max-height: 80px; opacity: 1; padding-top: 6px; }
+.tipline.float { position: absolute; left: 8px; right: 8px; bottom: calc(100% + 8px); background: var(--surface); border: var(--bw) solid var(--line); border-radius: 12px; padding: 0 12px; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+.tipline.float.on { padding: 8px 12px; }
+@media (prefers-reduced-motion: reduce) { .tipline { transition: none; } }
+.viewer-head .btn.ib.star[aria-pressed="true"] { color: var(--gold); }
+.viewer-head .btn.ib.star[aria-pressed="true"] svg { fill: currentColor; }
 </style>
 
 <!-- ================= LOGIN ================= -->
@@ -613,31 +630,32 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
     </section>
 
     <!-- Partitura aberta -->
-    <section class="view" id="v-partitura" hidden>
+    <section class="view" id="v-partitura" data-tipscope hidden>
       <div class="viewer-head">
         <span class="hint" id="pv-sub"></span>
         <span class="spacer"></span>
-        <button type="button" class="btn" id="pv-cifra" hidden>Abrir cifra</button>
+        <button type="button" class="btn ib" id="pv-cifra" aria-label="Abrir cifra" data-tip="Abrir cifra|Abre a cifra ligada a esta partitura." hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5H20" stroke-width="2.6"/><path d="M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5" stroke-width="1.3"/><path d="M4 10.5H20M4 16H20M4 21.5H20" stroke-width="1.3"/><circle cx="4" cy="18.75" r="2.3" fill="currentColor" stroke="none"/><circle cx="9.33" cy="13.25" r="2.3" fill="currentColor" stroke="none"/><circle cx="20" cy="7.75" r="2.3" fill="currentColor" stroke="none"/></svg></button>
       </div>
       <div class="toolbar-wrap">
         <div class="toolbar" role="toolbar" aria-label="Ajustes da partitura">
           <div class="group" role="group" aria-label="Zoom">
-            <button type="button" id="pv-zout" aria-label="Diminuir">−</button>
-            <button type="button" class="zoomval" id="pv-zval" title="Voltar para a largura da tela">100%</button>
-            <button type="button" id="pv-zin" aria-label="Aumentar">+</button>
+            <button type="button" id="pv-zout" aria-label="Diminuir" data-tip="Diminuir|Também dá para fechar dois dedos na tela.">−</button>
+            <button type="button" class="zoomval" id="pv-zval" data-tip="Zoom|Toque para voltar à largura da tela.">100%</button>
+            <button type="button" id="pv-zin" aria-label="Aumentar" data-tip="Aumentar|Também dá para abrir dois dedos na tela (pinça).">+</button>
           </div>
           <div class="group" role="group" aria-label="Virar página">
-            <button type="button" id="pv-prev" aria-label="Página anterior">‹</button>
+            <button type="button" id="pv-prev" aria-label="Página anterior" data-tip="Página anterior|Também funciona com o pedal Bluetooth.">‹</button>
             <span class="pdf-page-ind" id="pv-page"></span>
-            <button type="button" id="pv-next" aria-label="Próxima página">›</button>
+            <button type="button" id="pv-next" aria-label="Próxima página" data-tip="Próxima página|Também funciona com o pedal Bluetooth.">›</button>
           </div>
-          <div class="group"><button type="button" id="pv-ink" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M14 6l4 4"></path></svg>Anotar</button></div>
-          <div class="group"><button type="button" id="pv-fs" aria-pressed="false">Tela cheia</button></div>
-          <div class="group focus-only"><button type="button" class="mode-btn" aria-label="Mudar para o tema claro">
+          <div class="group"><button type="button" class="gi" id="pv-ink" aria-pressed="false" aria-label="Anotar" data-tip="Anotar|Desenhe ou escreva por cima da partitura. Fica só no seu aparelho."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg></button></div>
+          <div class="group"><button type="button" class="gi" id="pv-fs" aria-pressed="false" aria-label="Tela cheia" data-tip="Tela cheia|Toque na direita da página para avançar, na esquerda para voltar e no meio para ver os controles."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div>
+          <div class="group focus-only"><button type="button" class="mode-btn" aria-label="Mudar para o tema claro" data-tip="Claro ou escuro|Troca o tema na hora.">
             <svg class="ico-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
             <svg class="ico-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"></path></svg>
           </button></div>
         </div>
+        <p class="tipline" aria-live="polite"></p>
       </div>
       <p class="hint" id="pv-tip">Na tela cheia, toque na direita da página para avançar, na esquerda para voltar e no meio para mostrar os controles. Pedal de virar página (Bluetooth) também funciona.</p>
       <div class="pdf-pages" id="pv-pages"></div>
@@ -655,14 +673,15 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
       <div class="ls-body" id="ls-body"></div>
     </section>
     <!-- Lista aberta -->
-    <section class="view" id="v-lista" hidden>
+    <section class="view" id="v-lista" data-tipscope hidden>
       <div id="li-head"></div>
       <div class="li-actions" id="li-actions"></div>
+      <p class="tipline" aria-live="polite"></p>
       <div id="li-items"></div>
     </section>
     <!-- Nova lista / editar / clonar -->
     <section class="view" id="v-listaform" hidden>
-      <form class="box" id="lf-form" autocomplete="off">
+      <form class="box" id="lf-form" autocomplete="off" data-tipscope>
         <div class="field"><label for="lf-title">Nome da lista</label><input class="input" id="lf-title" maxlength="60" placeholder="Ex.: Culto de sábado, Santa Ceia, Culto jovem"></div>
         <div class="two">
           <div class="field"><label for="lf-date">Data</label><input class="input" id="lf-date" type="date"></div>
@@ -672,7 +691,8 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
         <div class="field"><label for="lf-note">Observações <small>(opcional)</small></label><textarea class="input lf-note" id="lf-note" maxlength="400" placeholder="Ex.: ensaio às 8h; abertura com a orquestra"></textarea></div>
         <p class="status" id="lf-clone-info" hidden></p>
         <p class="hint">Sem nome, a lista se chama pelo dia da semana: "Culto de sábado".</p>
-        <div class="row"><button type="submit" class="btn primary" id="lf-save">Criar lista</button><button type="button" class="btn" id="lf-cancel">Cancelar</button></div>
+        <p class="tipline" aria-live="polite"></p>
+        <div class="row"><button type="submit" class="btn ib primary" id="lf-save" aria-label="Criar lista" data-tip="Criar lista|Guarda e abre a escolha das músicas."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg></button><button type="button" class="btn ib" id="lf-cancel" aria-label="Cancelar" data-tip="Cancelar|Volta sem salvar."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
       </form>
     </section>
     <!-- Escolher músicas para a lista -->
@@ -684,7 +704,7 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
       </div>
       <p class="hint" style="margin:10px 0 4px">Toque nas músicas na ordem do culto. Dá para reordenar depois.</p>
       <div id="lp-list"></div>
-      <div class="pick-bar"><button type="button" class="btn primary" id="lp-go" disabled>Escolha as músicas</button><button type="button" class="btn" id="lp-cancel">Cancelar</button></div>
+      <div class="pick-bar" data-tipscope><p class="tipline float" aria-live="polite"></p><button type="button" class="btn ib wide primary" id="lp-go" disabled aria-label="Adicionar as músicas escolhidas" data-tip="Adicionar|Coloca as músicas escolhidas na lista, na ordem em que você tocou."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg><span class="cnt" id="lp-n"></span></button><button type="button" class="btn ib" id="lp-cancel" aria-label="Cancelar" data-tip="Cancelar|Volta para a lista sem adicionar."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
     </section>
 
     <!-- Configurações -->
@@ -725,54 +745,56 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
         <article class="sheet" id="theme-preview"></article>
       </div>
       <p class="hint">A aparência vale só para você, neste aparelho. As mudanças aparecem na hora como prévia e só ficam gravadas ao tocar em Salvar.</p>
-      <div class="editor-actions">
-        <button type="button" class="btn left" id="cfg-reset">Restaurar padrão</button>
+      <div class="editor-actions" data-tipscope>
+        <p class="tipline" aria-live="polite" style="flex-basis:100%;order:-1"></p>
+        <button type="button" class="btn ib left" id="cfg-reset" aria-label="Restaurar padrão" data-tip="Restaurar padrão|Volta para claro, Simples, contorno suave, fonte Padrão e verde IASD."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/></svg></button>
         <span class="hint" id="cfg-status" aria-live="polite"></span>
-        <button type="button" class="btn primary" id="cfg-save" disabled>Salvar</button>
+        <button type="button" class="btn ib primary" id="cfg-save" aria-label="Salvar aparência" data-tip="Salvar aparência|Grava estas escolhas neste aparelho." disabled><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg></button>
       </div>
     </section>
 
     <!-- Cifra aberta -->
-    <section class="view" id="v-cifra" hidden>
+    <section class="view" id="v-cifra" data-tipscope hidden>
       <div class="viewer-head">
         <span class="hint" id="viewer-sub"></span>
         <span class="spacer"></span>
-        <button type="button" class="btn star" id="viewer-fav" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"></path></svg><span>Favoritar</span></button>
-        <button type="button" class="btn" id="viewer-addlist" hidden>+ Lista</button>
-        <button type="button" class="btn" id="viewer-pdf" hidden>Partitura</button>
-        <button type="button" class="btn" id="viewer-edit">Editar</button>
+        <button type="button" class="btn ib star" id="viewer-fav" aria-label="Favoritar" data-tip="Favoritar|Guarda a música em Favoritas para achar rápido." aria-pressed="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></button>
+        <button type="button" class="btn ib" id="viewer-addlist" aria-label="Adicionar a uma lista" data-tip="Adicionar a uma lista|Coloca esta música numa lista de culto." hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7"/><path d="M18 14v6M15 17h6"/></svg></button>
+        <button type="button" class="btn ib" id="viewer-pdf" aria-label="Partitura" data-tip="Partitura|Abre a partitura ligada a esta cifra." hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9"/><path d="M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5"/><circle cx="10.2" cy="21.2" r="1.1" fill="currentColor" stroke="none"/></svg></button>
+        <button type="button" class="btn ib" id="viewer-edit" aria-label="Editar cifra" data-tip="Editar cifra|Abre o editor para corrigir letra, acordes e tom."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/><path d="M18.4 3.6a2 2 0 0 1 2.9 2.9L12.5 15.3 9 16l.7-3.5z"/></svg></button>
       </div>
       <div class="toolbar-wrap">
         <div class="pop-anchor">
           <div class="toolbar" role="toolbar" aria-label="Ajustes da cifra">
             <div class="group" role="group" aria-label="Tom">
-              <button type="button" id="t-down" aria-label="Descer meio tom">−</button>
-              <button type="button" class="key" id="t-key" aria-haspopup="dialog" aria-expanded="false">G</button>
-              <button type="button" id="t-up" aria-label="Subir meio tom">+</button>
+              <button type="button" id="t-down" aria-label="Descer meio tom" data-tip="Descer meio tom|Muda o tom só na sua tela.">−</button>
+              <button type="button" class="key" id="t-key" aria-haspopup="dialog" aria-expanded="false" data-tip="Tom|Toque para escolher outro tom. Só muda na sua tela.">G</button>
+              <button type="button" id="t-up" aria-label="Subir meio tom" data-tip="Subir meio tom|Muda o tom só na sua tela.">+</button>
             </div>
-            <div class="group"><button type="button" id="t-simp" aria-pressed="false">Simplificar</button></div>
+            <div class="group"><button type="button" class="gi" id="t-simp" aria-pressed="false" aria-label="Simplificar acordes" data-tip="Simplificar acordes|Troca acordes difíceis por versões simples (C#m7 vira C#m). Toque de novo para voltar."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20 15 9"/><path d="M14 4v2M14 10v2M18 8h2M10 8h2M16.8 5.2l1.4-1.4M16.8 10.8l1.4 1.4M11.2 5.2 9.8 3.8"/></svg></button></div>
             <div class="group" role="group" aria-label="Colunas">
-              <button type="button" id="t-cauto" aria-pressed="true">Auto</button>
-              <button type="button" data-cols="1" aria-label="1 coluna">1</button>
-              <button type="button" data-cols="2" aria-label="2 colunas">2</button>
-              <button type="button" data-cols="3" aria-label="3 colunas">3</button>
-              <button type="button" data-cols="4" aria-label="4 colunas">4</button>
+              <button type="button" id="t-cauto" aria-pressed="true" data-tip="Colunas automáticas|O app escolhe quantas colunas cabem na tela.">Auto</button>
+              <button type="button" data-cols="1" aria-label="1 coluna" data-tip="1 coluna|Divide a música em 1 coluna. Mudar o tamanho do texto volta para Auto.">1</button>
+              <button type="button" data-cols="2" aria-label="2 colunas" data-tip="2 colunas|Divide a música em 2 colunas. Mudar o tamanho do texto volta para Auto.">2</button>
+              <button type="button" data-cols="3" aria-label="3 colunas" data-tip="3 colunas|Divide a música em 3 colunas. Mudar o tamanho do texto volta para Auto.">3</button>
+              <button type="button" data-cols="4" aria-label="4 colunas" data-tip="4 colunas|Divide a música em 4 colunas. Mudar o tamanho do texto volta para Auto.">4</button>
             </div>
             <div class="group" role="group" aria-label="Tamanho do texto">
-              <button type="button" id="t-zout" aria-label="Diminuir texto">A−</button>
-              <button type="button" class="zoomval" id="t-zval">100%</button>
-              <button type="button" id="t-zin" aria-label="Aumentar texto">A+</button>
+              <button type="button" id="t-zout" aria-label="Diminuir texto" data-tip="Diminuir texto|Também dá para fechar dois dedos na tela.">A−</button>
+              <button type="button" class="zoomval" id="t-zval" data-tip="Tamanho do texto|Toque para voltar a 100%.">100%</button>
+              <button type="button" id="t-zin" aria-label="Aumentar texto" data-tip="Aumentar texto|Também dá para abrir dois dedos na tela (pinça).">A+</button>
             </div>
-            <div class="group"><button type="button" id="t-fit">Ajustar à tela</button></div>
-            <div class="group"><button type="button" id="t-ink" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M14 6l4 4"></path></svg>Anotar</button></div>
-            <div class="group"><button type="button" id="t-fs" aria-pressed="false">Tela cheia</button></div>
-            <div class="group focus-only"><button type="button" class="mode-btn" id="t-mode" aria-label="Mudar para o tema claro">
+            <div class="group"><button type="button" class="gi" id="t-fit" aria-label="Ajustar à tela" data-tip="Ajustar à tela|Escolhe o maior tamanho em que a música inteira cabe sem rolar."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v6M9 6l3 3 3-3M12 21v-6M9 18l3-3 3 3"/><path d="M4 12h16"/></svg></button></div>
+            <div class="group"><button type="button" class="gi" id="t-ink" aria-pressed="false" aria-label="Anotar" data-tip="Anotar|Desenhe ou escreva por cima da cifra. Fica só no seu aparelho."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg></button></div>
+            <div class="group"><button type="button" class="gi" id="t-fs" aria-pressed="false" aria-label="Tela cheia" data-tip="Tela cheia|Mostra só a cifra. Toque na tela ou deslize do topo para ver os controles."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div>
+            <div class="group focus-only"><button type="button" class="mode-btn" id="t-mode" aria-label="Mudar para o tema claro" data-tip="Claro ou escuro|Troca o tema na hora.">
               <svg class="ico-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
               <svg class="ico-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"></path></svg>
             </button></div>
           </div>
           <div class="keypick" id="keypick" role="dialog" aria-label="Escolher tom" hidden></div>
         </div>
+        <p class="tipline" aria-live="polite"></p>
       </div>
       <p class="status" id="fit-status" aria-live="polite" hidden></p>
       <p class="status" id="ink-warn" hidden>A cifra foi editada depois das suas anotações. Confira se elas continuam no lugar.<button type="button" class="link" id="ink-warn-ok">Já conferi</button></p>
@@ -783,28 +805,30 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
     <section class="view" id="v-editor" hidden>
       <div class="editor-grid">
         <div class="stack">
-          <div class="box dashed" id="ed-search-box">
+          <div class="box dashed" id="ed-search-box" data-tipscope>
             <p class="sec-title">1. Buscar a cifra (opcional)</p>
             <div class="two">
               <div class="field"><label for="q-song">Música</label><input class="input" id="q-song" type="text" autocomplete="off" placeholder="Nome da música"></div>
               <div class="field"><label for="q-artist">Artista ou versão</label><input class="input" id="q-artist" type="text" autocomplete="off" placeholder="Grupo, cantor ou ministério"></div>
             </div>
             <div class="row">
-              <a class="btn primary" id="go-google" href="#" target="_blank" rel="noopener" aria-disabled="true">Buscar no Google</a>
-              <a class="btn" id="go-cifraclub" href="#" target="_blank" rel="noopener" aria-disabled="true">Cifra Club</a>
-              <a class="btn" id="go-banana" href="#" target="_blank" rel="noopener" aria-disabled="true">Banana Cifras</a>
+              <a class="btn ib primary" id="go-google" href="#" target="_blank" rel="noopener" aria-disabled="true" aria-label="Buscar no Google" data-tip="Buscar no Google|Abre a busca em outra aba. Escreva o nome da música antes."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></a>
+              <a class="btn" id="go-cifraclub" href="#" target="_blank" rel="noopener" aria-disabled="true" data-tip="Cifra Club|Busca só no site Cifra Club.">Cifra Club</a>
+              <a class="btn" id="go-banana" href="#" target="_blank" rel="noopener" aria-disabled="true" data-tip="Banana Cifras|Busca só no site Banana Cifras.">Banana Cifras</a>
             </div>
+            <p class="tipline" aria-live="polite"></p>
             <p class="hint">Escolha a versão no site, copie a cifra <strong>no tom original</strong> e volte para colar.</p>
           </div>
-          <div class="box dashed">
+          <div class="box dashed" data-tipscope>
             <p class="sec-title">2. Colar e importar</p>
             <label for="imp" class="sr">Cifra copiada, com acordes por cima da letra</label>
             <textarea class="input" id="imp" spellcheck="false" placeholder="Cole aqui a cifra copiada (acordes na linha de cima, letra embaixo)."></textarea>
             <div class="row">
-              <button type="button" class="btn" id="imp-paste">Colar cifra</button>
-              <button type="button" class="btn primary" id="imp-go">Importar para o editor</button>
-              <button type="button" class="btn" id="imp-clear">Limpar</button>
+              <button type="button" class="btn ib" id="imp-paste" aria-label="Colar cifra" data-tip="Colar cifra|Cola aqui o que você copiou do site."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2.5" width="8" height="4" rx="1"/><path d="M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></svg></button>
+              <button type="button" class="btn ib primary" id="imp-go" aria-label="Importar para o editor" data-tip="Importar para o editor|Converte a cifra colada para o formato do app e leva para o passo 3."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11M7.5 9.5 12 14l4.5-4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></button>
+              <button type="button" class="btn ib" id="imp-clear" aria-label="Limpar" data-tip="Limpar|Apaga o texto colado."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 20h12"/><path d="M4.6 15.4l9.2-9.2a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8z"/><path d="M9 11l5 5"/></svg></button>
             </div>
+            <p class="tipline" aria-live="polite"></p>
             <p class="status" id="imp-status" aria-live="polite"></p>
           </div>
           <div class="box">
@@ -829,10 +853,11 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
           <article class="sheet" id="preview"></article>
         </div>
       </div>
-      <div class="editor-actions">
-        <button type="button" class="btn danger left" id="ed-archive" hidden>Excluir</button>
-        <button type="button" class="btn" id="ed-cancel">Cancelar</button>
-        <button type="button" class="btn primary" id="ed-save">Salvar cifra</button>
+      <div class="editor-actions" data-tipscope>
+        <p class="tipline" aria-live="polite" style="flex-basis:100%;order:-1"></p>
+        <button type="button" class="btn ib danger left" id="ed-archive" aria-label="Excluir cifra" data-tip="Excluir cifra|Manda a cifra para a Lixeira. Dá para restaurar por 30 dias." hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+        <button type="button" class="btn ib" id="ed-cancel" aria-label="Cancelar" data-tip="Cancelar|Sai sem salvar as mudanças."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        <button type="button" class="btn ib primary" id="ed-save" aria-label="Salvar cifra" data-tip="Salvar cifra|Guarda a cifra no repertório."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg></button>
       </div>
       <p class="warn" id="ed-err" hidden></p>
     </section>
@@ -853,19 +878,20 @@ body.bars-hidden:not(.focus) .toolbar-wrap { transform: translateY(calc(-100% - 
   <button type="button" id="ln-mid" aria-label="Voltar para a lista"></button>
   <button type="button" id="ln-next" aria-label="Próxima"><span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
 </nav>
-<div class="ink-bar" id="ink-bar" role="toolbar" aria-label="Anotações" hidden>
-  <button type="button" data-tool="pen" data-color="#E53935" aria-label="Caneta vermelha"><span class="sw" style="background:#E53935"></span></button>
-  <button type="button" data-tool="pen" data-color="#1E6FE0" aria-label="Caneta azul"><span class="sw" style="background:#1E6FE0"></span></button>
-  <button type="button" data-tool="pen" data-color="#00A651" aria-label="Caneta verde"><span class="sw" style="background:#00A651"></span></button>
-  <button type="button" data-tool="hl" aria-label="Marca-texto"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h8" stroke="#E0B000" stroke-width="3"></path><path d="M8 17l-2-2 9-10 4 4-10 9z"></path><path d="M6 15l-2 4h4"></path></svg></button>
-  <button type="button" data-tool="txt" aria-label="Texto"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 6V4h14v2M12 4v16M9 20h6"></path></svg></button>
-  <button type="button" data-tool="erase" aria-label="Borracha"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 20h12"></path><path d="M4.6 15.4l9.2-9.2a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8z"></path><path d="M9 11l5 5"></path></svg></button>
+<div class="ink-bar" id="ink-bar" role="toolbar" aria-label="Anotações" data-tipscope hidden>
+  <p class="tipline float" aria-live="polite"></p>
+  <button type="button" data-tool="pen" data-color="#E53935" aria-label="Caneta vermelha" data-tip="Caneta vermelha|Desenhe com o dedo ou com a caneta."><span class="sw" style="background:#E53935"></span></button>
+  <button type="button" data-tool="pen" data-color="#1E6FE0" aria-label="Caneta azul" data-tip="Caneta azul|Desenhe com o dedo ou com a caneta."><span class="sw" style="background:#1E6FE0"></span></button>
+  <button type="button" data-tool="pen" data-color="#00A651" aria-label="Caneta verde" data-tip="Caneta verde|Desenhe com o dedo ou com a caneta."><span class="sw" style="background:#00A651"></span></button>
+  <button type="button" data-tool="hl" aria-label="Marca-texto" data-tip="Marca-texto|Passe por cima do trecho para destacar."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h8" stroke="#E0B000" stroke-width="3"></path><path d="M8 17l-2-2 9-10 4 4-10 9z"></path><path d="M6 15l-2 4h4"></path></svg></button>
+  <button type="button" data-tool="txt" aria-label="Texto" data-tip="Texto|Toque onde quer escrever."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 6V4h14v2M12 4v16M9 20h6"></path></svg></button>
+  <button type="button" data-tool="erase" aria-label="Borracha" data-tip="Borracha|Passe por cima de um traço para apagar."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 20h12"></path><path d="M4.6 15.4l9.2-9.2a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8z"></path><path d="M9 11l5 5"></path></svg></button>
   <span class="sep"></span>
-  <button type="button" id="ink-undo" aria-label="Desfazer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10a6 6 0 0 1 0 12h-3"></path></svg></button>
-  <button type="button" id="ink-clear" aria-label="Apagar todas as anotações desta música"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button>
-  <button type="button" id="ink-penonly" aria-pressed="false" hidden title="Ligado: só a caneta (S Pen) desenha; o dedo rola a tela e a mão apoiada não risca.">Só caneta</button>
+  <button type="button" id="ink-undo" aria-label="Desfazer" data-tip="Desfazer|Volta o último passo."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10a6 6 0 0 1 0 12h-3"></path></svg></button>
+  <button type="button" id="ink-clear" aria-label="Apagar todas as anotações desta música" data-tip="Apagar tudo|Apaga todas as anotações desta música. Dá para desfazer."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button>
+  <button type="button" id="ink-penonly" aria-pressed="false" hidden data-tip="Só caneta|Ligado: só a S Pen desenha; o dedo rola a tela e a mão apoiada não risca.">Só caneta</button>
   <span class="sep"></span>
-  <button type="button" class="ink-done" id="ink-done">Concluir</button>
+  <button type="button" class="ink-done" id="ink-done" aria-label="Concluir" data-tip="Concluir|Sai do modo anotar. As anotações ficam guardadas."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg></button>
 </div>
 <form class="ink-text card" id="ink-text" hidden>
   <input class="input" id="ink-text-in" type="text" maxlength="80" autocomplete="off" placeholder="Escreva a anotação" aria-label="Texto da anotação">
@@ -1653,7 +1679,8 @@ function openViewer(id) {
   s.viewed = Date.now(); save();   // para "Visualizadas recentemente" no Início
   if (autoLinkScores()) save();
   const nPdf = scoresForSong(id).length;
-  $('viewer-pdf').hidden = !nPdf; $('viewer-pdf').textContent = nPdf > 1 ? `Partituras (${nPdf})` : 'Partitura';
+  $('viewer-pdf').hidden = !nPdf; $('viewer-pdf').setAttribute('aria-label', nPdf > 1 ? `Partituras (${nPdf})` : 'Partitura');
+  $('viewer-pdf').dataset.tip = nPdf > 1 ? `Partituras (${nPdf})|Esta cifra tem ${nPdf} partituras ligadas. Toque para escolher.` : 'Partitura|Abre a partitura ligada a esta cifra.';
   $('top-title').textContent = s.title;
   $('viewer-sub').textContent = [cur.listBase ? `Lista: ${listTitle(inList)} · ${route.idx + 1} de ${inList.items.length}` : '', s.artist, s.source ? 'fonte: ' + s.source : ''].filter(Boolean).join(' · ');
   $('viewer-addlist').hidden = db.role !== 'editor' || !!cur.listBase;
@@ -1671,7 +1698,8 @@ function renderViewer() {
   k.setAttribute('aria-label', r.ki ? `${r.suggested ? 'Tom sugerido' : 'Tom'} ${r.ki.cur.label}. Escolher tom` : 'Escolher tom');
   const fav = isFav(s.id);
   $('viewer-fav').setAttribute('aria-pressed', String(fav));
-  $('viewer-fav').querySelector('span').textContent = fav ? 'Favorita' : 'Favoritar';
+  $('viewer-fav').setAttribute('aria-label', fav ? 'Favorita' : 'Favoritar');
+  $('viewer-fav').dataset.tip = fav ? 'Favorita|Está em Favoritas. Toque de novo para tirar.' : 'Favoritar|Guarda a música em Favoritas para achar rápido.';
   $('t-simp').setAttribute('aria-pressed', String(cur.v.simplify));
   const manual = cur.v.colsMode === 'manual';
   $('t-cauto').setAttribute('aria-pressed', String(!manual));
@@ -1771,7 +1799,7 @@ async function keepAwake() {
 }
 async function enterFocus() {
   document.body.classList.add('focus');
-  $('t-fs').textContent = 'Sair da tela cheia'; $('t-fs').setAttribute('aria-pressed', 'true');
+  setFsBtn($('t-fs'), true);
   renderViewer();
   await sysFullscreen(true);
   keepAwake(); window.scrollTo(0, 0); focusTip();
@@ -1815,12 +1843,12 @@ document.querySelectorAll('.toolbar-wrap').forEach(w => w.addEventListener('poin
 })();
 function exitFocus() {
   document.body.classList.remove('focus', 'bars-peek'); clearTimeout(peekT);
-  $('t-fs').textContent = 'Tela cheia'; $('t-fs').setAttribute('aria-pressed', 'false');
+  setFsBtn($('t-fs'), false);
   sysFullscreen(false);
   try { if (wakeLock) wakeLock.release(); } catch (e) {}
   wakeLock = null;
   if (route.name === 'cifra') renderViewer();
-  $('pv-fs').textContent = 'Tela cheia'; $('pv-fs').setAttribute('aria-pressed', 'false');
+  setFsBtn($('pv-fs'), false);
   if (route.name === 'partitura') renderPdfSoon();
   refitSoon();
 }
@@ -1844,7 +1872,7 @@ function openEditor(id) {
   $('imp').value = ''; $('imp-status').textContent = '';
   $('q-song').value = ''; $('q-artist').value = ''; updLinks();
   $('ed-search-box').hidden = !!s;
-  $('ed-archive').hidden = !s; $('ed-archive').textContent = 'Excluir';
+  $('ed-archive').hidden = !s;
   $('ed-err').hidden = true;
   syncFields(); renderPreview();
 }
@@ -1876,7 +1904,7 @@ Object.keys(SITES).forEach(id => $(id).addEventListener('click', (e) => {
 }));
 const fresh = () => search.at && Date.now() - search.at < 30 * 60 * 1000;
 function offerImport() {
-  if (looksLikeCifra($('imp').value)) { $('imp-go').classList.add('ready'); $('imp-go').focus(); $('imp-status').textContent = 'Cifra detectada. Toque em "Importar para o editor".'; }
+  if (looksLikeCifra($('imp').value)) { $('imp-go').classList.add('ready'); $('imp-go').focus(); $('imp-status').textContent = 'Cifra detectada. Toque no botão de importar (o amarelo).'; }
   else { $('imp-go').classList.remove('ready'); $('imp-status').textContent = 'O texto colado não parece uma cifra (não achei linhas de acordes). Confira a cópia.'; }
 }
 $('imp').addEventListener('paste', (e) => {
@@ -2669,7 +2697,7 @@ document.addEventListener('keydown', (e) => {
 $('pv-fs').addEventListener('click', async () => {
   if (document.body.classList.contains('focus')) { exitFocus(); return; }
   document.body.classList.add('focus');
-  $('pv-fs').textContent = 'Sair da tela cheia'; $('pv-fs').setAttribute('aria-pressed', 'true');
+  setFsBtn($('pv-fs'), true);
   await sysFullscreen(true);
   keepAwake(); renderPdfSoon(); focusTip();
 });
@@ -3049,6 +3077,9 @@ function inkUp(e) {
   if (e.type === 'pointercancel') return;
   inkCommit(L.ctx, L.st, L.pts);
 }
+/* Dois dedos em qualquer lugar da tela (mesmo fora da cifra): cancela o traço e não deixa riscar até soltar todos */
+document.addEventListener('touchstart', (e) => { if (ink.on && e.touches.length > 1) { inkCancelStroke(); ink.blocked = true; ink.pan = null; } }, { capture: true, passive: true });
+document.addEventListener('touchend', (e) => { if (!e.touches.length) { ink.blocked = false; ink.touches.clear(); } }, { capture: true, passive: true });
 ['sheet', 'pv-pages'].forEach(id => {
   const el = $(id);
   el.addEventListener('pointerdown', inkDown);
@@ -3172,9 +3203,12 @@ function renderListDetail(id) {
   $('top-title').textContent = listTitle(l);
   const open = db.listOpen || defaultListOpen();
   $('li-head').innerHTML = `<p class="hint">${esc(listMeta(l).join(' · '))}</p>${l.note ? `<p class="li-note">${esc(l.note)}</p>` : ''}`;
-  $('li-actions').innerHTML = `<button type="button" class="btn primary" data-li-start="1" ${l.items.length ? '' : 'disabled'}><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"></path></svg>Começar</button>
-    <div class="group" role="group" aria-label="Abrir as músicas em"><button type="button" data-li-as="cifra" aria-pressed="${open === 'cifra'}">Cifra</button><button type="button" data-li-as="partitura" aria-pressed="${open === 'partitura'}">Partitura</button></div>
-    ${ed ? `<span class="spacer"></span><button type="button" class="btn" data-li-add="1">+ Músicas</button><button type="button" class="btn" data-li-edit="1">Editar</button><button type="button" class="icon-btn" data-list-more="${esc(l.id)}" aria-haspopup="menu" aria-label="Mais opções da lista"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg></button>` : ''}`;
+  const B = (attrs, icon, label, tip, cls = 'btn ib') => `<button type="button" class="${cls}" ${attrs} aria-label="${label}" data-tip="${tip}">${ico(icon)}</button>`;
+  $('li-actions').innerHTML = B(`data-li-start="1" ${l.items.length ? '' : 'disabled'}`, 'play', 'Começar', 'Começar|Abre a primeira música no tom do culto. A barra de baixo passa para a próxima.', 'btn ib primary') +
+    `<div class="group" role="group" aria-label="Abrir as músicas em"><button type="button" class="gi" data-li-as="cifra" aria-pressed="${open === 'cifra'}" aria-label="Abrir em cifra" data-tip="Abrir em cifra|No modo culto, as músicas abrem na cifra.">${ico('chord')}</button><button type="button" class="gi" data-li-as="partitura" aria-pressed="${open === 'partitura'}" aria-label="Abrir em partitura" data-tip="Abrir em partitura|No modo culto, abrem na partitura (quando a música tiver uma).">${ico('clef')}</button></div>` +
+    (ed ? '<span class="spacer"></span>' + B('data-li-add="1"', 'musicadd', 'Adicionar músicas', 'Adicionar músicas|Escolha as músicas na ordem do culto.') +
+      B('data-li-edit="1"', 'edit', 'Editar dados da lista', 'Editar dados|Nome, data, horário, responsável e observações.') +
+      B(`data-list-more="${esc(l.id)}" aria-haspopup="menu"`, 'more', 'Mais opções da lista', 'Mais opções|Clonar para outro culto ou excluir a lista.', 'btn ib') : '');
   if (!l.items.length) {
     $('li-items').innerHTML = `<div class="empty"><p>${ed ? 'A lista está vazia. Adicione as músicas do culto.' : 'Esta lista ainda não tem músicas.'}</p>${ed ? '<button type="button" class="btn primary" data-li-add="1">Adicionar músicas</button>' : ''}</div>`;
     return;
@@ -3191,9 +3225,9 @@ function renderListDetail(id) {
       <button type="button" class="song-open li-open" data-li-open="${i}" ${gone ? 'disabled' : ''}>
         <span class="song-text"><strong>${esc(s ? s.title : 'Música removida')}</strong><span>${esc(sub)}</span>${it.note ? `<em class="li-obs">${esc(it.note)}</em>` : ''}</span>
       </button>
-      ${ed && !gone ? `<button type="button" class="keytag li-key${changed ? ' changed' : ''}" data-li-key="${i}" aria-label="Tom no culto: ${esc(ki ? ki.cur.label : 'sem tom')}. Trocar">${esc(keyTxt)}</button>` : `<span class="keytag${changed ? ' changed' : ''}" title="Tom no culto">${esc(keyTxt)}</span>`}
-      ${ed ? `<span class="li-move"><button type="button" class="icon-btn" data-li-up="${i}" aria-label="Subir" ${i === 0 ? 'disabled' : ''}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button><button type="button" class="icon-btn" data-li-down="${i}" aria-label="Descer" ${i === l.items.length - 1 ? 'disabled' : ''}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button></span>
-      <button type="button" class="icon-btn" data-li-more="${i}" aria-haspopup="menu" aria-label="Mais opções da música"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg></button>` : ''}
+      ${ed && !gone ? `<button type="button" class="keytag li-key${changed ? ' changed' : ''}" data-li-key="${i}" aria-label="Tom no culto: ${esc(ki ? ki.cur.label : 'sem tom')}. Trocar" data-tip="Tom no culto|Toque para mudar o tom desta música só nesta lista.">${esc(keyTxt)}</button>` : `<span class="keytag${changed ? ' changed' : ''}" title="Tom no culto">${esc(keyTxt)}</span>`}
+      ${ed ? `<span class="li-move"><button type="button" class="icon-btn" data-li-up="${i}" aria-label="Subir" data-tip="Subir|Muda a ordem da música na lista." ${i === 0 ? 'disabled' : ''}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button><button type="button" class="icon-btn" data-li-down="${i}" aria-label="Descer" data-tip="Descer|Muda a ordem da música na lista." ${i === l.items.length - 1 ? 'disabled' : ''}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button></span>
+      <button type="button" class="icon-btn" data-li-more="${i}" aria-haspopup="menu" aria-label="Mais opções da música" data-tip="Mais opções|Observação para o culto, abrir a cifra ou a partitura, tirar da lista."><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg></button>` : ''}
       ${liNoteFor === it.id ? `<form class="li-note-form" data-li-note-form="${i}"><input class="input" maxlength="80" value="${esc(it.note || '')}" placeholder="Ex.: só 1x o refrão; entrada só piano" aria-label="Observação para o culto"><button type="submit" class="btn primary">OK</button></form>` : ''}
     </div>`;
   }).join('');
@@ -3265,7 +3299,9 @@ function openListForm(p) {
   $('lf-note').value = l ? (l.note || '') : '';
   $('lf-clone-info').hidden = !p.clone;
   if (p.clone && l) $('lf-clone-info').textContent = `Copiando ${l.items.length} ${l.items.length === 1 ? 'música' : 'músicas'}, com a ordem, os tons e as observações. Confira a data.`;
-  $('lf-save').textContent = editing ? 'Salvar' : p.clone ? 'Criar cópia' : 'Criar lista';
+  const lbl = editing ? 'Salvar' : p.clone ? 'Criar cópia' : 'Criar lista';
+  $('lf-save').setAttribute('aria-label', lbl);
+  $('lf-save').dataset.tip = editing ? 'Salvar|Guarda as mudanças da lista.' : p.clone ? 'Criar cópia|Cria a nova lista com as mesmas músicas, tons e observações.' : 'Criar lista|Guarda e abre a escolha das músicas.';
   setTimeout(() => (p.clone ? $('lf-date') : $('lf-title')).focus(), 50);
 }
 $('lf-form').addEventListener('submit', (e) => {
@@ -3306,7 +3342,8 @@ function renderPick() {
       <span class="song-text"><strong>${esc(s.title)}</strong><span>${esc([s.artist, inList.has(s.id) ? 'já está na lista' : ''].filter(Boolean).join(' · '))}</span></span>
       <span class="keytag${ki && ki.sug ? ' sug' : ''}">${esc(ki ? ki.orig.main : '—')}</span></button>`;
   }).join('') : `<div class="empty"><p>${q ? 'Nenhuma música encontrada.' : 'O repertório está vazio. Cadastre cifras em Cifras primeiro.'}</p></div>`;
-  $('lp-go').textContent = pickSel.length ? `Adicionar ${pickSel.length} ${pickSel.length === 1 ? 'música' : 'músicas'}` : 'Escolha as músicas';
+  $('lp-n').textContent = pickSel.length || '';
+  $('lp-go').setAttribute('aria-label', pickSel.length ? `Adicionar ${pickSel.length} ${pickSel.length === 1 ? 'música' : 'músicas'}` : 'Escolha as músicas primeiro');
   $('lp-go').disabled = !pickSel.length;
 }
 $('lp-q').addEventListener('input', renderPick);
@@ -3437,6 +3474,34 @@ window.addEventListener('scroll', () => {
   const busy = !$('keypick').hidden;
   document.body.classList.toggle('bars-hidden', dy > 0 && y > 140 && !busy);
 }, { passive: true });
+const ICO = {"star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>", "listadd": "<path d=\"M4 6h11M4 12h11M4 18h7\"/><path d=\"M18 14v6M15 17h6\"/>", "clef": "<path d=\"M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9\"/><path d=\"M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5\"/><circle cx=\"10.2\" cy=\"21.2\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/>", "chord": "<path d=\"M4 5H20\" stroke-width=\"2.6\"/><path d=\"M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5\" stroke-width=\"1.3\"/><path d=\"M4 10.5H20M4 16H20M4 21.5H20\" stroke-width=\"1.3\"/><circle cx=\"4\" cy=\"18.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9.33\" cy=\"13.25\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"7.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/>", "edit": "<path d=\"M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6\"/><path d=\"M18.4 3.6a2 2 0 0 1 2.9 2.9L12.5 15.3 9 16l.7-3.5z\"/>", "pen": "<path d=\"M4 20h4L19 9l-4-4L4 16v4z\"/><path d=\"M14 6l4 4\"/>", "wand": "<path d=\"M4 20 15 9\"/><path d=\"M14 4v2M14 10v2M18 8h2M10 8h2M16.8 5.2l1.4-1.4M16.8 10.8l1.4 1.4M11.2 5.2 9.8 3.8\"/>", "fit": "<path d=\"M12 3v6M9 6l3 3 3-3M12 21v-6M9 18l3-3 3 3\"/><path d=\"M4 12h16\"/>", "full": "<path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/>", "unfull": "<path d=\"M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5\"/>", "play": "<path d=\"M7 4.5v15l12.5-7.5z\" fill=\"currentColor\"/>", "musicadd": "<path d=\"M9 18V5l8-2v6\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><path d=\"M19 14v6M16 17h6\"/>", "check": "<path d=\"M4.5 12.5l5 5L19.5 7\"/>", "x": "<path d=\"M6 6l12 12M18 6 6 18\"/>", "trash": "<path d=\"M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3\"/>", "paste": "<rect x=\"8\" y=\"2.5\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2\"/><path d=\"M9 12h6M9 16h4\"/>", "import": "<path d=\"M12 3v11M7.5 9.5 12 14l4.5-4.5\"/><path d=\"M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3\"/>", "eraser": "<path d=\"M8 20h12\"/><path d=\"M4.6 15.4l9.2-9.2a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8z\"/><path d=\"M9 11l5 5\"/>", "search": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M20 20l-3.5-3.5\"/>", "reset": "<path d=\"M4 12a8 8 0 1 0 2.3-5.6\"/><path d=\"M4 4v4h4\"/>", "more": "<circle cx=\"12\" cy=\"5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"};
+const ico = (n, size = 22) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[n] || ''}</svg>`;
+function setFsBtn(b, on) {
+  b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', on ? 'Sair da tela cheia' : 'Tela cheia');
+  b.innerHTML = ico(on ? 'unfull' : 'full');
+  b.dataset.tip = on ? 'Sair da tela cheia|Volta a mostrar o menu e os botões.' : (b.id === 'pv-fs' ? 'Tela cheia|Toque na direita da página para avançar, na esquerda para voltar e no meio para ver os controles.' : 'Tela cheia|Mostra só a cifra. Toque na tela ou deslize do topo para ver os controles.');
+}
+/* Dicas: tocar (ou passar o mouse) num botão de ícone mostra embaixo o que ele faz e como usar; some sozinha */
+const TIP_MS = 5000;
+function showTip(el, scope0) {
+  const t = el.dataset.tip; if (!t) return;
+  const scope = scope0 || el.closest('[data-tipscope]'); const line = scope && scope.querySelector('.tipline'); if (!line) return;
+  const i = t.indexOf('|'), name = i < 0 ? t : t.slice(0, i), how = i < 0 ? '' : t.slice(i + 1);
+  line.innerHTML = `<b>${esc(name)}</b>${how ? ' · ' + esc(how) : ''}`;
+  line.classList.add('on'); clearTimeout(line._t); line._t = setTimeout(() => line.classList.remove('on'), TIP_MS);
+}
+/* espera o toque terminar (a ação pode mudar a dica, ex.: Favoritar → Favorita) */
+let tipDown = null;
+document.addEventListener('pointerdown', (e) => { const b = e.target.closest && e.target.closest('[data-tip]'); tipDown = b ? { b, sc: b.closest('[data-tipscope]') } : null; }, true);
+document.addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('[data-tip]'); if (!b) return;
+  const sc = b.closest('[data-tipscope]') || (tipDown && tipDown.b === b ? tipDown.sc : null);
+  showTip(b, sc);
+});
+/* botão desativado não recebe clique: mostra a dica no toque mesmo assim */
+document.addEventListener('pointerup', (e) => { const b = e.target.closest && e.target.closest('[data-tip]'); if (b && (b.disabled || b.getAttribute('aria-disabled') === 'true')) showTip(b); }, true);
+document.addEventListener('mouseover', (e) => { if (!matchMedia('(hover: hover)').matches) return; const b = e.target.closest && e.target.closest('[data-tip]'); if (b) showTip(b); });
+document.addEventListener('keyup', (e) => { if (e.key === 'Tab' && document.activeElement && document.activeElement.dataset && document.activeElement.dataset.tip) showTip(document.activeElement); });
 /* Início: próximo culto */
 function renderNextList() {
   const l = upcomingLists().find(x => x.items.length) || upcomingLists()[0];
