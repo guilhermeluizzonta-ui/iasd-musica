@@ -288,6 +288,7 @@ body.focus #pv-tip { display: none; }
 .section.chorus { border-left: 2px solid var(--accent); padding-left: 12px; }
 .line { display: flex; flex-wrap: wrap; align-items: flex-end; min-height: 1.6em; break-inside: avoid; }
 .seg { display: inline-flex; flex-direction: column; white-space: pre; }
+.wg { display: inline-flex; align-items: flex-end; }
 .chord { font-family: var(--mono); font-weight: 600; font-size: calc(14px * var(--zoom, 1)); color: var(--chord); line-height: 1.3; min-height: 1.3em; padding-right: 6px; }
 .lyric { font-size: calc(17px * var(--zoom, 1)); line-height: 1.5; }
 .comment { font-style: italic; color: var(--muted); margin: 6px 0; break-inside: avoid; font-size: calc(15px * var(--zoom, 1)); }
@@ -1081,7 +1082,7 @@ function renderSheet(el, text, v, mode) {
   html += `<p class="meta">${esc(meta.artist)}${meta.artist && keyHtml ? ' · ' : ''}${keyHtml}</p>`;
   html += `<div class="body cols-${v.cols}">`;
   let open = false; const problems = [];
-  const openSec = (cls, name) => { if (open) html += '</div>'; html += `<div class="section ${cls}">` + (name ? `<div class="section-name">${esc(name)}</div>` : ''); open = true; };
+  const openSec = (cls, name) => { if (open) html += '</div>'; html += `<div class="section ${cls}">` + (name ? `<div class="section-name">${esc(secLabel(name))}</div>` : ''); open = true; };
   const closeSec = () => { if (open) { html += '</div>'; open = false; } };
   text.split('\n').forEach((raw, n) => {
     const line = raw.replace(/\s+$/, '');
@@ -1106,9 +1107,18 @@ function renderSheet(el, text, v, mode) {
     });
     if (chord) segs.push({ chord, text: '' });
     const hasChord = segs.some(s => s.chord);
-    html += '<div class="line">' + segs.map(s =>
-      `<span class="seg">${hasChord ? `<span class="chord">${esc(s.chord ? renderChord(s.chord, useFlats, v) : '')}</span>` : ''}<span class="lyric">${esc(s.text) || '&nbsp;'}</span></span>`
-    ).join('') + '</div>';
+    /* Pedaços da mesma palavra ficam juntos: a linha só quebra entre palavras, nunca no meio ("Teu n / ome") */
+    const segHtml = (s) => `<span class="seg${s.cont ? ' cont' : ''}">${hasChord ? `<span class="chord">${esc(s.chord ? renderChord(s.chord, useFlats, v) : '')}</span>` : ''}<span class="lyric">${esc(s.text) || '&nbsp;'}</span></span>`;
+    let lineHtml = '', grp = '';
+    /* cada espaço da letra vira um ponto onde a linha pode quebrar (os pedaços extras não contam como âncora das anotações) */
+    const pieces = [];
+    segs.forEach(sg => { const parts = sg.text.split(/(?<=\s)(?=\S)/); parts.forEach((t, j) => pieces.push(j ? { chord: '', text: t, cont: true } : { chord: sg.chord, text: t })); });
+    pieces.forEach((sg, k) => {
+      grp += segHtml(sg);
+      const nx = pieces[k + 1];
+      if (!nx || /\s$/.test(sg.text) || /^\s/.test(nx.text)) { lineHtml += `<span class="wg">${grp}</span>`; grp = ''; }
+    });
+    html += '<div class="line">' + lineHtml + '</div>';
   });
   closeSec();
   html += '</div>';
@@ -1121,6 +1131,15 @@ function renderSheet(el, text, v, mode) {
   return { ki, suggested, problems, meta };
 }
 /* Colunas automáticas: mede a linha mais larga no zoom atual e vê quantas cabem */
+function secLabel(name) {
+  const t = String(name).trim();
+  const ORD = { primeir: 1, segund: 2, terceir: 3, quart: 4, quint: 5, sext: 6, setim: 7, 'sétim': 7, oitav: 8, non: 9, decim: 10, 'décim': 10 };
+  let m = t.match(/^(primeir|segund|terceir|quart|quint|sext|s[eé]tim|oitav|non|d[eé]cim)[ao]\s+(parte|estrofe)$/i);
+  if (m) return `${ORD[m[1].toLowerCase()]}ª Estrofe`;
+  m = t.match(/^(parte|estrofe|verso)\s*(\d{1,2})$/i) || t.match(/^(\d{1,2})\s*[ªaº°o.]?\s*(parte|estrofe)$/i);
+  if (m) return `${/^\d/.test(m[1]) ? m[1] : m[2]}ª Estrofe`;
+  return t;
+}
 function computeAutoCols(el) {
   const body = el.querySelector('.body');
   if (!body || !el.clientWidth) return 1;
@@ -2825,7 +2844,7 @@ function inkEl(st, pts, k) {
   return p;
 }
 /* Cifra: pontos de apoio (título, nome da parte, cada pedaço acorde+letra, comentários) */
-const cifraAnchors = (sheet) => [...sheet.querySelectorAll('.title, .section-name, .seg, .comment')];
+const cifraAnchors = (sheet) => [...sheet.querySelectorAll('.title, .section-name, .seg:not(.cont), .comment')];
 function sheetOrigin(sheet) { const r = sheet.getBoundingClientRect(); return { x: r.left + sheet.clientLeft - sheet.scrollLeft, y: r.top + sheet.clientTop - sheet.scrollTop }; }
 function drawCifraInk() {
   if (route.name !== 'cifra') return;
