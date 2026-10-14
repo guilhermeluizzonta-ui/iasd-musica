@@ -1,0 +1,6 @@
+{
+  "name": "testes-cifra",
+  "private": true,
+  "description": "Testes do editor Criar cifra (jsdom). Uso: npm install; node testar.js ../../src/cifra/criar-cifra.html",
+  "dependencies": { "jsdom": "^24.1.0" }
+}
