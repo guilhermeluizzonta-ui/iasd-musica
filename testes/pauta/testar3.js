@@ -1,0 +1,24 @@
+const fs=require('fs');const {JSDOM}=require('jsdom');
+let html=fs.readFileSync(process.argv[2],'utf8');
+const banco={musicas:[{id:'m1',titulo:'T',autor:'',clave:'sol',tom:'C',compasso:{num:4,den:4,simbolo:'C'},unidade:{tipo:'seminima',ponto:false},andamento:null,itens:[]}],atual:'m1'};
+const erros=[];
+const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://exemplo.test/',beforeParse(w){w.localStorage.setItem('pauta-mao-livre.v2',JSON.stringify(banco));w.SVGElement.prototype.getBBox=()=>({x:0,y:0,width:0,height:0});w.addEventListener('error',e=>erros.push(e.message));}});
+const d=dom.window.document;
+console.log('erros:', erros.length? erros : 'nenhum');
+const secs=[...d.querySelectorAll('#biblioCorpo > section')].map(s=>s.dataset.grupo||'(favoritos)');
+console.log('ordem:', secs.join(' > '));
+console.log('favoritos:', [...d.querySelectorAll('#favItens .item')].map(i=>i.dataset.chave).join(', '));
+console.log('paleta:', [...d.querySelectorAll('#paletaItens .item')].map(i=>i.dataset.chave).join(', '));
+// favoritar um acorde do tom (G7) e esconder Dinâmica, mover Acordes para cima
+const g7=[...d.querySelectorAll('#acTom .item')].find(i=>i.textContent.includes('G7'));
+g7.querySelector('.estrela').click();
+console.log('depois de favoritar G7:', [...d.querySelectorAll('#favItens .item')].map(i=>i.dataset.chave).join(', '));
+d.getElementById('bOrganizar').click();
+d.getElementById('org-dinamica').click();
+d.getElementById('org-dinamica').dispatchEvent(new dom.window.Event('change'));
+const lis=[...d.querySelectorAll('#orgLista li')]; lis[lis.length-1].querySelectorAll('button')[0].click();
+console.log('ordem nova:', [...d.querySelectorAll('#biblioCorpo > section')].filter(s=>!s.hidden).map(s=>s.dataset.grupo||'(favoritos)').join(' > '));
+d.getElementById('abaRec').click();
+console.log('recentes vazio:', d.getElementById('favVazio').textContent);
+const salvo=JSON.parse(dom.window.localStorage.getItem('pauta-mao-livre.v2'));
+console.log('salvo:', JSON.stringify(salvo.biblio), JSON.stringify(salvo.favs));

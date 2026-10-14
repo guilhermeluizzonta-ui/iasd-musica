@@ -1,0 +1,2769 @@
+<title>Pauta a Mão Livre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: barra de ferramentas no topo; abaixo, a "mesa" rolável com uma pauta (folha branca).
+   Paleta flutuante, Biblioteca (gaveta) e ficha da música (janela) ficam por cima. */
+:root {
+  --mesa: #E6EAE7;
+  --barra: #FFFFFF;
+  --texto: #1C211E;
+  --suave: #5B6660;
+  --borda: #D3DAD5;
+  --acento: #00A651;
+  --acento-fundo: #E3F5EA;
+  --acento-tx: #00733A;
+  --erro: #C62828;
+  --veu: rgba(16, 24, 20, 0.45);
+  --papel: #FFFFFF;
+  --tinta: #141414;
+  --linha-pauta: #3B403D;
+  --traco: #1F5FD6;
+  --sombra: rgba(20, 35, 28, 0.16);
+  --f-titulo: "Merriweather", Georgia, serif;
+  --f-ui: "Source Sans 3", "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --mesa: #121614; --barra: #1B201D; --texto: #E6ECE8; --suave: #9AA59F; --borda: #2F3733;
+    --acento: #2BC46F; --acento-fundo: #173323; --acento-tx: #6BE09F; --erro: #FF7A7A; --veu: rgba(0,0,0,0.6); --sombra: rgba(0,0,0,0.55);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --mesa: #121614; --barra: #1B201D; --texto: #E6ECE8; --suave: #9AA59F; --borda: #2F3733;
+  --acento: #2BC46F; --acento-fundo: #173323; --acento-tx: #6BE09F; --erro: #FF7A7A; --veu: rgba(0,0,0,0.6); --sombra: rgba(0,0,0,0.55);
+  color-scheme: dark;
+}
+
+html, body { height: 100%; }
+body { background: var(--mesa); color: var(--texto); font-family: var(--f-ui); font-size: 15px; }
+.app { height: 100%; display: flex; flex-direction: column; }
+
+.barra { background: var(--barra); border-bottom: 1px solid var(--borda); padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.grupo { display: flex; gap: 4px; align-items: center; }
+button {
+  font: 600 14px/1 var(--f-ui); color: var(--texto); background: transparent;
+  border: 1px solid var(--borda); border-radius: 8px; min-height: 38px; padding: 0 12px; cursor: pointer;
+}
+button:hover { border-color: var(--suave); }
+button:focus-visible, input:focus-visible, select:focus-visible, .item:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--acento-fundo); border-color: var(--acento); color: var(--acento-tx); }
+button.primario { background: var(--acento); border-color: var(--acento); color: #fff; }
+button.perigo { color: var(--erro); border-color: transparent; }
+.musica { font: 700 15px/1.2 var(--f-titulo); border-color: transparent; padding: 0 6px; max-width: 260px; display: flex; gap: 6px; align-items: center; }
+.musica span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.musica svg { flex: none; width: 12px; height: 12px; }
+.zoom span { min-width: 42px; text-align: center; font-variant-numeric: tabular-nums; font-size: 13px; color: var(--suave); }
+/* Botões de ícone: sem moldura; a ferramenta ativa ganha o fundo verde claro */
+.ic { width: 40px; height: 40px; min-height: 40px; padding: 0; display: inline-grid; place-items: center; border-color: transparent; border-radius: 10px; }
+.ic svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.ic:hover { border-color: transparent; background: var(--mesa); }
+.ic[aria-pressed="true"] { background: var(--acento-fundo); border-color: transparent; color: var(--acento-tx); }
+.sep { width: 1px; align-self: stretch; margin: 6px 0; background: var(--borda); }
+.esp-barra { flex: 1; }
+.barra { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 2px; padding-block: 6px; }
+.linha-titulo { display: flex; align-items: center; min-height: 38px; min-width: 0; }
+.titulo-ver, .titulo-ed { display: flex; align-items: center; gap: 4px; min-width: 0; width: 100%; }
+.titulo-ver[hidden], .titulo-ed[hidden] { display: none; }
+.titulo-btn { border-color: transparent; padding: 0 6px; min-height: 36px; max-width: 100%; min-width: 0; font: 700 17px/1.2 var(--f-titulo); text-align: left; }
+.titulo-btn span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.titulo-btn:hover { background: var(--mesa); border-color: transparent; }
+.titulo-ed input { flex: 1; min-width: 0; max-width: 480px; font: 700 17px/1.2 var(--f-titulo); color: var(--texto); background: var(--mesa); border: 1px solid var(--acento); border-radius: 8px; padding: 6px 10px; }
+.ic-peq { width: 36px; height: 36px; min-height: 36px; }
+.ic.ok { color: var(--acento-tx); }
+.linha-icones { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px 10px; overflow-x: auto; scrollbar-width: none; }
+.linha-icones::-webkit-scrollbar { display: none; }
+.linha-icones .grupo { flex: none; }
+.titulo-ver { flex: 1; }
+.seg { flex: none; display: flex; gap: 2px; padding: 3px; border: 1px solid var(--borda); border-radius: 10px; margin-left: 8px; }
+.seg button { min-height: 30px; padding: 0 12px; border: none; border-radius: 7px; font-size: 13px; }
+.seg button[aria-selected="true"] { background: var(--acento-fundo); color: var(--acento-tx); }
+.linha-vis { display: none; align-items: center; gap: 6px 10px; min-height: 40px; }
+.zoom-txt { min-width: 42px; text-align: center; font-variant-numeric: tabular-nums; font-size: 13px; color: var(--suave); }
+/* Pré-visualização: a partitura como sai no PDF e na impressão, sem os avisos de quem está escrevendo */
+body.visualizar .linha-icones, body.visualizar .barra-anot, body.visualizar .guia { display: none; }
+body.visualizar .linha-vis { display: flex; }
+body.visualizar .fab, body.visualizar .paleta, body.visualizar .biblio { display: none !important; }
+body.visualizar .rot.tempos, body.visualizar .mais, body.visualizar .menos, body.visualizar .toque-clave,
+body.visualizar .tinta, body.visualizar .previa { display: none; }
+body.visualizar .nota.sel .alvo { fill: transparent; stroke: none; }
+body.visualizar:not(.vis-anot) .anotacoes { display: none; }
+body.visualizar .folha svg { cursor: grab; }
+.barra-min .ic { background: var(--barra); box-shadow: 0 2px 10px var(--sombra); }
+@media (max-width: 600px) { .sep, .esp-barra { display: none; } }
+.chave { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; cursor: pointer; }
+.chave input { width: 18px; height: 18px; accent-color: var(--acento); }
+
+.status { margin: 0; padding: 8px 16px; font-size: 14px; color: var(--suave); background: var(--barra); border-bottom: 1px solid var(--borda); min-height: 1.4em; }
+.status b { color: var(--texto); }
+.status.ok b { color: var(--acento-tx); }
+.status.falha b { color: var(--erro); }
+
+.guia { background: var(--barra); border-bottom: 1px solid var(--borda); padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 12px; max-height: 45vh; overflow: auto; }
+.guia h2, .biblio h2, .janela h2 { margin: 0; font: 700 15px/1.3 var(--f-titulo); text-wrap: balance; }
+.cartoes { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+.cartao { display: grid; grid-template-columns: 44px 1fr; gap: 8px; align-items: center; border: 1px solid var(--borda); border-radius: 8px; padding: 6px 8px; touch-action: none; cursor: grab; }
+.cartao svg { width: 44px; height: 54px; background: var(--papel); border-radius: 4px; }
+.cartao strong { display: block; font-size: 14px; }
+.cartao span { font-size: 13px; color: var(--suave); line-height: 1.3; }
+.dicas { margin: 0; padding-left: 18px; font-size: 13px; color: var(--suave); line-height: 1.45; max-width: 70ch; }
+.ajuste { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; }
+.ajuste input { accent-color: var(--acento); width: 180px; max-width: 100%; }
+.ajuste output { font-variant-numeric: tabular-nums; color: var(--suave); }
+
+.mesa { flex: 1; min-height: 0; overflow: auto; padding: 20px 16px 40px; }
+.folha { margin: 0 auto; aspect-ratio: 140 / 198; touch-action: none; user-select: none; -webkit-user-select: none; }
+.papel { fill: var(--papel); stroke: rgba(20, 35, 28, 0.18); stroke-width: 0.25; }
+.num-pag { font-family: var(--f-ui); font-size: 2.4px; fill: #6B746F; }
+.chave { fill: var(--tinta); }
+.toque-clave { fill: transparent; pointer-events: all; cursor: pointer; }
+.mais, .menos { cursor: pointer; }
+.mais circle { fill: var(--acento); }
+.menos circle { fill: #9AA59F; }
+.mais path, .menos path { stroke: #fff; stroke-width: 0.5; stroke-linecap: round; }
+.mover .nota, .mover .anot { cursor: grab; }
+.cursor-borracha { fill: rgba(198, 40, 40, 0.12); stroke: #C62828; stroke-width: 0.2; }
+.previa .cursor-borracha { opacity: 1; }
+.borracha svg { cursor: cell; }
+.ponteiro svg { cursor: default; }
+.ponteiro .nota, .ponteiro .anot { cursor: pointer; }
+.nota.sel .alvo, .sel-caixa { fill: rgba(0, 166, 81, 0.12); stroke: #00A651; stroke-width: 0.3; }
+.nota.sel .alvo-linha { stroke: rgba(0, 166, 81, 0.35); }
+.anot-traco { fill: none; stroke-width: 0.45; stroke-linecap: round; stroke-linejoin: round; }
+.anot-texto { font-family: var(--f-ui); font-size: 3.2px; font-weight: 600; }
+.borracha .anot:hover .anot-traco { stroke: var(--erro) !important; }
+.barra-anot { background: var(--barra); border-bottom: 1px solid var(--borda); padding: 6px 16px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; font-weight: 600; color: var(--suave); }
+.cor { width: 32px; min-height: 32px; height: 32px; padding: 0; border-radius: 50%; background: var(--c); border: 2px solid var(--barra); box-shadow: 0 0 0 1px var(--borda); }
+.cor[aria-pressed="true"] { background: var(--c); border-color: var(--barra); box-shadow: 0 0 0 2px var(--texto); }
+.menu-clave { position: fixed; z-index: 45; background: var(--barra); border: 1px solid var(--borda); border-radius: 12px; box-shadow: 0 8px 28px var(--sombra); padding: 10px; width: min(260px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 8px; }
+.menu-clave p { margin: 0; font-size: 13px; font-weight: 600; color: var(--suave); }
+.menu-ops { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.menu-ops button[data-f="piano"] { grid-column: 1 / -1; }
+.menu-clave .menu-aviso { color: var(--erro); font-weight: 400; }
+.entrada-texto { position: fixed; z-index: 46; width: 220px; font: 600 15px/1.2 var(--f-ui); background: var(--barra); border: 2px solid currentColor; border-radius: 8px; padding: 6px 8px; }
+.barra-min { position: fixed; z-index: 30; top: calc(8px + env(safe-area-inset-top, 0px)); left: 8px; display: flex; gap: 6px; }
+.barra-min button { background: var(--barra); box-shadow: 0 2px 10px var(--sombra); }
+body.recolhido .barra, body.recolhido .status, body.recolhido .barra-anot, body.recolhido .guia { display: none; }
+body.recolhido .mesa { padding-top: 56px; }
+.folha svg { display: block; width: 100%; height: 100%; touch-action: none; }
+
+/* Desenho na folha (tinta preta em papel branco, nos dois temas) */
+.linhas line { stroke: var(--linha-pauta); stroke-width: 0.2; }
+.nota .cab, .nota .band, .glifo, .ponto { fill: var(--tinta); }
+.nota .furo { fill: var(--papel); }
+.nota .haste, .traco-fino { stroke: var(--tinta); stroke-width: 0.32; fill: none; }
+.traco-grosso { stroke: var(--tinta); stroke-width: 0.9; }
+.nota .supl { stroke: var(--tinta); stroke-width: 0.3; }
+.lig { fill: var(--tinta); }
+.alvo { fill: transparent; pointer-events: all; }
+.alvo-linha { fill: none; stroke: transparent; stroke-width: 2.4; pointer-events: stroke; }
+.borracha .nota:hover .cab, .borracha .nota:hover .band, .borracha .nota:hover .glifo, .borracha .nota:hover .lig, .borracha .nota:hover .ponto { fill: var(--erro); }
+.borracha .nota:hover .haste, .borracha .nota:hover .traco-fino, .borracha .nota:hover .traco-grosso { stroke: var(--erro); }
+.titulo-mus { font-family: var(--f-titulo); font-weight: 700; font-size: 3.4px; fill: var(--tinta); }
+.autor-mus { font-family: var(--f-ui); font-size: 2.2px; fill: #4A524D; }
+.num-comp { font-family: var(--f-titulo); font-weight: 900; font-size: 6.6px; fill: var(--tinta); }
+.rot { font-family: var(--f-ui); font-size: 2.3px; font-weight: 600; fill: #6B746F; pointer-events: none; }
+.rot.completo { fill: #00873E; }
+.rot.passou { fill: #C62828; }
+.rot.falta { fill: #B26A00; }
+.tinta path { fill: none; stroke: var(--traco); stroke-width: 2.4px; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.tinta path.erro { stroke: var(--erro); transition: opacity .6s; opacity: .25; }
+.previa { opacity: .5; pointer-events: none; }
+.nota.nova { animation: entra .18s ease-out; }
+@keyframes entra { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .nota.nova { animation: none; } .tinta path.erro { transition: none; } }
+
+/* Botão flutuante e paleta rápida */
+.fab {
+  position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 20;
+  width: 56px; height: 56px; min-height: 0; border-radius: 50%; border: none; padding: 0;
+  background: var(--acento); box-shadow: 0 4px 16px var(--sombra); display: grid; place-items: center; touch-action: none;
+}
+.fab svg { width: 28px; height: 28px; }
+.fab[aria-expanded="true"] { box-shadow: 0 0 0 4px var(--acento-fundo), 0 4px 16px var(--sombra); }
+.paleta {
+  position: fixed; z-index: 19; width: min(310px, calc(100vw - 32px));
+  background: var(--barra); border: 1px solid var(--borda); border-radius: 14px; box-shadow: 0 8px 28px var(--sombra);
+  padding: 10px; display: flex; flex-direction: column; gap: 8px; transition: opacity .15s;
+}
+.paleta-topo { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--suave); }
+.paleta-topo span { flex: 1; }
+.paleta-topo button { min-height: 30px; padding: 0 10px; font-size: 13px; }
+.itens { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 2px;
+  border: 1px solid var(--borda); border-radius: 8px; touch-action: none; cursor: grab;
+  font-size: 11px; line-height: 1.15; text-align: center; color: var(--suave); user-select: none; -webkit-user-select: none;
+}
+.item:hover { border-color: var(--acento); }
+.item { position: relative; }
+.item .estrela {
+  position: absolute; top: 1px; right: 1px; width: 24px; height: 24px; min-height: 0; padding: 0;
+  border: none; background: transparent; color: var(--suave); font-size: 15px; line-height: 1;
+}
+.item .estrela[aria-pressed="true"] { background: transparent; border: none; color: #E8AA00; }
+.sec-fav { display: flex; flex-direction: column; gap: 8px; }
+.abas { display: flex; gap: 3px; padding: 3px; border: 1px solid var(--borda); border-radius: 10px; }
+.abas button { flex: 1; min-height: 32px; border: none; border-radius: 7px; font-size: 13px; }
+.abas button[aria-selected="true"] { background: var(--acento-fundo); color: var(--acento-tx); }
+.vazio-aba { margin: 0; font-size: 13px; color: var(--suave); }
+.janela-guia { width: min(760px, 100%); gap: 14px; }
+.guia-topo { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.guia-topo h2 { font-size: 17px; }
+.guia-blocos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px 18px; }
+.guia-blocos h3 { margin: 0 0 4px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--suave); }
+.ic-tempo { width: auto; padding: 0 8px 0 6px; display: inline-flex; gap: 4px; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--suave); }
+.ic-tempo[aria-expanded="true"] { background: var(--acento-fundo); color: var(--acento-tx); }
+.pop-tempo { position: fixed; z-index: 45; width: min(280px, calc(100vw - 16px)); background: var(--barra); border: 1px solid var(--borda); border-radius: 12px; box-shadow: 0 8px 28px var(--sombra); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.pop-tempo label { font-size: 13px; font-weight: 600; }
+.pop-linha { display: flex; align-items: center; gap: 10px; }
+.pop-linha input { flex: 1; accent-color: var(--acento); }
+.pop-linha output { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--suave); min-width: 44px; text-align: right; }
+.pop-tempo p { margin: 0; font-size: 12px; color: var(--suave); line-height: 1.4; }
+.item .ensinar {
+  position: absolute; top: 1px; left: 1px; height: 24px; min-height: 0; padding: 0 3px; border: none; background: transparent;
+  color: var(--suave); display: flex; align-items: center; gap: 1px; font-size: 10px; font-weight: 700;
+}
+.item .ensinar svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.item .ensinar.treinado { color: var(--acento-tx); }
+.escolha { position: fixed; z-index: 44; background: var(--barra); border: 1px solid var(--borda); border-radius: 12px; box-shadow: 0 8px 28px var(--sombra); padding: 10px; display: flex; flex-direction: column; gap: 8px; width: min(300px, calc(100vw - 32px)); }
+.escolha p { margin: 0; font-size: 13px; font-weight: 600; color: var(--suave); }
+.escolha .itens { grid-template-columns: repeat(3, 1fr); }
+.escolha .item { cursor: pointer; background: transparent; min-height: 0; font: 400 11px/1.15 var(--f-ui); color: var(--suave); }
+.escolha > button { align-self: flex-end; min-height: 32px; font-size: 13px; }
+.treino-area { border: 1px solid var(--borda); border-radius: 10px; background: var(--papel); overflow: hidden; }
+.treino-area svg { display: block; width: 100%; aspect-ratio: 60 / 36; touch-action: none; }
+.treino-ref { opacity: 0.22; }
+.treino-amostras { display: flex; flex-wrap: wrap; gap: 8px; min-height: 8px; }
+.amostra { position: relative; width: 54px; height: 54px; border: 1px solid var(--borda); border-radius: 8px; background: var(--papel); }
+.amostra svg { width: 100%; height: 100%; }
+.amostra-traco { fill: none; stroke: #1F5FD6; stroke-width: 0.06; stroke-linecap: round; stroke-linejoin: round; }
+.amostra-ponto { fill: #1F5FD6; }
+.amostra button { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; min-height: 0; padding: 0; border-radius: 50%; background: var(--barra); font-size: 12px; }
+button:disabled { opacity: 0.45; cursor: default; }
+.item svg { width: 40px; height: 49px; background: var(--papel); border-radius: 4px; }
+.arrastando { opacity: .15 !important; pointer-events: none; }
+.fantasma { position: fixed; z-index: 40; pointer-events: none; transform: translate(-50%, -50%); }
+.fantasma svg { display: block; width: 44px; height: 54px; background: var(--papel); border-radius: 6px; box-shadow: 0 4px 14px var(--sombra); opacity: .9; }
+
+/* Biblioteca */
+.biblio {
+  position: fixed; z-index: 25; right: 0; top: 0; bottom: 0; width: min(360px, 100vw);
+  background: var(--barra); border-left: 1px solid var(--borda); box-shadow: -8px 0 28px var(--sombra);
+  display: flex; flex-direction: column; transition: opacity .15s;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.biblio-topo { display: flex; align-items: center; gap: 8px; padding: 12px 16px 4px; }
+.biblio-topo .esp { flex: 1; }
+.biblio-org { padding: 0 16px 12px; display: flex; flex-direction: column; gap: 8px; overflow: auto; }
+.org-dica { margin: 0; font-size: 13px; color: var(--suave); }
+.org-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.org-lista li { display: flex; align-items: center; gap: 6px; border: 1px solid var(--borda); border-radius: 8px; padding: 4px 6px 4px 10px; }
+.org-lista li.oculto { opacity: .55; }
+.org-lista label { flex: 1; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; cursor: pointer; min-height: 36px; }
+.org-lista input { width: 18px; height: 18px; accent-color: var(--acento); }
+.org-lista button { min-height: 34px; min-width: 38px; padding: 0; font-size: 15px; }
+.org-lista button:disabled { opacity: .3; cursor: default; }
+.org-padrao { align-self: flex-start; font-size: 13px; min-height: 32px; }
+.vazio-biblio { margin: 0; font-size: 13px; color: var(--suave); }
+.biblio .sub { margin: 0; padding: 0 16px 8px; font-size: 13px; color: var(--suave); }
+.biblio-corpo { overflow: auto; padding: 0 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+.biblio h3 { margin: 0 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--suave); }
+.biblio .itens { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
+.biblio .rodape { font-size: 12px; color: var(--suave); margin: 0; }
+.ac-linha { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.ac-linha label { min-width: 46px; }
+.ac-linha select { font: 400 14px/1.2 var(--f-ui); color: var(--texto); background: var(--mesa); border: 1px solid var(--borda); border-radius: 8px; min-height: 34px; padding: 0 8px; flex: 1; min-width: 0; }
+.ac-sub { margin: 10px 0 4px; font-size: 12px; font-weight: 600; color: var(--suave); }
+.ac-montar { display: flex; flex-direction: column; gap: 6px; }
+.chips-ac { display: flex; flex-wrap: wrap; gap: 4px; }
+.chips-ac button { min-height: 32px; padding: 0 9px; font-size: 13px; }
+.ac-resultado { display: flex; align-items: center; gap: 10px; }
+.ac-resultado .itens { grid-template-columns: 80px; }
+.ac-resultado p { margin: 0; font-size: 13px; color: var(--suave); }
+.cifra-ac { font-weight: 700; font-size: 12px; color: var(--texto); }
+@media (max-width: 600px) {
+  .biblio { top: auto; width: 100%; height: 62vh; border-left: none; border-top: 1px solid var(--borda); border-radius: 14px 14px 0 0; box-shadow: 0 -8px 28px var(--sombra); }
+}
+
+/* Janelas: ficha da música e lista de músicas */
+.janela-fundo { position: fixed; inset: 0; z-index: 50; background: var(--veu); display: grid; place-items: center; padding: 16px; overflow: auto; }
+.janela {
+  background: var(--barra); color: var(--texto); border-radius: 14px; box-shadow: 0 12px 40px var(--sombra);
+  width: min(520px, 100%); padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 32px); overflow: auto;
+}
+.janela .sub { margin: -6px 0 0; font-size: 13px; color: var(--suave); }
+.campo { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; border: none; padding: 0; margin: 0; min-width: 0; }
+.campo legend { padding: 0; margin-bottom: 4px; }
+.opc { font-weight: 400; color: var(--suave); }
+.campo input, .campo select, .outro input, .outro select {
+  font: 400 15px/1.2 var(--f-ui); color: var(--texto); background: var(--mesa);
+  border: 1px solid var(--borda); border-radius: 8px; min-height: 40px; padding: 0 10px; width: 100%; box-sizing: border-box;
+}
+.erro-campo { margin: -6px 0 0; font-size: 13px; color: var(--erro); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips label { display: flex; align-items: center; gap: 6px; border: 1px solid var(--borda); border-radius: 999px; padding: 8px 14px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.chips input { accent-color: var(--acento); margin: 0; }
+.chips label:has(input:checked) { border-color: var(--acento); background: var(--acento-fundo); color: var(--acento-tx); }
+.linha2 { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+.outro { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.outro input, .outro select { width: 76px; }
+.acoes { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding-top: 4px; }
+.acoes .esp { flex: 1; }
+.lista-mus { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.lista-mus button { width: 100%; text-align: left; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 10px 12px; min-height: 0; line-height: 1.25; }
+.lista-mus .t { font: 700 15px/1.25 var(--f-titulo); }
+.lista-mus .m { font-weight: 400; font-size: 13px; color: var(--suave); }
+.lista-mus button[aria-current="true"] { border-color: var(--acento); }
+</style>
+
+<div class="app">
+  <header class="barra">
+    <div class="linha-titulo">
+      <div id="tituloVer" class="titulo-ver">
+        <button id="bTitulo" class="titulo-btn" title="Toque para editar o nome"><span id="tMusica">Nova música</span></button>
+        <button id="bMusica" class="ic ic-peq" data-icone="lista" aria-label="Minhas músicas" title="Minhas músicas"></button>
+      </div>
+      <form id="tituloEd" class="titulo-ed" hidden>
+        <input id="tituloInput" aria-label="Nome da partitura" autocomplete="off" maxlength="80">
+        <button type="submit" class="ic ic-peq ok" data-icone="ok" aria-label="Salvar o nome" title="Salvar"></button>
+        <button type="button" id="bTituloCancelar" class="ic ic-peq" data-icone="fechar" aria-label="Cancelar" title="Cancelar"></button>
+      </form>
+      <div class="seg" role="tablist" aria-label="Modo">
+        <button type="button" role="tab" id="segEditar" aria-selected="true">Editar</button>
+        <button type="button" role="tab" id="segVer" aria-selected="false">Visualizar</button>
+      </div>
+    </div>
+    <div class="linha-vis" id="barraVis">
+      <button id="bVisMenos" class="ic" data-icone="zoomMenos" aria-label="Diminuir zoom" title="Diminuir zoom"></button>
+      <span id="zoomTxt2" class="zoom-txt">100%</span>
+      <button id="bVisMais" class="ic" data-icone="zoomMais" aria-label="Aumentar zoom" title="Aumentar zoom"></button>
+      <span class="sep" aria-hidden="true"></span>
+      <label class="chave"><input type="checkbox" id="cVisAnot"> Mostrar anotações</label>
+    </div>
+    <div class="linha-icones">
+    <div class="grupo" role="group" aria-label="Ferramenta">
+      <button id="bPonteiro" class="ic" data-icone="ponteiro" aria-label="Ponteiro: selecionar e rolar, sem desenhar" title="Ponteiro: selecionar e rolar, sem desenhar" aria-pressed="false"></button>
+      <button id="bCaneta" class="ic" data-icone="caneta" aria-label="Caneta: desenhar notas" title="Caneta: desenhar notas" aria-pressed="true"></button>
+      <button id="bMover" class="ic" data-icone="mover" aria-label="Mover" title="Mover" aria-pressed="false"></button>
+      <button id="bAnotar" class="ic" data-icone="anotar" aria-label="Anotar em cores" title="Anotar em cores" aria-pressed="false"></button>
+      <button id="bBorracha" class="ic" data-icone="borracha" aria-label="Borracha" title="Borracha" aria-pressed="false"></button>
+    </div>
+    <span class="sep" aria-hidden="true"></span>
+    <div class="grupo">
+      <button id="bAjustar" class="ic" data-icone="ajustar" aria-label="Ajustar: espaçamento igual nos compassos" title="Ajustar: espaçamento igual nos compassos"></button>
+      <button id="bDesfazer" class="ic" data-icone="desfazer" aria-label="Desfazer" title="Desfazer"></button>
+      <button id="bLimpar" class="ic" data-icone="limpar" aria-label="Limpar a partitura" title="Limpar a partitura"></button>
+    </div>
+    <span class="sep" aria-hidden="true"></span>
+    <div class="grupo zoom" role="group" aria-label="Zoom">
+      <button id="bMenos" class="ic" data-icone="zoomMenos" aria-label="Diminuir zoom" title="Diminuir zoom"></button>
+      <span id="zoomTxt">100%</span>
+      <button id="bMais" class="ic" data-icone="zoomMais" aria-label="Aumentar zoom" title="Aumentar zoom"></button>
+      <button id="bTempo" class="ic ic-tempo" data-icone="tempo" aria-label="Tempo para converter o desenho" title="Tempo para converter o desenho" aria-expanded="false" aria-controls="popTempo"><span id="tTempo">0,65 s</span></button>
+      <button id="bDedo" class="ic" data-icone="dedo" aria-label="Dedo desenha" title="Dedo desenha (desligado: o dedo rola a pauta)" aria-pressed="false"></button>
+    </div>
+    <span class="esp-barra"></span>
+    <div class="grupo">
+      <button id="bBiblio" class="ic" data-icone="biblioteca" aria-label="Biblioteca de símbolos" title="Biblioteca de símbolos" aria-pressed="false" aria-controls="biblio"></button>
+      <button id="bGuia" class="ic" data-icone="guia" aria-label="Guia: como desenhar" title="Guia: como desenhar" aria-pressed="false" aria-controls="guia"></button>
+      <button id="bRecolher" class="ic" data-icone="recolher" aria-label="Recolher as barras" title="Recolher as barras"></button>
+      <button id="bTelaCheia" class="ic" data-icone="telaCheia" aria-label="Tela cheia" title="Tela cheia"></button>
+    </div>
+    </div>
+  </header>
+
+  <p id="status" class="status" aria-live="polite">Desenhe as notas com a S Pen. Um risco vertical na pauta fecha o compasso.</p>
+
+  <div id="barraAnot" class="barra-anot" hidden>
+    <span>Anotação</span>
+    <div class="grupo" role="group" aria-label="Cor" id="anotCores"></div>
+    <div class="grupo" role="group" aria-label="Tipo">
+      <button id="anTraco" class="ic" data-icone="traco" aria-label="Traço livre" title="Traço livre" aria-pressed="true"></button>
+      <button id="anTexto" class="ic" data-icone="texto" aria-label="Texto" title="Texto" aria-pressed="false"></button>
+    </div>
+  </div>
+
+
+  <main id="mesa" class="mesa">
+    <div id="folha" class="folha" role="application" aria-label="Pauta para desenhar notas">
+      <svg id="pauta" viewBox="0 0 140 50" aria-label="Pauta"></svg>
+    </div>
+  </main>
+</div>
+
+<button id="fab" class="fab" aria-label="Paleta de notas" aria-expanded="false" aria-controls="paleta">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <ellipse cx="8.5" cy="17.5" rx="4.3" ry="3.2" transform="rotate(-20 8.5 17.5)" fill="#fff"/>
+    <line x1="12.4" y1="16.5" x2="12.4" y2="3.5" stroke="#fff" stroke-width="1.9"/>
+    <path d="M12.4 3.6 C12.6 7 17.4 7.4 16.3 12.4" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/>
+  </svg>
+</button>
+<div id="paleta" class="paleta" role="dialog" aria-label="Notas para arrastar" hidden>
+  <div class="paleta-topo"><span>Favoritos · arraste para a pauta</span><button id="bPaletaBiblio">Biblioteca</button><button id="bPaletaGuia">Guia</button></div>
+  <div class="itens" id="paletaItens"></div>
+</div>
+
+<aside id="biblio" class="biblio" aria-label="Biblioteca de símbolos" hidden>
+  <div class="biblio-topo"><h2>Biblioteca</h2><span class="esp"></span><button id="bOrganizar" aria-pressed="false" aria-controls="biblioOrg">Organizar</button><button id="bFecharBiblio">Fechar</button></div>
+  <p class="sub" id="biblioSub">Arraste um símbolo e solte na pauta, onde quiser.</p>
+  <div class="biblio-org" id="biblioOrg" hidden>
+    <p class="org-dica">Escolha os grupos que aparecem e a ordem. Fica salvo neste aparelho.</p>
+    <ul class="org-lista" id="orgLista"></ul>
+    <button id="bOrgPadrao" class="org-padrao">Restaurar padrão</button>
+  </div>
+  <div class="biblio-corpo" id="biblioCorpo"></div>
+</aside>
+
+<div id="fantasma" class="fantasma" hidden></div>
+
+<div id="janGuia" class="janela-fundo" hidden>
+  <div class="janela janela-guia" role="dialog" aria-labelledby="guiaTit">
+    <div class="guia-topo">
+      <h2 id="guiaTit">Como escrever a partitura</h2>
+      <button type="button" id="bFecharGuia" class="ic ic-peq" data-icone="fechar" aria-label="Fechar o guia" title="Fechar"></button>
+    </div>
+    <p class="sub">Desenhe com a S Pen sobre a pauta. Quando você para de escrever, o desenho vira o símbolo. Os cartões abaixo mostram o jeito de desenhar; também dá para arrastá-los até a pauta.</p>
+    <div class="cartoes" id="cartoes"></div>
+    <div class="guia-blocos">
+      <section>
+        <h3>Notas e acordes</h3>
+        <ul class="dicas">
+          <li>Cabeça só com o contorno fica vazada; rabiscada por dentro fica cheia. Pode ser num traço só ou em vários.</li>
+          <li>A altura vem do centro da cabeça. A haste segue a direção que você desenhou.</li>
+          <li>Acorde: empilhe as cabeças e faça uma haste só. Para somar uma nota a um acorde, desenhe só a cabeça na mesma coluna.</li>
+          <li>Ponto: um toque à direita da nota é ponto de aumento; acima ou abaixo, staccato.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Compassos, linhas e claves</h3>
+        <ul class="dicas">
+          <li>Um risco vertical atravessando a pauta fecha o compasso.</li>
+          <li>Ligadura: um risco de uma nota até a outra.</li>
+          <li>O (+) no fim da última linha cria outra; quando a folha enche, a próxima folha aparece sozinha.</li>
+          <li>Toque na clave no começo da linha para trocar (Sol, Fá, Dó ou piano).</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Ferramentas</h3>
+        <ul class="dicas">
+          <li>Ponteiro seleciona sem desenhar. Mover arrasta o que já está na pauta. Anotar escreve em cores, fora da partitura.</li>
+          <li>Ajustar deixa os compassos com espaçamento igual e centralizado.</li>
+          <li>O relógio na barra define quanto tempo o app espera, depois que você para, para converter o desenho.</li>
+          <li>Visualizar mostra como a partitura sai no PDF e na impressão.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Biblioteca e seus desenhos</h3>
+        <ul class="dicas">
+          <li>Na Biblioteca estão todos os símbolos e os acordes prontos; arraste e solte na pauta.</li>
+          <li>O lápis pequeno no cartão ensina o seu jeito de desenhar aquele símbolo (3 a 5 vezes). Na dúvida, o app pergunta e aprende.</li>
+        </ul>
+      </section>
+    </div>
+    <div class="acoes">
+      <label class="chave"><input type="checkbox" id="cGuiaNao"> Não mostrar de novo ao abrir</label>
+      <span class="esp"></span>
+      <button type="button" id="bGuiaOk" class="primario">Entendi</button>
+    </div>
+  </div>
+</div>
+
+<div id="popTempo" class="pop-tempo" role="dialog" aria-label="Tempo para converter o desenho" hidden>
+  <label for="rEspera">Tempo para converter o desenho</label>
+  <div class="pop-linha">
+    <input type="range" id="rEspera" min="300" max="1500" step="50" value="650">
+    <output id="oEspera">0,65 s</output>
+  </div>
+  <p>Menos tempo: converte mais rápido. Mais tempo: dá para fazer traços com calma (acordes, sustenidos).</p>
+</div>
+
+<div id="escolha" class="escolha" role="dialog" aria-label="Qual destes símbolos?" hidden>
+  <p>Qual destes?</p>
+  <div class="itens" id="escolhaItens"></div>
+  <button type="button" id="escolhaNenhum">Nenhum</button>
+</div>
+
+<div id="janTreino" class="janela-fundo" hidden>
+  <div class="janela" role="dialog" aria-labelledby="treinoTit">
+    <h2 id="treinoTit">Ensinar meu desenho</h2>
+    <p class="sub">Desenhe o símbolo do seu jeito e do tamanho que você escreve na pauta (o modelo clarinho é só referência). Ao parar, o desenho é guardado. Faça de 3 a 5 vezes.</p>
+    <div class="treino-area"><svg id="treinoSvg" viewBox="0 0 60 36" aria-label="Área de desenho"></svg></div>
+    <div class="treino-amostras" id="treinoAmostras"></div>
+    <p class="sub" id="treinoConta"></p>
+    <div class="acoes">
+      <button type="button" id="tApagarTodos" class="perigo">Apagar todos</button>
+      <span class="esp"></span>
+      <button type="button" id="tCancelar">Cancelar</button>
+      <button type="button" id="tSalvar" class="primario">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div id="menuClave" class="menu-clave" role="dialog" aria-labelledby="menuClaveTit" hidden>
+  <p id="menuClaveTit">Clave da linha</p>
+  <div class="menu-ops">
+    <button type="button" data-f="sol">Sol</button>
+    <button type="button" data-f="fa">Fá</button>
+    <button type="button" data-f="do">Dó</button>
+    <button type="button" data-f="piano">Piano (Sol + Fá)</button>
+  </div>
+  <p id="menuClaveAviso" class="menu-aviso" hidden></p>
+</div>
+
+<input id="entradaTexto" class="entrada-texto" type="text" placeholder="Escreva e toque Enter" aria-label="Texto da anotação" hidden>
+
+<div id="barraMin" class="barra-min" hidden>
+  <button id="bMostrar" class="ic" data-icone="mostrar" aria-label="Mostrar as ferramentas" title="Mostrar as ferramentas"></button>
+  <button id="bMinDesfazer" class="ic" data-icone="desfazer" aria-label="Desfazer" title="Desfazer"></button>
+  <button id="bSairTela" class="ic" data-icone="sairTela" aria-label="Sair da tela cheia" title="Sair da tela cheia" hidden></button>
+</div>
+
+<div id="janFicha" class="janela-fundo" hidden>
+  <form id="ficha" class="janela" novalidate aria-labelledby="fichaTitulo">
+    <h2 id="fichaTitulo">Nova música</h2>
+    <p class="sub" id="fichaSub">Preencha a ficha. A pauta já começa com a clave, o tom e o compasso.</p>
+    <label class="campo">Título <input id="fTitulo" autocomplete="off"></label>
+    <p id="fErro" class="erro-campo" hidden>Dê um título à música.</p>
+    <label class="campo">
+      <span>Compositor / arranjo <span class="opc">(opcional)</span></span>
+      <input id="fAutor" autocomplete="off">
+    </label>
+    <fieldset class="campo" id="fsForm">
+      <legend>Formação</legend>
+      <div class="chips">
+        <label><input type="radio" name="fForm" value="sol" checked> Clave de Sol</label>
+        <label><input type="radio" name="fForm" value="fa"> Clave de Fá</label>
+        <label><input type="radio" name="fForm" value="do"> Clave de Dó</label>
+        <label><input type="radio" name="fForm" value="piano"> Piano (Sol + Fá)</label>
+      </div>
+    </fieldset>
+    <p class="sub" id="fFormDica" hidden>Para mudar a clave de uma linha, toque na clave no começo dela.</p>
+    <label class="campo">Tom <select id="fTom"></select></label>
+    <div class="linha2">
+      <label class="campo">Compasso <select id="fComp"></select></label>
+      <div class="outro" id="fOutro" hidden>
+        <input id="fNum" type="number" min="1" max="32" value="5" aria-label="Tempos por compasso">
+        /
+        <select id="fDen" aria-label="Figura de cada tempo"><option>1</option><option>2</option><option selected>4</option><option>8</option><option>16</option></select>
+      </div>
+    </div>
+    <div class="linha2">
+      <label class="campo">Unidade de tempo <select id="fUni"></select></label>
+      <label class="chave" style="min-height:40px"><input type="checkbox" id="fPonto"> pontuada</label>
+    </div>
+    <label class="campo">
+      <span>Andamento <span class="opc">(opcional, batidas por minuto)</span></span>
+      <input id="fAnd" type="number" min="20" max="300" placeholder="ex.: 72" inputmode="numeric">
+    </label>
+    <div class="acoes">
+      <button type="button" id="fExcluir" class="perigo" hidden>Excluir música</button>
+      <span class="esp"></span>
+      <button type="button" id="fCancelar">Cancelar</button>
+      <button type="submit" class="primario" id="fSalvar">Criar música</button>
+    </div>
+  </form>
+</div>
+
+<div id="janLista" class="janela-fundo" hidden>
+  <div class="janela" role="dialog" aria-labelledby="listaTitulo">
+    <h2 id="listaTitulo">Minhas músicas</h2>
+    <ul class="lista-mus" id="listaMus"></ul>
+    <div class="acoes">
+      <button id="lFicha">Editar ficha</button>
+      <span class="esp"></span>
+      <button id="lFechar">Fechar</button>
+      <button id="lNova" class="primario">Nova música</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const GL = {"claveSol":{"d":"M185 -245Q185 -197 211.5 -165.0Q238 -133 287 -133Q329 -133 355.5 -163.5Q382 -194 382 -236Q382 -272 357.0 -299.0Q332 -326 292 -326H282Q308 -365 364 -365Q433 -365 472.0 -320.0Q511 -275 511 -205Q511 -188 507.0 -159.5Q503 -131 493.0 -91.0Q483 -51 477.5 -25.0Q472 1 470 12Q436 2 390 2Q304 2 222 52Q142 102 96.0 184.0Q50 266 50 361Q50 451 91.0 530.0Q132 609 192.5 675.0Q253 741 314 801Q300 854 291.0 906.0Q282 958 282 1012Q282 1059 288.5 1100.5Q295 1142 307 1177Q320 1217 341.0 1252.5Q362 1288 385.5 1311.0Q409 1334 427 1334Q451 1334 493 1249Q514 1206 524.0 1156.0Q534 1106 534 1049Q534 978 515.0 907.5Q496 837 459.5 775.0Q423 713 372 666L407 498Q422 500 432.0 501.0Q442 502 447 502Q508 502 556.0 467.5Q604 433 632.5 377.0Q661 321 661 254Q661 177 621.5 115.5Q582 54 503 25Q508 8 532 -117Q538 -147 541.0 -164.5Q544 -182 545.0 -195.0Q546 -208 546 -225Q546 -275 521.5 -314.5Q497 -354 455.5 -376.0Q414 -398 363 -398Q311 -398 271.0 -378.5Q231 -359 208.0 -324.5Q185 -290 185 -245ZM380 31Q400 31 420.5 35.0Q441 39 464 45L398 379Q371 373 347.0 353.5Q323 334 308.5 306.5Q294 279 294 248Q294 223 307.0 196.5Q320 170 339 154Q352 142 365 136Q380 129 380 123Q380 120 370 117Q332 126 301.5 151.0Q271 176 253.5 211.5Q236 247 236 287Q236 330 253.5 370.0Q271 410 302.5 442.0Q334 474 374 490L345 641Q229 547 174.5 456.5Q120 366 120 277Q120 212 154.0 156.0Q188 100 247.0 65.5Q306 31 380 31ZM495 55Q593 97 593 227Q593 270 571.0 305.5Q549 341 512.0 362.0Q475 383 429 383ZM341 826Q364 838 390.0 870.5Q416 903 440.0 945.0Q464 987 479.0 1029.5Q494 1072 494 1106Q494 1142 483.0 1163.0Q472 1184 445 1184Q421 1184 398.5 1162.0Q376 1140 358.5 1103.5Q341 1067 331.0 1022.0Q321 977 321 930Q321 898 327.5 872.0Q334 846 341 826Z","b":[50,-398,661,1334],"w":711},"claveFa":{"d":"M50 123Q216 231 288 301Q336 348 373.0 408.5Q410 469 431.5 536.0Q453 603 453 669Q453 728 435.0 773.5Q417 819 383.0 845.0Q349 871 302 871Q284 871 264.5 867.0Q245 863 224 855Q181 839 158.0 813.5Q135 788 135 765Q135 756 143.0 752.0Q151 748 158 748Q168 748 183 752Q190 754 196.5 755.0Q203 756 210 756Q248 756 272.0 733.5Q296 711 296 674Q296 638 266.0 612.0Q236 586 195 586Q146 586 111.0 617.0Q76 648 76 697Q76 756 109.0 802.0Q142 848 198.5 874.0Q255 900 324 900Q400 900 460.0 867.0Q520 834 555.5 776.5Q591 719 591 646Q591 551 538 464Q511 419 476.5 379.0Q442 339 389.0 297.5Q336 256 256.0 208.0Q176 160 57 101ZM648.0 495.5Q632 511 632.0 534.0Q632 557 648.0 573.0Q664 589 687.0 589.0Q710 589 726.0 573.0Q742 557 742.0 534.0Q742 511 726.0 495.5Q710 480 687.0 480.0Q664 480 648.0 495.5ZM648.0 715.5Q632 731 632.0 754.0Q632 777 648.0 793.0Q664 809 687.0 809.0Q710 809 726.0 793.0Q742 777 742.0 754.0Q742 731 726.0 715.5Q710 700 687.0 700.0Q664 700 648.0 715.5Z","b":[50,101,742,900],"w":791},"claveDo":{"d":"M323 115Q323 145 342.5 166.5Q362 188 392 188Q425 188 442.5 168.5Q460 149 460 125Q460 106 443 88Q434 78 427.5 69.0Q421 60 421 52Q421 40 434.0 31.5Q447 23 470 23Q532 23 563.5 68.5Q595 114 595 219Q595 311 574.0 358.5Q553 406 503 406Q457 406 427.0 367.0Q397 328 388 260Q379 309 360.0 355.0Q341 401 316.0 437.0Q291 473 263 492V0H226V1000H263V510Q281 519 301.0 546.0Q321 573 339.0 608.5Q357 644 370.0 679.5Q383 715 386 742Q396 673 427.0 633.5Q458 594 503.0 594.0Q548 594 570 631Q593 668 593 775Q593 818 590.5 848.5Q588 879 582 898Q569 942 541.0 960.5Q513 979 470 979Q447 979 434.0 969.5Q421 960 421 951Q421 944 428.0 934.0Q435 924 443 914Q460 894 460 877Q460 853 442.5 833.5Q425 814 392 814Q362 814 342.5 835.5Q323 857 323 887Q323 924 347.5 952.0Q372 980 411.5 996.0Q451 1012 497 1012Q561 1012 612.0 982.0Q663 952 693.5 899.0Q724 846 724 777Q724 734 714.5 698.0Q705 662 685 633Q658 595 616.0 573.5Q574 552 527 552Q505 552 481.5 557.5Q458 563 437 574L390 500L437 426Q460 435 484.0 440.0Q508 445 532 445Q587 445 630.5 414.0Q674 383 699.0 332.0Q724 281 724.0 219.0Q724 157 694.0 104.5Q664 52 613.0 21.0Q562 -10 497 -10Q413 -10 368.0 23.5Q323 57 323 115ZM50 1000H167V0H50Z","b":[50,-10,724,1012],"w":774},"pSemibreve":{"d":"M210 488H50V512H733V488H573V378H210Z","b":[50,378,733,512],"w":783},"pMinima":{"d":"M50 268H210V378H573V268H733V244H50Z","b":[50,244,733,378],"w":783},"pSeminima":{"d":"M51 303Q51 346 78.0 366.0Q105 386 143 386Q173 386 221 363V365L67 570Q168 659 168 736Q168 797 104 878H147L307 683Q257 624 230.0 581.0Q203 538 203 494Q203 457 227.0 416.5Q251 376 303 314L287 292Q243 320 205 320Q177 320 163.0 301.5Q149 283 149 257Q149 225 162.5 196.5Q176 168 199 142L186 123Q117 173 84.0 214.0Q51 255 51 303Z","b":[51,123,307,878],"w":357},"pColcheia":{"d":"M251 609Q230 590 203.5 582.0Q177 574 151 574Q108 574 79.0 597.0Q50 620 50 663Q50 691 70.0 710.5Q90 730 121 730Q150 730 168.5 711.5Q187 693 187 662Q187 640 177 623Q177 617 189 617Q244 617 294 703H312L191 269H155Z","b":[50,269,312,730],"w":362},"pSemicolcheia":{"d":"M251 487Q230 468 203.5 460.0Q177 452 151 452Q108 452 79.0 475.0Q50 498 50 541Q50 569 69.5 588.5Q89 608 121 608Q150 608 168.5 589.5Q187 571 187 540Q187 518 177 501Q177 495 189 495Q230 495 267 541L319 731Q298 712 271.5 704.0Q245 696 219 696Q176 696 147.0 719.0Q118 742 118 785Q118 813 138.0 832.5Q158 852 189 852Q219 852 237.0 833.0Q255 814 255 784Q255 774 252.0 763.5Q249 753 245 745Q245 739 257 739Q312 739 362 825H380L191 147H155Z","b":[50,147,380,852],"w":430},"pFusa":{"d":"M251 336Q230 317 203.5 309.0Q177 301 151 301Q108 301 79.0 324.0Q50 347 50 390Q50 417 70.0 437.0Q90 457 121 457Q150 457 168.5 438.5Q187 420 187 389Q187 367 177 350Q177 344 189 344Q230 344 267 390L319 580Q298 561 271.5 553.0Q245 545 219 545Q176 545 147.0 568.0Q118 591 118 634Q118 663 138.0 682.0Q158 701 189 701Q219 701 237.0 682.0Q255 663 255 633Q255 623 252.0 612.5Q249 602 245 594Q245 588 257 588Q298 588 334 633L390 834Q369 815 342.5 807.0Q316 799 290 799Q247 799 218.0 822.0Q189 845 189 888Q189 917 209.0 936.0Q229 955 260 955Q290 955 308.0 936.0Q326 917 326 887Q326 877 323.0 866.5Q320 856 316 848Q316 842 328 842Q382 842 433 928H451L191 -4H155Z","b":[50,-4,451,955],"w":501},"sustenido":{"d":"M97 -59 50 -71V32L97 46V189L50 177V277L97 290V486H128V298L195 314V509H226V322L275 333V234L226 220V77L275 89V-14L226 -26V-214H195V-34L128 -52V-247H97ZM128 54 195 70V214L128 197Z","b":[50,-247,275,509],"w":325},"bemol":{"d":"M50 615H81V225Q118 262 165 262Q197 262 223.0 240.5Q249 219 249 178Q249 146 230.0 119.0Q211 92 179 65L110 6Q91 -10 76.0 -25.5Q61 -41 50 -55ZM81 12Q107 40 125.0 63.5Q143 87 153 105Q164 124 169.5 140.0Q175 156 175 170Q175 198 162.0 210.5Q149 223 134 223Q118 223 102.5 211.5Q87 200 81 180Z","b":[50,-55,249,615],"w":299},"bequadro":{"d":"M195 -9 50 -46V486H83V279L226 316V-221H195ZM81 56 197 84V212L81 183Z","b":[50,-221,226,486],"w":276},"fermata":{"d":"M708 648H673Q671 698 646.0 743.0Q621 788 579.5 823.0Q538 858 486.0 878.0Q434 898 378 898Q324 898 272.5 879.0Q221 860 179.0 825.5Q137 791 111.0 746.0Q85 701 83 648H50Q57 720 83.0 783.5Q109 847 152.0 896.0Q195 945 252.0 972.5Q309 1000 378.0 1000.0Q447 1000 505.5 971.5Q564 943 607.5 894.0Q651 845 677.0 781.5Q703 718 708 648ZM321 699Q321 719 337.5 732.5Q354 746 378 746Q401 746 417.0 731.5Q433 717 433 699Q433 676 417.0 662.0Q401 648 378 648Q353 648 337.0 662.0Q321 676 321 699Z","b":[50,648,708,1000],"w":758},"respira":{"d":"M81 717Q116 730 136.5 760.5Q157 791 157 823Q157 852 140 866Q136 865 131.0 864.5Q126 864 120 864Q89 864 69.5 883.0Q50 902 50.0 930.0Q50 958 72.0 979.0Q94 1000 136 1000Q181 1000 205.5 969.0Q230 938 230 893Q230 852 211.5 813.0Q193 774 160.5 744.5Q128 715 85 700Z","b":[50,700,230,1000],"w":280},"compC":{"d":"M50 514Q50 562 68.5 605.0Q87 648 119.0 681.5Q151 715 193.0 734.5Q235 754 282.0 754.0Q329 754 371.5 734.5Q414 715 441.0 681.5Q468 648 468 606Q468 569 443.0 542.5Q418 516 380 516Q346 516 324.0 535.5Q302 555 302 589Q302 615 317.0 633.0Q332 651 353 661Q364 666 380.0 669.5Q396 673 396 679Q396 695 368.0 709.0Q340 723 308 723Q267 723 238.0 704.0Q209 685 194.5 639.0Q180 593 180 511V433Q180 396 191.5 360.5Q203 325 230.0 302.0Q257 279 301 279Q351 279 392.0 324.0Q433 369 445 445H472Q468 387 442.0 341.5Q416 296 372.0 270.0Q328 244 271 244Q208 244 158.0 280.5Q108 317 79.0 378.0Q50 439 50 514Z","b":[50,244,472,754],"w":522},"compCortado":{"d":"M239 246Q183 255 140.5 293.5Q98 332 74.0 390.0Q50 448 50 514Q50 569 75.5 618.5Q101 668 144.0 703.5Q187 739 239 749V922H269V753Q274 754 282 754Q329 754 371.5 734.0Q414 714 441.0 680.5Q468 647 468 605Q468 568 443.0 542.0Q418 516 380 516Q346 516 324.0 536.5Q302 557 302 588Q302 616 318.0 634.5Q334 653 353 661Q364 666 380.0 669.0Q396 672 396 679Q396 691 381.5 701.0Q367 711 346.5 717.0Q326 723 306 723Q296 723 287.0 721.5Q278 720 269 718V282Q283 279 301 279Q351 279 392.0 324.0Q433 369 445 445H472Q468 387 442.0 341.5Q416 296 372.0 270.0Q328 244 271 244H269V72H239ZM239 294V704Q210 683 194.5 641.0Q179 599 179 510Q179 488 179.5 467.5Q180 447 181 427Q183 386 196.0 349.0Q209 312 239 294Z","b":[50,72,472,922],"w":522},"dinP":{"d":"M-87 225H-47Q-28 225 -21.0 232.0Q-14 239 -7 257L102 559Q108 576 108 583Q108 596 97 596Q82 596 60.0 573.0Q38 550 19 513L3 483H-25Q13 565 48.0 599.5Q83 634 127 634Q153 634 165.5 623.5Q178 613 180 597Q191 608 212.0 621.0Q233 634 262 634Q307 634 327.5 604.5Q348 575 348 530Q348 486 326.0 444.5Q304 403 268.5 376.5Q233 350 192 350Q172 350 154.5 358.0Q137 366 126 386L80 255Q75 242 75 234Q75 225 92 225H135V194H-87ZM171 382Q187 382 203.0 403.0Q219 424 233.0 454.5Q247 485 255.5 516.0Q264 547 264 567Q264 600 241 600Q222 600 204.5 583.0Q187 566 174.5 538.5Q162 511 154.5 480.0Q147 449 147 421Q147 382 171 382Z","b":[-87,194,348,634],"w":372},"dinM":{"d":"M284 400Q284 414 290.0 435.5Q296 457 300 467L334 562Q339 577 339 581Q339 595 326 595Q314 595 305.0 582.0Q296 569 285 539L220 366H139L213 567Q215 577 215 581Q215 595 202 595Q183 595 172 564L100 366H18L88 561Q92 572 92 583Q92 595 83 595Q66 595 42 565Q19 536 2 483H-26Q3 566 40.0 600.0Q77 634 120 634Q140 634 151.5 625.0Q163 616 163 595Q177 612 198.0 623.0Q219 634 245 634Q264 634 278.5 624.5Q293 615 293 595Q310 617 333.0 625.5Q356 634 372 634Q393 634 406.5 626.0Q420 618 420 598Q420 591 418.0 581.0Q416 571 414 567L370 435Q367 426 364.5 417.0Q362 408 362 400Q362 385 374 385Q387 385 405 411Q414 424 424.0 441.0Q434 458 444 480L468 470Q441 409 413.5 379.5Q386 350 344 350Q316 350 300.0 362.5Q284 375 284 400Z","b":[-26,350,468,634],"w":470},"dinF":{"d":"M-135 268Q-135 300 -120.0 316.0Q-105 332 -82 332Q-62 332 -50.5 319.5Q-39 307 -39 289Q-39 280 -41.0 273.0Q-43 266 -50 258Q-57 251 -63.0 246.0Q-69 241 -74 238Q-78 236 -78.0 231.0Q-78 226 -63 226Q-32 226 -8 264Q4 283 17.0 314.5Q30 346 40 384L74 504Q90 564 99 586H31V619H110Q128 664 159.0 701.0Q190 738 228.5 759.5Q267 781 307 781Q348 781 364.5 762.5Q381 744 381 717Q381 694 365.0 675.0Q349 656 329 656Q292 656 292 692Q292 700 295.0 708.5Q298 717 308 724Q317 731 328.0 735.5Q339 740 339 742Q339 745 331 748Q327 750 322.0 751.0Q317 752 312 752Q278 752 250.0 720.0Q222 688 205 619H292V586H196Q171 489 142.0 415.5Q113 342 78 294Q9 197 -63 197Q-99 197 -117.0 218.0Q-135 239 -135 268Z","b":[-135,197,381,781],"w":292},"segno":{"d":"M261 257Q261 280 275.0 294.0Q289 308 314 308Q343 308 354.5 293.5Q366 279 369.0 261.0Q372 243 380.0 228.5Q388 214 407 214Q434 214 450.0 233.0Q466 252 466 282Q466 345 384 388Q343 409 317.0 422.5Q291 436 280 442L103 167H50L238 462Q147 507 99.5 560.5Q52 614 52 677Q52 718 72.5 755.0Q93 792 127.5 815.5Q162 839 204 839Q252 839 285.0 811.0Q318 783 318 739Q318 717 301.5 704.0Q285 691 265 691Q242 691 229.5 700.0Q217 709 212 724L203 752Q198 768 190.0 778.0Q182 788 165 788Q143 788 128.0 766.5Q113 745 113 720Q113 678 150 642Q187 607 300 560L482 833H536L343 540Q441 490 483.0 436.5Q525 383 525 323Q525 280 505.0 243.5Q485 207 450.0 185.0Q415 163 371 163Q320 163 290.5 191.5Q261 220 261 257ZM68.5 378.5Q54 393 54.0 413.0Q54 433 68.5 447.5Q83 462 103.0 462.0Q123 462 137.5 447.5Q152 433 152.0 413.0Q152 393 137.5 378.5Q123 364 103.0 364.0Q83 364 68.5 378.5ZM481.5 552.5Q467 567 467.0 587.0Q467 607 481.5 621.5Q496 636 516.0 636.0Q536 636 550.5 621.5Q565 607 565.0 587.0Q565 567 550.5 552.5Q536 538 516.0 538.0Q496 538 481.5 552.5Z","b":[50,163,565,839],"w":615},"coda":{"d":"M255 303Q194 311 155.5 358.0Q117 405 108 484H50V516H108Q117 594 154.0 641.0Q191 688 255 697V754H288V697Q353 688 389.5 640.5Q426 593 435 516H493V484H435Q426 405 388.0 358.0Q350 311 288 303V246H255ZM255 332V484H187Q187 456 188.0 435.5Q189 415 192 402Q198 376 212.0 354.5Q226 333 255 332ZM288 332Q317 334 331.0 354.0Q345 374 350.5 400.5Q356 427 356 484H288ZM187 516H255V668Q228 667 212 646Q198 627 192.5 600.0Q187 573 187 516ZM288 516H356Q356 545 355.0 566.0Q354 587 351 600Q345 626 331.0 646.5Q317 667 288 668Z","b":[50,246,493,754],"w":543}}; // símbolos da fonte Noto Music (licença OFL), já em caminhos SVG
+  const NS = 'http://www.w3.org/2000/svg';
+  const $ = id => document.getElementById(id);
+
+  // ---------- Ícones dos botões (traço simples, 24 x 24) ----------
+  const ICONES = {
+    tempo: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4M12 2v3"/>',
+    lista: '<path d="M21 15V6"/><circle cx="18.5" cy="15.5" r="2.5"/><path d="M12 12H3M16 6H3M12 18H3"/>',
+    ok: '<path d="M20 6 9 17l-5-5"/>',
+    fechar: '<path d="M18 6 6 18M6 6l12 12"/>',
+    ponteiro: '<path d="M4.04 4.04a.5.5 0 0 1 .64-.62l15.5 5.95a.5.5 0 0 1-.04.95l-6.35 1.6a2 2 0 0 0-1.42 1.42l-1.6 6.35a.5.5 0 0 1-.95.04Z"/>',
+    caneta: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+    mover: '<path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/>',
+    anotar: '<path d="M3 6V4h11v2"/><path d="M8.5 4v15"/><path d="M6.5 19h4"/><path d="M17 8h4M19 8v12M17 20h4"/>',
+    borracha: '<path d="m7 21-4.3-4.3a2.4 2.4 0 0 1 0-3.4l9.6-9.6a2.4 2.4 0 0 1 3.4 0l5.6 5.6a2.4 2.4 0 0 1 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>',
+    ajustar: '<path d="M4 5v14M20 5v14"/><rect x="7.5" y="8" width="3" height="8" rx="1"/><rect x="13.5" y="8" width="3" height="8" rx="1"/>',
+    desfazer: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+    limpar: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/>',
+    zoomMenos: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M8 11h6"/>',
+    zoomMais: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M8 11h6M11 8v6"/>',
+    dedo: '<path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.3l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/>',
+    biblioteca: '<rect x="3" y="4" width="4" height="16" rx="1"/><rect x="8.5" y="7" width="4" height="13" rx="1"/><path d="m14.6 8.3 3.8-1.1 3.6 12.5-3.8 1.1z"/><path d="M3 9h4M8.5 11h4"/>',
+    guia: '<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+    recolher: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 16l3-3 3 3"/>',
+    mostrar: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 13l3 3 3-3"/>',
+    telaCheia: '<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>',
+    sairTela: '<path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>',
+    traco: '<path d="M3 16c2.5-6 5-6 7-2s4.5 4 7-2c1-2.3 2.5-3 4-3"/>',
+    texto: '<path d="M5 6V4h14v2"/><path d="M12 4v16"/><path d="M9 20h6"/>'
+  };
+  document.querySelectorAll('[data-icone]').forEach(b => {
+    b.insertAdjacentHTML('afterbegin', `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONES[b.dataset.icone] || ''}</svg>`);
+  });
+  function mk(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  // ---------- Medidas (milímetros) ----------
+  const SP = 2.5;                    // espaço entre linhas da pauta
+  const X0 = 6, X1 = 128;            // início e fim das pautas (à direita fica o botão +)
+  const PW = 140, PH = 198, GAP = 8; // folha A4 (proporção 210 x 297) e espaço entre folhas
+  const K = SP / 244;                // na fonte, 244 unidades = 1 espaço; a linha de baixo fica em y=12
+  // Pauta em uso (linha l, pauta p dentro da linha). Desenho e reconhecimento usam estes valores.
+  let LIN = 0, PAU = 0, TOPO = 32, BASE = TOPO + 4 * SP, INICIO = 30, CLV = null;
+  let LAYOUT = [];                   // por linha: { pagina, topos[], inicio, y0, alto }
+  const VIGAS_INFO = new Map();      // nota → geometria da barra de colcheias a que pertence
+  const VIGA_GEO = new Map();        // barra → geometria (refeita a cada desenho)
+  const TIPS = new Map();            // nota → ponta da haste (para reconhecer a barra desenhada)
+  const CAIXAS = new Map();          // símbolo/anotação → retângulo ocupado (para a borracha)
+  const LINHAS_TOQUE = new Map();    // ligadura/barra → pontos ao longo do traço (para a borracha)
+  const yDe = (s, base = BASE) => base - s * SP / 2;
+
+  // ---------- Catálogo de símbolos ----------
+  const NOMES = {
+    semibreve: 'Semibreve', minima: 'Mínima', seminima: 'Semínima', colcheia: 'Colcheia', semicolcheia: 'Semicolcheia', fusa: 'Fusa',
+    pSemibreve: 'Pausa de semibreve', pMinima: 'Pausa de mínima', pSeminima: 'Pausa de semínima', pColcheia: 'Pausa de colcheia', pSemicolcheia: 'Pausa de semicolcheia', pFusa: 'Pausa de fusa',
+    barra: 'Barra de compasso', barraDupla: 'Barra dupla', barraFinal: 'Barra final', repInicio: 'Início de repetição', repFim: 'Fim de repetição',
+    sustenido: 'Sustenido', bemol: 'Bemol', bequadro: 'Bequadro', ligadura: 'Ligadura', viga: 'Barra de colcheias', ponto: 'Ponto de aumento',
+    staccato: 'Staccato', acento: 'Acento', fermata: 'Fermata', respira: 'Respiração',
+    dinP: 'Piano (p)', dinMP: 'Meio piano (mp)', dinMF: 'Meio forte (mf)', dinF: 'Forte (f)', dinFF: 'Fortíssimo (ff)', cresc: 'Crescendo', decresc: 'Decrescendo',
+    segno: 'Segno', coda: 'Coda'
+  };
+  const CURTO = {
+    pSemibreve: 'Semibreve', pMinima: 'Mínima', pSeminima: 'Semínima', pColcheia: 'Colcheia', pSemicolcheia: 'Semicolch.', pFusa: 'Fusa',
+    barra: 'Simples', barraDupla: 'Dupla', barraFinal: 'Final', repInicio: 'Repete (início)', repFim: 'Repete (fim)',
+    semicolcheia: 'Semicolch.', ponto: 'Ponto', viga: 'Barra de colcheias', respira: 'Respiração', dinP: 'p', dinMP: 'mp', dinMF: 'mf', dinF: 'f', dinFF: 'ff'
+  };
+  const SECOES = [
+    ['Notas', ['semibreve', 'minima', 'seminima', 'colcheia', 'semicolcheia', 'fusa']],
+    ['Pausas', ['pSemibreve', 'pMinima', 'pSeminima', 'pColcheia', 'pSemicolcheia', 'pFusa']],
+    ['Barras', ['barra', 'barraDupla', 'barraFinal', 'repInicio', 'repFim']],
+    ['Acidentes', ['sustenido', 'bemol', 'bequadro']],
+    ['Ligadura, barra e ponto', ['ligadura', 'viga', 'ponto']],
+    ['Articulação', ['staccato', 'acento', 'fermata', 'respira']],
+    ['Dinâmica', ['dinP', 'dinMP', 'dinMF', 'dinF', 'dinFF', 'cresc', 'decresc']],
+    ['Navegação', ['segno', 'coda']]
+  ];
+  const NOTA = new Set(SECOES[0][1]);
+  const PAUSA = new Set(SECOES[1][1]);
+  const BARRA = new Set(SECOES[2][1]);
+  const ACID = new Set(SECOES[3][1]);
+  const TEMPOS = { semibreve: 4, minima: 2, seminima: 1, colcheia: 0.5, semicolcheia: 0.25, fusa: 0.125,
+    pSemibreve: 4, pMinima: 2, pSeminima: 1, pColcheia: 0.5, pSemicolcheia: 0.25, pFusa: 0.125 };
+  const BANDEIROLAS = { minima: 0, seminima: 0, colcheia: 1, semicolcheia: 2, fusa: 3 };
+  const CHEIA = { semibreve: false, minima: false, seminima: true, colcheia: true, semicolcheia: true, fusa: true };
+  const FORMA_BAND = 'M0 0 C0.1 1.0 1.3 1.3 1.0 2.9 C1.15 2.05 0.5 1.65 0 1.3 Z';
+  const DIN = { dinP: ['dinP'], dinMP: ['dinM', 'dinP'], dinMF: ['dinM', 'dinF'], dinF: ['dinF'], dinFF: ['dinF', 'dinF'] };
+  // Acordes: cada nota guarda a lista das suas cabeças (ss); s é sempre a mais grave
+  const cabecas = n => (n.ss && n.ss.length ? n.ss : [n.s]);
+  function normalizar(n) { n.ss = [...new Set(cabecas(n))].sort((a, b) => a - b); n.s = n.ss[0]; return n; }
+
+  // ---------- Teoria: claves, tons, compassos ----------
+  const LETRAS = ['Dó', 'Ré', 'Mi', 'Fá', 'Sol', 'Lá', 'Si'];
+  const CLAVE = {
+    sol: { glifo: 'claveSol', l: 2, o: 4, sust: [8, 5, 9, 6, 3, 7, 4], bem: [4, 7, 3, 6, 2, 5, 1] },
+    fa:  { glifo: 'claveFa',  l: 4, o: 2, sust: [6, 3, 7, 4, 1, 5, 2], bem: [2, 5, 1, 4, 0, 3, -1] },
+    do:  { glifo: 'claveDo',  l: 3, o: 3, sust: [7, 4, 8, 5, 2, 6, 3], bem: [3, 6, 2, 5, 1, 4, 0] }
+  };
+  const ORDEM_SUST = [3, 0, 4, 1, 5, 2, 6], ORDEM_BEM = [6, 2, 5, 1, 4, 0, 3];
+  const TONS = [
+    ['C', 'Dó maior', 0], ['G', 'Sol maior', 1], ['D', 'Ré maior', 2], ['A', 'Lá maior', 3], ['E', 'Mi maior', 4], ['B', 'Si maior', 5], ['F#', 'Fá♯ maior', 6], ['C#', 'Dó♯ maior', 7],
+    ['F', 'Fá maior', -1], ['Bb', 'Si♭ maior', -2], ['Eb', 'Mi♭ maior', -3], ['Ab', 'Lá♭ maior', -4], ['Db', 'Ré♭ maior', -5], ['Gb', 'Sol♭ maior', -6], ['Cb', 'Dó♭ maior', -7],
+    ['Am', 'Lá menor', 0], ['Em', 'Mi menor', 1], ['Bm', 'Si menor', 2], ['F#m', 'Fá♯ menor', 3], ['C#m', 'Dó♯ menor', 4], ['G#m', 'Sol♯ menor', 5], ['D#m', 'Ré♯ menor', 6], ['A#m', 'Lá♯ menor', 7],
+    ['Dm', 'Ré menor', -1], ['Gm', 'Sol menor', -2], ['Cm', 'Dó menor', -3], ['Fm', 'Fá menor', -4], ['Bbm', 'Si♭ menor', -5], ['Ebm', 'Mi♭ menor', -6], ['Abm', 'Lá♭ menor', -7]
+  ];
+  const tomDe = id => TONS.find(t => t[0] === id) || TONS[0];
+  const rotuloAcid = n => n === 0 ? 'sem acidentes' : n > 0 ? `${n}♯` : `${-n}♭`;
+  const COMPASSOS = [
+    ['C', 'C (4/4)', 4, 4, 'C'], ['Cc', 'C cortado (2/2)', 2, 2, 'Cc'], ['2/4', '2/4', 2, 4, ''], ['3/4', '3/4', 3, 4, ''], ['4/4', '4/4', 4, 4, ''],
+    ['2/2', '2/2', 2, 2, ''], ['3/8', '3/8', 3, 8, ''], ['6/8', '6/8', 6, 8, ''], ['9/8', '9/8', 9, 8, ''], ['12/8', '12/8', 12, 8, ''], ['outro', 'Outro…', 0, 0, '']
+  ];
+  const UNIDADES = ['semibreve', 'minima', 'seminima', 'colcheia', 'semicolcheia'];
+  function sugerirUnidade(num, den) {
+    if (den === 8 && num % 3 === 0 && num > 3) return { tipo: 'seminima', ponto: true };
+    return { tipo: { 1: 'semibreve', 2: 'minima', 4: 'seminima', 8: 'colcheia', 16: 'semicolcheia' }[den] || 'seminima', ponto: false };
+  }
+
+  // ---------- Estado ----------
+  const CHAVE = 'pauta-mao-livre.v2';
+  let banco = {};
+  try { banco = JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch (e) { banco = {}; }
+  banco.musicas = Array.isArray(banco.musicas) ? banco.musicas : [];
+  let zoom = banco.zoom || 1, dedo = !!banco.dedo, espera = banco.espera || 650, posFab = banco.fab || null;
+  let modo = 'caneta';
+  let pilha = [];
+  const novoId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const M = () => banco.musicas.find(m => m.id === banco.atual) || null;
+  const itens = () => (M() ? M().itens : []);
+  function gravar() {
+    banco.zoom = zoom; banco.dedo = dedo; banco.espera = espera; banco.fab = posFab;
+    try { localStorage.setItem(CHAVE, JSON.stringify(banco)); } catch (e) {}
+  }
+  function guardarDesfazer() { if (!M()) return; pilha.push(JSON.stringify({ itens: M().itens, linhas: M().linhas, anot: M().anot })); if (pilha.length > 100) pilha.shift(); }
+  function restaurar(snap) { const o = JSON.parse(snap); if (Array.isArray(o)) M().itens = o; else { M().itens = o.itens; M().linhas = o.linhas; M().anot = o.anot || []; } }
+  // Músicas antigas: uma linha com a clave da ficha; cada símbolo ganha linha (l) e pauta (p)
+  function prepararMusica(m) {
+    if (!Array.isArray(m.linhas) || !m.linhas.length) m.linhas = [{ pautas: [m.clave || 'sol'] }];
+    if (!Array.isArray(m.anot)) m.anot = [];
+    for (const i of m.itens) { if (i.l == null) i.l = 0; if (i.p == null) i.p = 0; }
+    return m;
+  }
+  banco.musicas.forEach(prepararMusica);
+
+  // ---------- Camadas do desenho ----------
+  const svg = $('pauta'), mesa = $('mesa'), folha = $('folha'), statusEl = $('status');
+  const camFolhas = mk('g', {}, svg);
+  const camPauta = mk('g', { class: 'linhas' }, svg);
+  const camCab = mk('g', {}, svg);
+  const camNotas = mk('g', {}, svg);
+  const camAnot = mk('g', { class: 'anotacoes' }, svg);
+  const camPrevia = mk('g', { class: 'previa' }, svg);
+  const camTinta = mk('g', { class: 'tinta' }, svg);
+  const camUi = mk('g', {}, svg);
+
+  // ---------- Desenho dos símbolos ----------
+  const larg = nome => (GL[nome].b[2] - GL[nome].b[0]) * K;
+  function glifo(pai, nome, xEsq, base, off = 0) {
+    const g = GL[nome];
+    return mk('path', { class: 'glifo', d: g.d, transform: `translate(${(xEsq - g.b[0] * K).toFixed(3)} ${base}) scale(${K} ${-K}) translate(0 ${off - 12})` }, pai);
+  }
+  const glifoC = (pai, nome, cx, base, off) => glifo(pai, nome, cx - larg(nome) / 2, base, off);
+  const alvoS = s => 12 + s * 122; // altura (unidades da fonte) da linha/espaço s
+
+  function desenharNota(n, g, base) {
+    const cx = n.x, ss = [...cabecas(n)].sort((a, b) => a - b);
+    const sMin = ss[0], sMax = ss[ss.length - 1];
+    const inteira = n.tipo === 'semibreve';
+    const rx = inteira ? 0.8 * SP : 0.6 * SP, ry = inteira ? 0.52 * SP : 0.46 * SP;
+    const vg = n.id ? VIGAS_INFO.get(n.id) : null; // nota presa a uma barra de colcheias
+    const cima = vg ? vg.cima : n.dir !== 'down';
+    const pDir = cima || inteira; // cabeça deslocada vai para a direita
+    // Segundas no acorde (notas vizinhas): uma das cabeças passa para o outro lado da haste
+    const lado = {}, dx = 2 * rx * 0.93;
+    let ant = null, antDesl = false;
+    for (const s of (pDir ? ss : [...ss].reverse())) {
+      const desl = ant !== null && Math.abs(s - ant) === 1 && !antDesl;
+      lado[s] = desl ? (pDir ? 1 : -1) : 0;
+      antDesl = desl; ant = s;
+    }
+    const temDesl = ss.some(s => lado[s] !== 0);
+    const lsE = rx * 1.65 + (temDesl && !pDir ? dx : 0), lsD = rx * 1.65 + (temDesl && pDir ? dx : 0);
+    for (let s = -2; s >= sMin; s -= 2) { const y = yDe(s, base); mk('line', { class: 'supl', x1: cx - lsE, x2: cx + lsD, y1: y, y2: y }, g); }
+    for (let s = 10; s <= sMax; s += 2) { const y = yDe(s, base); mk('line', { class: 'supl', x1: cx - lsE, x2: cx + lsD, y1: y, y2: y }, g); }
+    if (!inteira) {
+      const nb = vg ? 0 : BANDEIROLAS[n.tipo]; // com barra, as bandeirolas somem
+      const comp = SP * (3.5 + Math.max(0, nb - 1) * 0.8);
+      const sx = cima ? cx + rx * 0.93 : cx - rx * 0.93;
+      const yIni = yDe(cima ? sMin : sMax, base), yFim = yDe(cima ? sMax : sMin, base);
+      const y2 = vg ? vg.yAt(sx) : (cima ? yFim - comp : yFim + comp);
+      if (n.id && n.id !== 'previa') TIPS.set(n.id, { x: sx, y: y2 }); // ponta da haste, para reconhecer a barra
+      mk('line', { class: 'haste', x1: sx, x2: sx, y1: yIni + (cima ? -0.1 : 0.1) * SP, y2 }, g);
+      for (let k = 0; k < nb; k++) {
+        const yb = y2 + (cima ? 1 : -1) * k * 0.8 * SP;
+        mk('path', { class: 'band', d: FORMA_BAND, transform: `translate(${sx - 0.08} ${yb}) scale(${SP} ${cima ? SP : -SP})` }, g);
+      }
+    }
+    const rot = inteira ? 0 : -20;
+    for (const s of ss) {
+      const hx = cx + lado[s] * dx, cy = yDe(s, base);
+      mk('ellipse', { class: 'cab', cx: hx, cy, rx, ry, transform: `rotate(${rot} ${hx} ${cy})` }, g);
+      if (!CHEIA[n.tipo]) {
+        if (inteira) mk('ellipse', { class: 'furo', cx: hx, cy, rx: rx * 0.48, ry: ry * 0.78, transform: `rotate(-55 ${hx} ${cy})` }, g);
+        else mk('ellipse', { class: 'furo', cx: hx, cy, rx: rx * 0.74, ry: ry * 0.42, transform: `rotate(${rot} ${hx} ${cy})` }, g);
+      }
+    }
+  }
+
+  function desenharBarra(n, g, base) {
+    // Na linha de piano a barra atravessa as duas pautas
+    const L = n.l != null && n.id !== 'mini' ? LAYOUT[n.l] : null;
+    const bases = L ? L.topos.map(t => t + 4 * SP) : [base];
+    const t = bases[0] - 4 * SP, fundo = bases[bases.length - 1], x = n.x;
+    const fina = xx => mk('line', { class: 'traco-fino', x1: xx, x2: xx, y1: t, y2: fundo }, g);
+    const grossa = xx => mk('line', { class: 'traco-grosso', x1: xx, x2: xx, y1: t, y2: fundo }, g);
+    const pontos = xx => { for (const bb of bases) { mk('circle', { class: 'ponto', cx: xx, cy: yDe(5, bb), r: 0.25 * SP }, g); mk('circle', { class: 'ponto', cx: xx, cy: yDe(3, bb), r: 0.25 * SP }, g); } };
+    if (n.tipo === 'barra') fina(x);
+    else if (n.tipo === 'barraDupla') { fina(x - 0.4); fina(x + 0.4); }
+    else if (n.tipo === 'barraFinal') { fina(x - 0.6); grossa(x + 0.45); }
+    else if (n.tipo === 'repInicio') { grossa(x - 0.9); fina(x); pontos(x + 1.1); }
+    else if (n.tipo === 'repFim') { pontos(x - 1.1); fina(x); grossa(x + 0.9); }
+  }
+
+  function desenharLigadura(n, g, base, mapa) {
+    const a = mapa.get(n.a), b = mapa.get(n.b);
+    if (!a || !b) return false;
+    const baixo = a.dir !== 'down';
+    const sg = baixo ? 1 : -1;
+    let x1 = a.x + 0.55 * SP, x2 = b.x - 0.55 * SP;
+    if (x2 - x1 < SP) { x1 = a.x; x2 = b.x; }
+    const sa = baixo ? Math.min(...cabecas(a)) : Math.max(...cabecas(a));
+    const sb = baixo ? Math.min(...cabecas(b)) : Math.max(...cabecas(b));
+    const ba = a.id !== 'a' && LAYOUT[a.l] ? baseDe(a) : base, bb = b.id !== 'b' && LAYOUT[b.l] ? baseDe(b) : base;
+    const y1 = yDe(sa, ba) + sg * 0.85 * SP, y2 = yDe(sb, bb) + sg * 0.85 * SP;
+    const w = x2 - x1, h = sg * Math.min(1.6 * SP, 0.22 * w + 0.4 * SP);
+    const d = `M${x1} ${y1} C${x1 + w * 0.25} ${y1 + h} ${x2 - w * 0.25} ${y2 + h} ${x2} ${y2} C${x2 - w * 0.25} ${y2 + h * 0.72} ${x1 + w * 0.25} ${y1 + h * 0.72} ${x1} ${y1} Z`;
+    mk('path', { class: 'lig', d }, g);
+    mk('path', { class: 'alvo-linha', d }, g);
+    if (n.id) LINHAS_TOQUE.set(n.id, Array.from({ length: 13 }, (_, i) => { // pontos da curva
+      const t = i / 12, u = 1 - t, xa = x1 + w * 0.25, xb = x2 - w * 0.25;
+      return { x: u * u * u * x1 + 3 * u * u * t * xa + 3 * u * t * t * xb + t * t * t * x2, y: u * u * u * y1 + 3 * u * u * t * (y1 + h) + 3 * u * t * t * (y2 + h) + t * t * t * y2 };
+    }));
+    return true;
+  }
+
+  // Desenha qualquer item; devolve o grupo SVG
+  function desenharItem(n, pai, base, mapa, comAlvo = true) {
+    const g = mk('g', { class: 'nota', 'data-id': n.id || '' }, pai);
+    const t = n.tipo, y = n.s != null ? yDe(n.s, base) : 0;
+    if (NOTA.has(t)) desenharNota(n, g, base);
+    else if (PAUSA.has(t)) glifoC(g, t, n.x, base, (t === 'pSemibreve' || t === 'pMinima') ? 244 : 0);
+    else if (BARRA.has(t)) desenharBarra(n, g, base);
+    else if (ACID.has(t)) glifoC(g, t, n.x, base, alvoS(n.s) - 131);
+    else if (t === 'ponto') mk('circle', { class: 'ponto', cx: n.x, cy: y, r: 0.24 * SP }, g);
+    else if (t === 'staccato') mk('circle', { class: 'ponto', cx: n.x, cy: y, r: 0.22 * SP }, g);
+    else if (t === 'acento') mk('path', { class: 'traco-fino', d: `M${n.x - 0.75 * SP} ${y - 0.38 * SP} L${n.x + 0.75 * SP} ${y} L${n.x - 0.75 * SP} ${y + 0.38 * SP}`, 'stroke-linejoin': 'round' }, g);
+    else if (t === 'fermata') glifoC(g, t, n.x, base, alvoS(n.s) - 648);
+    else if (t === 'respira') glifoC(g, t, n.x, base, alvoS(n.s) - 700);
+    else if (t === 'segno' || t === 'coda') glifoC(g, t, n.x, base, alvoS(n.s) - 500);
+    else if (DIN[t]) {
+      const letras = DIN[t], off = alvoS(n.s) - 489;
+      let total = letras.reduce((s, l) => s + GL[l].w * K, 0) * 0.92, cur = n.x - total / 2;
+      for (const l of letras) { mk('path', { class: 'glifo', d: GL[l].d, transform: `translate(${cur.toFixed(3)} ${base}) scale(${K} ${-K}) translate(0 ${off - 12})` }, g); cur += GL[l].w * K * 0.92; }
+    } else if (t === 'cresc' || t === 'decresc') {
+      const a = n.x - 3 * SP, b = n.x + 3 * SP, ab = 0.6 * SP;
+      const d = t === 'cresc' ? `M${b} ${y - ab} L${a} ${y} L${b} ${y + ab}` : `M${a} ${y - ab} L${b} ${y} L${a} ${y + ab}`;
+      mk('path', { class: 'traco-fino', d }, g);
+    } else if (t === 'ligadura') {
+      if (!desenharLigadura(n, g, base, mapa)) { g.remove(); return null; }
+      return g;
+    }
+    if (comAlvo && g.isConnected) {
+      const b = g.getBBox();
+      if (n.id) CAIXAS.set(n.id, { x: b.x, y: b.y, width: b.width, height: b.height });
+      mk('rect', { class: 'alvo', x: b.x - 1, y: b.y - 1, width: b.width + 2, height: b.height + 2 }, g);
+    }
+    return g;
+  }
+
+  // ---------- Folhas, linhas e pautas ----------
+  const ACIMA = 10, ENTRE = 9, ABAIXO = 13;   // folgas (mm) acima, entre e abaixo das pautas de uma linha
+  const claveDe = (l, p) => { const ln = M() && M().linhas[l]; return CLAVE[(ln && ln.pautas[p]) || 'sol'] || CLAVE.sol; };
+  function calcularLayout() {
+    const m = M(); LAYOUT = [];
+    if (!m) return;
+    let pag = 0, y = 22; // a primeira folha reserva o topo para o título
+    m.linhas.forEach((ln, l) => {
+      const n = ln.pautas.length, alto = ACIMA + n * 4 * SP + (n - 1) * ENTRE + ABAIXO;
+      if (l > 0 && y + alto > PH - 8) { pag++; y = 12; } // não cabe: vai para a próxima folha
+      const y0 = pag * (PH + GAP) + y;
+      LAYOUT.push({ pagina: pag, y0, alto, inicio: 30, topos: ln.pautas.map((_, p) => y0 + ACIMA + p * (4 * SP + ENTRE)) });
+      y += alto;
+    });
+  }
+  function usar(l, p = 0) {
+    const L = LAYOUT[l]; if (!L) return;
+    LIN = l; PAU = Math.min(p, L.topos.length - 1);
+    TOPO = L.topos[PAU]; BASE = TOPO + 4 * SP; INICIO = L.inicio; CLV = claveDe(l, PAU);
+  }
+  function pautaDeY(y) {
+    let melhor = [0, 0], md = Infinity;
+    LAYOUT.forEach((L, l) => L.topos.forEach((t, p) => { const d = Math.abs(y - (t + 2 * SP)); if (d < md) { md = d; melhor = [l, p]; } }));
+    return melhor;
+  }
+  const itensDe = (l, p) => itens().filter(i => i.l === l && (p == null || i.p === p));
+  const baseDe = n => { const L = LAYOUT[n.l || 0]; return L ? L.topos[Math.min(n.p || 0, L.topos.length - 1)] + 4 * SP : BASE; };
+  function chavePath(xr, y0, y1) { // chave { que une as pautas do piano
+    const h = y1 - y0, ym = (y0 + y1) / 2, xl = xr - 2.2;
+    return `M${xr} ${y0} C${xr - 1.7} ${y0 + h * 0.06} ${xr - 0.1} ${ym - h * 0.14} ${xl} ${ym} C${xr - 0.1} ${ym + h * 0.14} ${xr - 1.7} ${y1 - h * 0.06} ${xr} ${y1}` +
+      ` C${xr - 1.1} ${y1 - h * 0.08} ${xr + 0.5} ${ym + h * 0.1} ${xl + 0.6} ${ym} C${xr + 0.5} ${ym - h * 0.1} ${xr - 1.1} ${y0 + h * 0.08} ${xr} ${y0} Z`;
+  }
+  function desenharFormula(c, x, b) {
+    if (c.simbolo === 'C' || c.simbolo === 'Cc') { const gn = c.simbolo === 'C' ? 'compC' : 'compCortado'; glifo(camCab, gn, x, b, 0); return x + larg(gn); }
+    const fs = 6.6, w = Math.max(String(c.num).length, String(c.den).length) * fs * 0.62, cx = x + w / 2;
+    mk('text', { class: 'num-comp', x: cx, y: yDe(6, b) + 2.44, 'text-anchor': 'middle' }, camCab).textContent = c.num;
+    mk('text', { class: 'num-comp', x: cx, y: yDe(2, b) + 2.44, 'text-anchor': 'middle' }, camCab).textContent = c.den;
+    return x + w;
+  }
+  // Desenha folhas, pautas, claves, armaduras, compasso, título e o botão (+)
+  function desenharEstrutura() {
+    camFolhas.replaceChildren(); camPauta.replaceChildren(); camCab.replaceChildren(); camUi.replaceChildren();
+    const m = M();
+    calcularLayout();
+    const nPag = LAYOUT.length ? LAYOUT[LAYOUT.length - 1].pagina + 1 : 1, alt = nPag * PH + (nPag - 1) * GAP;
+    svg.setAttribute('viewBox', `0 0 ${PW} ${alt}`);
+    folha.style.aspectRatio = `${PW} / ${alt}`;
+    for (let k = 0; k < nPag; k++) {
+      mk('rect', { class: 'papel', x: 0, y: k * (PH + GAP), width: PW, height: PH }, camFolhas);
+      if (nPag > 1) mk('text', { class: 'num-pag', x: PW / 2, y: k * (PH + GAP) + PH - 5, 'text-anchor': 'middle' }, camCab).textContent = `${k + 1} / ${nPag}`;
+    }
+    if (!m) return;
+    const n = tomDe(m.tom)[2];
+    m.linhas.forEach((ln, l) => {
+      const L = LAYOUT[l];
+      let xFim = 0;
+      ln.pautas.forEach((cl, p) => {
+        const t = L.topos[p], b = t + 4 * SP, C = CLAVE[cl] || CLAVE.sol;
+        for (let i = 0; i < 5; i++) mk('line', { x1: X0, x2: X1, y1: t + i * SP, y2: t + i * SP }, camPauta);
+        let x = X0 + 1.2;
+        glifo(camCab, C.glifo, x, b, 0); x += larg(C.glifo) + 1.2;
+        const pos = n > 0 ? C.sust : C.bem, gl = n > 0 ? 'sustenido' : 'bemol';
+        for (let i = 0; i < Math.abs(n); i++) { glifo(camCab, gl, x, b, alvoS(pos[i]) - 131); x += larg(gl) + 0.35; }
+        if (n) x += 0.8;
+        if (l === 0) x = desenharFormula(m.compasso, x, b);
+        xFim = Math.max(xFim, x);
+        // tocar na clave abre a escolha de clave da linha
+        mk('rect', { class: 'toque-clave', x: X0 - 3, y: t - 3, width: larg(C.glifo) + 4.5, height: 4 * SP + 6, 'data-linha': l }, camUi);
+      });
+      L.inicio = xFim + 2.2;
+      if (ln.pautas.length > 1) {
+        const y0 = L.topos[0], y1 = L.topos[L.topos.length - 1] + 4 * SP;
+        mk('line', { class: 'traco-fino', x1: X0, x2: X0, y1: y0, y2: y1 }, camCab);
+        mk('path', { class: 'chave', d: chavePath(X0 - 0.7, y0, y1) }, camCab);
+      }
+    });
+    mk('text', { class: 'titulo-mus', x: PW / 2, y: 10, 'text-anchor': 'middle' }, camCab).textContent = m.titulo;
+    if (m.autor) mk('text', { class: 'autor-mus', x: X1, y: 16, 'text-anchor': 'end' }, camCab).textContent = m.autor;
+    if (m.andamento) {
+      const g = mk('g', { transform: `translate(${X0 + 1.5} 20) scale(0.55)` }, camCab);
+      desenharItem({ tipo: m.unidade.tipo, s: 0, x: 0, dir: 'up' }, g, 0, null, false);
+      let tx = X0 + 1.5 + 1.1;
+      if (m.unidade.ponto) { mk('circle', { class: 'ponto', cx: X0 + 1.5 + 1.25, cy: 19.8, r: 0.3 }, camCab); tx += 0.7; }
+      mk('text', { class: 'autor-mus', x: tx + 0.6, y: 20.8 }, camCab).textContent = '= ' + m.andamento;
+    }
+    // (+) no fim da última linha; (−) aparece quando a última linha está vazia
+    const ul = LAYOUT[LAYOUT.length - 1], yc = (ul.topos[0] + ul.topos[ul.topos.length - 1] + 4 * SP) / 2, xc = X1 + 5.5;
+    const gm = mk('g', { class: 'mais', 'data-acao': 'mais' }, camUi);
+    mk('circle', { cx: xc, cy: yc, r: 2.8 }, gm);
+    mk('path', { d: `M${xc - 1.3} ${yc} H${xc + 1.3} M${xc} ${yc - 1.3} V${yc + 1.3}` }, gm);
+    if (m.linhas.length > 1 && !itensDe(m.linhas.length - 1).length) {
+      const gr = mk('g', { class: 'menos', 'data-acao': 'menos' }, camUi);
+      mk('circle', { cx: xc, cy: yc + 7, r: 2.2 }, gr);
+      mk('path', { d: `M${xc - 1} ${yc + 7} H${xc + 1}` }, gr);
+    }
+  }
+
+  // ---------- Compassos e nomes das notas ----------
+  // Barras de compasso valem para a linha inteira (todas as pautas dela)
+  function limites(l = LIN) {
+    const L = LAYOUT[l];
+    const xs = itensDe(l).filter(i => BARRA.has(i.tipo)).map(i => i.x).sort((a, b) => a - b);
+    return [L ? L.inicio : INICIO, ...xs, X1];
+  }
+  function compassoDe(x, l = LIN) { const lm = limites(l); for (let i = 0; i < lm.length - 1; i++) if (x > lm[i] && x <= lm[i + 1]) return [lm[i], lm[i + 1], i]; return [lm[0], lm[1], 0]; }
+  // Compassos de toda a música, numerados em sequência (a sobra vazia no fim de uma linha não conta)
+  function segmentos() {
+    const m = M(), res = []; let numero = 0;
+    if (!m) return res;
+    m.linhas.forEach((ln, l) => {
+      const lm = limites(l);
+      for (let i = 0; i < lm.length - 1; i++) {
+        const a = lm[i], b = lm[i + 1];
+        if (b - a < 2) continue;
+        const temNota = itensDe(l).some(n => TEMPOS[n.tipo] && n.x > a && n.x < b);
+        if (i === lm.length - 2 && i > 0 && !temNota && l < m.linhas.length - 1) continue;
+        numero++;
+        res.push({ l, a, b, i, numero, temNota, ultimo: l === m.linhas.length - 1 && i === lm.length - 2 });
+      }
+    });
+    return res;
+  }
+  function valorDe(n) {
+    const v = TEMPOS[n.tipo] || 0;
+    const pontuada = itensDe(n.l, n.p).some(p => p.tipo === 'ponto' && p.x > n.x && p.x - n.x <= 3 * SP && (PAUSA.has(n.tipo) || cabecas(n).some(s => Math.abs(p.s - s) <= 1.5)));
+    return pontuada ? v * 1.5 : v;
+  }
+  function nomeNota(n, s = n.s) {
+    const m = M(), l = n.l ?? LIN, p = n.p ?? PAU, cl = claveDe(l, p);
+    const idx = cl.l + s, L = ((idx % 7) + 7) % 7;
+    const acid = tomDe(m.tom)[2];
+    let ac = '';
+    if (acid > 0 && ORDEM_SUST.slice(0, acid).includes(L)) ac = '♯';
+    if (acid < 0 && ORDEM_BEM.slice(0, -acid).includes(L)) ac = '♭';
+    const [a] = compassoDe(n.x, l);
+    const ants = itensDe(l, p).filter(i => ACID.has(i.tipo) && i.s === s && i.x < n.x && i.x > a).sort((q, r) => q.x - r.x);
+    if (ants.length) ac = { sustenido: '♯', bemol: '♭', bequadro: '' }[ants[ants.length - 1].tipo];
+    return LETRAS[L] + ac;
+  }
+  function nomePosicao(s) {
+    if (s >= 0 && s <= 8) return s % 2 === 0 ? `${s / 2 + 1}ª linha` : `${(s + 1) / 2}º espaço`;
+    if (s === -1) return 'abaixo da pauta';
+    if (s === 9) return 'acima da pauta';
+    if (s < 0) return s % 2 === 0 ? `${-s / 2}ª suplementar de baixo` : 'abaixo das suplementares';
+    return s % 2 === 0 ? `${(s - 8) / 2}ª suplementar de cima` : 'acima das suplementares';
+  }
+  const fmt = v => String(Math.round(v * 1000) / 1000).replace('.', ',');
+
+  // ---------- Nome do acorde (cifra) ----------
+  const SEMI = [0, 2, 4, 5, 7, 9, 11], LET_EN = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+  const MODELOS = [
+    [[0, 4, 7], ''], [[0, 3, 7], 'm'], [[0, 4, 7, 10], '7'], [[0, 4, 7, 11], '7M'], [[0, 3, 7, 10], 'm7'], [[0, 3, 6, 10], 'm7(b5)'],
+    [[0, 5, 7], 'sus4'], [[0, 2, 7], 'sus2'], [[0, 5, 7, 10], '7(sus4)'], [[0, 4, 7, 9], '6'], [[0, 3, 7, 9], 'm6'],
+    [[0, 2, 4, 7], '(add9)'], [[0, 2, 3, 7], 'm(add9)'], [[0, 2, 4, 7, 10], '7(9)'], [[0, 3, 6], '°'], [[0, 3, 6, 9], '°'], [[0, 4, 8], '+'],
+    [[0, 4, 10], '7'], [[0, 3, 10], 'm7'], [[0, 4, 11], '7M']
+  ];
+  function alturaDe(n, s) {
+    const cl = claveDe(n.l ?? LIN, n.p ?? PAU);
+    const L = (((cl.l + s) % 7) + 7) % 7, nm = nomeNota(n, s);
+    const ac = nm.endsWith('♯') ? 1 : nm.endsWith('♭') ? -1 : 0;
+    return { pc: (SEMI[L] + ac + 12) % 12, cifra: LET_EN[L] + (ac === 1 ? '#' : ac === -1 ? 'b' : '') };
+  }
+  function nomeAcorde(n) {
+    const hs = [...cabecas(n)].sort((a, b) => a - b).map(s => alturaDe(n, s));
+    const pcs = [...new Set(hs.map(h => h.pc))];
+    if (pcs.length < 3) return '';
+    const baixo = hs[0], nomePc = pc => hs.find(h => h.pc === pc).cifra;
+    let invertido = null;
+    for (const [mod, suf] of MODELOS) for (const r of pcs) {
+      const iv = pcs.map(pc => (pc - r + 12) % 12).sort((a, b) => a - b);
+      if (iv.length === mod.length && iv.every((v, i) => v === mod[i])) {
+        if (r === baixo.pc) return nomePc(r) + suf;
+        if (!invertido) invertido = nomePc(r) + suf + '/' + baixo.cifra;
+      }
+    }
+    return invertido || '';
+  }
+
+  function desenharCompassos() {
+    const m = M(); const { num, den } = m.compasso;
+    const cap = num * 4 / den;
+    for (const sg of segmentos()) {
+      const L = LAYOUT[sg.l], ln = m.linhas[sg.l];
+      if (sg.numero > 1) mk('text', { class: 'rot', x: sg.a + 0.8, y: L.topos[0] - 5 }, camNotas).textContent = sg.numero;
+      ln.pautas.forEach((_, p) => {
+        const soma = itensDe(sg.l, p).filter(n => TEMPOS[n.tipo] && n.x > sg.a && n.x < sg.b).reduce((s, n) => s + valorDe(n), 0);
+        if (!soma) return;
+        const dif = soma - cap, cx = (sg.a + sg.b) / 2;
+        const y = L.topos[p] + 4 * SP + (p < ln.pautas.length - 1 ? 6.4 : 10.5);
+        if (Math.abs(dif) < 1e-6) {
+          // compasso certo: só um selo verde discreto, sem texto
+          const g = mk('g', { class: 'rot tempos ok-comp' }, camNotas);
+          mk('title', {}, g).textContent = `${num} de ${num}: compasso completo`;
+          mk('circle', { cx, cy: y - 0.8, r: 1.35, fill: '#00873E' }, g);
+          mk('path', { d: `M${cx - 0.65} ${y - 0.8} l0.45 0.45 l0.85 -0.9`, fill: 'none', stroke: '#fff', 'stroke-width': 0.35, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+          return;
+        }
+        // errado: em vermelho, com a conta; o último compasso ainda sendo escrito fica neutro
+        let cls = 'rot tempos', txt = `${fmt(soma * den / 4)} de ${num}`;
+        if (dif > 0) { cls += ' passou'; txt += ' · passou'; }
+        else if (!sg.ultimo) { cls += ' passou'; txt += ' · falta'; }
+        mk('text', { class: cls, x: cx, y, 'text-anchor': 'middle' }, camNotas).textContent = txt;
+      });
+    }
+  }
+
+  function desenharAnotacoes() {
+    camAnot.replaceChildren();
+    for (const a of M().anot) {
+      const L = LAYOUT[a.l]; if (!L) continue;
+      const g = mk('g', { class: 'anot', 'data-id': a.id, transform: `translate(${a.ox || 0} ${L.y0 + (a.oy || 0)})` }, camAnot);
+      if (a.tipo === 'traco') {
+        const d = 'M' + a.pts.map(q => q[0].toFixed(2) + ' ' + q[1].toFixed(2)).join(' L');
+        mk('path', { class: 'anot-traco', d, stroke: a.cor }, g);
+        mk('path', { class: 'alvo-linha', d }, g);
+      } else {
+        const t = mk('text', { class: 'anot-texto', x: a.x, y: a.dy, fill: a.cor }, g); t.textContent = a.texto;
+      }
+      if (g.isConnected) { const b = g.getBBox(); CAIXAS.set(a.id, { x: b.x + (a.ox || 0), y: b.y + L.y0 + (a.oy || 0), width: b.width, height: b.height }); }
+      if (a.id === selId && g.isConnected) {
+        const b = g.getBBox();
+        g.insertBefore(mk('rect', { class: 'sel-caixa', x: b.x - 1, y: b.y - 1, width: b.width + 2, height: b.height + 2, rx: 0.8 }), g.firstChild);
+      }
+    }
+  }
+
+  // ---------- Barra de colcheias: geometria (direção comum, inclinação suave, haste mínima) ----------
+  const COM_HASTE = n => NOTA.has(n.tipo) && n.tipo !== 'semibreve' && n.tipo !== 'minima';
+  function prepararVigas() {
+    VIGAS_INFO.clear(); VIGA_GEO.clear();
+    const m = M(); if (!m) return;
+    const porId = new Map(m.itens.map(i => [i.id, i]));
+    // limpa barras que perderam notas (apagadas, viraram mínima...)
+    m.itens = m.itens.filter(v => {
+      if (v.tipo !== 'viga') return true;
+      v.ns = v.ns.filter(id => porId.has(id) && COM_HASTE(porId.get(id)));
+      return v.ns.length >= 2;
+    });
+    for (const v of m.itens) {
+      if (v.tipo !== 'viga') continue;
+      const ns = v.ns.map(id => porId.get(id)).sort((a, b) => a.x - b.x);
+      if (!LAYOUT[ns[0].l]) continue;
+      const base = baseDe(ns[0]);
+      const meio = ns.reduce((s, n) => s + (Math.min(...cabecas(n)) + Math.max(...cabecas(n))) / 2, 0) / ns.length;
+      const cima = meio < 4; // notas mais graves: hastes para cima
+      const rx = 0.6 * SP, sx = n => (cima ? n.x + rx * 0.93 : n.x - rx * 0.93);
+      const ponta = n => yDe(cima ? Math.max(...cabecas(n)) : Math.min(...cabecas(n)), base); // cabeça mais perto da barra
+      const niveis = Math.max(...ns.map(n => BANDEIROLAS[n.tipo] || 1));
+      const comp = SP * (3.5 + Math.max(0, niveis - 1) * 0.75), sg = cima ? -1 : 1;
+      const a = ns[0], b = ns[ns.length - 1], dx = Math.max(sx(b) - sx(a), 0.01);
+      let y1 = ponta(a) + sg * comp;
+      const mm = Math.max(-0.12, Math.min(0.12, ((ponta(b) + sg * comp) - y1) / dx)); // inclinação suave
+      const minH = SP * (2.6 + Math.max(0, niveis - 1) * 0.75);
+      let desloc = 0;
+      for (const n of ns) {
+        const yb = y1 + (sx(n) - sx(a)) * mm, he = ponta(n);
+        const falta = cima ? yb - (he - minH) : (he + minH) - yb;
+        if (falta > desloc) desloc = falta;
+      }
+      y1 += sg * desloc;
+      const info = { cima, ns, sx, yAt: x => y1 + (x - sx(a)) * mm };
+      VIGA_GEO.set(v.id, info);
+      for (const n of ns) VIGAS_INFO.set(n.id, info);
+    }
+  }
+  function desenharVigas() {
+    for (const [id, inf] of VIGA_GEO) {
+      const g = mk('g', { class: 'nota', 'data-id': id }, camNotas);
+      const { ns, cima, yAt, sx } = inf, esp = 0.5 * SP, passo = 0.75 * SP, sg = cima ? 1 : -1;
+      const niveis = n => BANDEIROLAS[n.tipo] || 1, max = Math.max(...ns.map(niveis));
+      const faixa = (xa, xb, k) => {
+        const ya = yAt(xa) + sg * k * passo, yb = yAt(xb) + sg * k * passo;
+        mk('path', { class: 'band', d: `M${xa} ${ya} L${xb} ${yb} L${xb} ${yb + sg * esp} L${xa} ${ya + sg * esp} Z` }, g);
+      };
+      for (let k = 0; k < max; k++) {
+        let i = 0;
+        while (i < ns.length) {
+          if (niveis(ns[i]) <= k) { i++; continue; }
+          let j = i; while (j + 1 < ns.length && niveis(ns[j + 1]) > k) j++;
+          if (j > i) faixa(sx(ns[i]) - 0.08, sx(ns[j]) + 0.08, k);
+          else { const d = i === ns.length - 1 ? -1.1 * SP : 1.1 * SP, x0 = sx(ns[i]); faixa(Math.min(x0, x0 + d), Math.max(x0, x0 + d), k); } // meio-traço
+          i = j + 1;
+        }
+      }
+      const xa = sx(ns[0]), xb = sx(ns[ns.length - 1]);
+      mk('path', { class: 'alvo-linha', d: `M${xa} ${yAt(xa)} L${xb} ${yAt(xb)}` }, g);
+      const nPts = Math.max(2, Math.ceil((xb - xa) / 1.5));
+      LINHAS_TOQUE.set(id, Array.from({ length: nPts + 1 }, (_, i) => { const x = xa + (xb - xa) * i / nPts; return { x, y: yAt(x) + (cima ? 1 : -1) * 0.6 }; }));
+      if (id === selId) g.classList.add('sel');
+    }
+  }
+  // Une notas com barra; se já estão unidas, o novo risco acrescenta uma barra (colcheia → semicolcheia → fusa)
+  function aplicarViga(ids) {
+    const m = M(), notas = ids.map(id => m.itens.find(i => i.id === id)).filter(Boolean);
+    if (notas.length < 2) return;
+    if (notas.some(n => !COM_HASTE(n) && n.tipo !== 'seminima')) { avisar('Mínima e semibreve não levam barra de colcheias.', 'falha'); return; }
+    const vigas = m.itens.filter(i => i.tipo === 'viga');
+    const mesma = vigas.find(v => v.ns.length === ids.length && ids.every(id => v.ns.includes(id)));
+    if (mesma && notas.every(n => n.tipo === 'fusa')) { avisar('Essas notas já são fusas (3 barras).'); return; }
+    guardarDesfazer();
+    if (mesma) {
+      const prox = { seminima: 'colcheia', colcheia: 'semicolcheia', semicolcheia: 'fusa', fusa: 'fusa' };
+      notas.forEach(n => { n.tipo = prox[n.tipo]; });
+    } else {
+      for (const v of vigas) v.ns = v.ns.filter(id => !ids.includes(id));
+      notas.forEach(n => { if (n.tipo === 'seminima') n.tipo = 'colcheia'; });
+      m.itens.push({ id: novoId(), tipo: 'viga', ns: [...ids], l: notas[0].l, p: notas[0].p });
+    }
+    renderizar(); gravar();
+    const tipos = [...new Set(notas.map(n => n.tipo))].map(t => NOMES[t].toLowerCase());
+    avisar(`<b>Barra de colcheias</b> em ${notas.length} notas (${tipos.join(' e ')}).` + (mesma ? '' : ' Outro risco igual por cima vira semicolcheia.'), 'ok');
+  }
+
+  function renderizar(novaId) {
+    desenharEstrutura();
+    camNotas.replaceChildren(); camAnot.replaceChildren();
+    if (!M()) return;
+    TIPS.clear(); CAIXAS.clear(); LINHAS_TOQUE.clear();
+    prepararVigas();
+    const lista = itens(), mapa = new Map(lista.map(n => [n.id, n]));
+    for (const n of lista) if (n.tipo !== 'ligadura' && n.tipo !== 'viga') {
+      if (!LAYOUT[n.l]) continue;
+      usar(n.l, n.p);
+      const g = desenharItem(n, camNotas, baseDe(n), mapa);
+      if (g && n.id === novaId) g.classList.add('nova');
+      if (g && n.id === selId) g.classList.add('sel');
+    }
+    for (const n of lista) if (n.tipo === 'ligadura' && LAYOUT[n.l]) desenharItem(n, camNotas, baseDe(n), mapa);
+    desenharVigas();
+    desenharCompassos();
+    desenharAnotacoes();
+    $('tMusica').textContent = M().titulo;
+    if (typeof atualizarAcordesDoTom === 'function') atualizarAcordesDoTom();
+  }
+
+  // ---------- Miniaturas (guia, paleta, biblioteca) ----------
+  const MINI = {
+    semibreve: [4, 'up'], minima: [2, 'up'], seminima: [3, 'up'], colcheia: [2, 'up'], semicolcheia: [3, 'up'], fusa: [7, 'down'],
+    sustenido: [3], bemol: [3], bequadro: [3], ponto: [5], staccato: [9], acento: [10], fermata: [9], respira: [9],
+    dinP: [4, 0, 1], dinMP: [4, 0, 1], dinMF: [4, 0, 1], dinF: [4, 0, 1], dinFF: [4, 0, 1], cresc: [4, 0, 1], decresc: [4, 0, 1], segno: [4, 0, 1], coda: [4, 0, 1]
+  };
+  function miniSvg(tipo) {
+    const m = mk('svg', { viewBox: '0 0 18 22', 'aria-hidden': 'true' });
+    const cfg = MINI[tipo] || [0];
+    if (!cfg[2]) { const l = mk('g', { class: 'linhas' }, m); for (let i = 0; i < 5; i++) mk('line', { x1: 0.5, x2: 17.5, y1: 6 + i * SP, y2: 6 + i * SP }, l); }
+    if (tipo === 'viga') {
+      for (const [x, s] of [[4.2, 2], [12.4, 4]]) desenharItem({ tipo: 'seminima', s, x, dir: 'up' }, m, 16, null, false);
+      const xa = 4.2 + 0.56 * SP, xb = 12.4 + 0.56 * SP, ya = 16 - 1 * SP - 3.5 * SP, yb = ya - 0.6;
+      mk('path', { class: 'band', d: `M${xa - 0.1} ${ya} L${xb + 0.1} ${yb} L${xb + 0.1} ${yb + 1.25} L${xa - 0.1} ${ya + 1.25} Z` }, m);
+    } else if (tipo === 'acorde') {
+      desenharItem({ tipo: 'seminima', s: 0, ss: [0, 2, 4], x: 8.2, dir: 'up' }, m, 16, null, false);
+    } else if (tipo === 'ligadura') {
+      const a = { id: 'a', tipo: 'seminima', x: 4.2, s: 3, dir: 'up' }, b = { id: 'b', tipo: 'seminima', x: 13, s: 3, dir: 'up' };
+      const mapa = new Map([['a', a], ['b', b]]);
+      desenharItem(a, m, 16, mapa, false); desenharItem(b, m, 16, mapa, false);
+      desenharItem({ tipo: 'ligadura', a: 'a', b: 'b' }, m, 16, mapa, false);
+    } else {
+      desenharItem({ tipo, s: cfg[0], x: NOTA.has(tipo) ? 8.2 : 9, dir: cfg[1] || 'up' }, m, 16, null, false);
+    }
+    return m;
+  }
+
+  // ---------- Geometria do reconhecimento ----------
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  function caixa(pts) {
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const p of pts) { if (p.x < x0) x0 = p.x; if (p.x > x1) x1 = p.x; if (p.y < y0) y0 = p.y; if (p.y > y1) y1 = p.y; }
+    return { x0, x1, y0, y1, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
+  }
+  function unir(a, b) {
+    const x0 = Math.min(a.x0, b.x0), x1 = Math.max(a.x1, b.x1), y0 = Math.min(a.y0, b.y0), y1 = Math.max(a.y1, b.y1);
+    return { x0, x1, y0, y1, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
+  }
+  function comprimento(pts) { let s = 0; for (let i = 1; i < pts.length; i++) s += dist(pts[i - 1], pts[i]); return s; }
+  function distCaixa(b, p) { const dx = Math.max(b.x0 - p.x, 0, p.x - b.x1), dy = Math.max(b.y0 - p.y, 0, p.y - b.y1); return Math.hypot(dx, dy); }
+  function reamostrar(pts, passo) {
+    if (pts.length < 2) return pts.map(p => ({ x: p.x, y: p.y }));
+    const out = [{ x: pts[0].x, y: pts[0].y }];
+    let acc = 0, prev = pts[0];
+    for (let i = 1; i < pts.length; i++) {
+      const cur = pts[i];
+      let d = dist(prev, cur);
+      while (d > 0 && acc + d >= passo) {
+        const t = (passo - acc) / d;
+        const np = { x: prev.x + t * (cur.x - prev.x), y: prev.y + t * (cur.y - prev.y) };
+        out.push(np); prev = np; d = dist(prev, cur); acc = 0;
+      }
+      acc += d; prev = cur;
+    }
+    const ult = pts[pts.length - 1];
+    if (dist(out[out.length - 1], ult) > passo * 0.3) out.push({ x: ult.x, y: ult.y });
+    return out;
+  }
+  function peca(pts) {
+    const bx = caixa(pts), L = comprimento(pts), diam = Math.max((bx.w + bx.h) / 2, 0.01);
+    return { pts, bx, L, tinta: L / (Math.PI * diam), fecho: pts.length > 1 ? dist(pts[0], pts[pts.length - 1]) / Math.max(bx.w, bx.h, 0.01) : 0 };
+  }
+  function pareceCabeca(p) {
+    const { w, h } = p.bx;
+    if (w < 0.9 * SP && h < 0.9 * SP) return p.L > 0.2;
+    if (Math.max(w, h) > 6 * SP) return false;
+    const asp = w / Math.max(h, 0.01);
+    if (asp < 0.3 || asp > 3.5) return false;
+    return p.tinta >= 1.5 || p.fecho <= 0.6;
+  }
+  function tintaDe(pecas) {
+    const bx = pecas.map(p => p.bx).reduce(unir), L = pecas.reduce((s, p) => s + p.L, 0);
+    return L / (Math.PI * Math.max((bx.w + bx.h) / 2, 0.01));
+  }
+  function acharHaste(pts) {
+    const bx = caixa(pts);
+    if (bx.h < 2 * SP) return null;
+    const pc = peca(pts);
+    if (bx.h < 1.5 * bx.w && (pc.fecho < 0.6 || pc.tinta > 1.5)) return null;
+    const r = reamostrar(pts, SP * 0.2);
+    const vert = (a, b, dir) => { const dx = b.x - a.x, dy = b.y - a.y; return Math.sign(dy) === dir && Math.abs(dx) <= Math.abs(dy) * 0.6; };
+    let melhor = null;
+    for (let i = 0; i < r.length - 1; i++) {
+      const dir = Math.sign(r[i + 1].y - r[i].y);
+      if (!dir || !vert(r[i], r[i + 1], dir)) continue;
+      let j = i + 1, falhas = 0;
+      while (j < r.length - 1) { if (vert(r[j], r[j + 1], dir)) { falhas = 0; j++; } else { falhas++; if (falhas > 1) break; j++; } }
+      while (j > i + 1 && !vert(r[j - 1], r[j], dir)) j--;
+      const a = r[i], b = r[j], ext = Math.abs(b.y - a.y);
+      if (ext < 2 * SP) continue;
+      const L = dist(a, b);
+      let flecha = 0;
+      for (let k = i; k <= j; k++) { const p = r[k]; const d = Math.abs((b.x - a.x) * (a.y - p.y) - (a.x - p.x) * (b.y - a.y)) / L; if (d > flecha) flecha = d; }
+      if (flecha > 0.15 * ext + 0.15 * SP) continue;
+      if (!melhor || ext > melhor.ext) melhor = { i, j, ext };
+    }
+    if (!melhor) return null;
+    const { i, j, ext } = melhor;
+    return { ext, x: (r[i].x + r[j].x) / 2, y0: Math.min(r[i].y, r[j].y), y1: Math.max(r[i].y, r[j].y), antes: r.slice(0, i + 1), depois: r.slice(j) };
+  }
+  function contarBandeirolas(p) {
+    const r = reamostrar(p.pts, SP * 0.15), lim = 0.5 * SP;
+    let n = 0, dir = 0, lo = r[0].x, hi = r[0].x;
+    for (const q of r) {
+      if (dir !== 1 && q.x - lo >= lim) { dir = 1; n++; hi = q.x; }
+      else if (dir !== -1 && hi - q.x >= lim) { dir = -1; lo = q.x; }
+      if (dir === 1) hi = Math.max(hi, q.x); else if (dir === -1) lo = Math.min(lo, q.x); else { lo = Math.min(lo, q.x); hi = Math.max(hi, q.x); }
+    }
+    return Math.max(n, 1);
+  }
+  const falha = motivo => ({ ok: false, motivo });
+  function notaPerto(p) {
+    let melhor = null, md = 3 * SP;
+    for (const n of itensDe(LIN, PAU)) if (NOTA.has(n.tipo)) for (const s of cabecas(n)) { const d = Math.hypot(n.x - p.x, yDe(s) - p.y); if (d < md) { md = d; melhor = n; } }
+    return melhor;
+  }
+  // Nota já existente na mesma coluna e na mesma pauta (para somar cabeças ao acorde)
+  function notaNaColuna(x, lim) {
+    let melhor = null, md = lim;
+    for (const n of itensDe(LIN, PAU)) if (NOTA.has(n.tipo)) { const d = Math.abs(n.x - x); if (d <= md) { md = d; melhor = n; } }
+    return melhor;
+  }
+
+  // Ponto pequeno (um toque): ao lado da nota = ponto de aumento; acima ou abaixo = staccato
+  function reconhecerPonto(tracos) {
+    const bx = caixa(tracos.flat());
+    if (Math.max(bx.w, bx.h) > 0.5 * SP) return null;
+    const s = Math.round((BASE - bx.cy) / (SP / 2));
+    const notas = itensDe(LIN, PAU).filter(n => NOTA.has(n.tipo));
+    const esq = notas.filter(n => bx.cx > n.x + 0.6 * SP && bx.cx - n.x <= 4 * SP && cabecas(n).some(h => Math.abs(h - s) <= 2))
+      .sort((a, b) => b.x - a.x)[0];
+    if (esq) return { ok: true, partes: 'ponto ao lado da nota', nota: { id: novoId(), tipo: 'ponto', x: +bx.cx.toFixed(2), s: s % 2 === 0 ? s + 1 : s, l: LIN, p: PAU } };
+    const col = notas.find(n => Math.abs(n.x - bx.cx) <= 1.5 * SP && cabecas(n).every(h => Math.abs(h - s) >= 2));
+    if (col) return { ok: true, partes: 'ponto acima ou abaixo da nota', nota: { id: novoId(), tipo: 'staccato', x: +col.x.toFixed(2), s, l: LIN, p: PAU } };
+    return falha('Ponto solto: faça o ponto logo à direita da nota (aumento) ou acima/abaixo dela (staccato).');
+  }
+
+  // Barra de colcheias desenhada: risco quase reto ligando as pontas das hastes de duas notas
+  function reconhecerViga(t) {
+    const bx = caixa(t), L = comprimento(t), corda = dist(t[0], t[t.length - 1]);
+    if (bx.w < 2 * SP || bx.h > bx.w || corda / Math.max(L, 0.01) < 0.85) return null;
+    const pontaPerto = p => {
+      let mel = null, md = 2.2 * SP;
+      for (const n of itensDe(LIN, PAU)) { const tp = TIPS.get(n.id); if (!tp || !NOTA.has(n.tipo)) continue; const d = Math.hypot(tp.x - p.x, tp.y - p.y); if (d < md) { md = d; mel = n; } }
+      return mel;
+    };
+    const A = pontaPerto(t[0]), B = pontaPerto(t[t.length - 1]);
+    if (!A || !B || A === B) return null;
+    const xa = Math.min(A.x, B.x), xb = Math.max(A.x, B.x);
+    const grupo = itensDe(LIN, PAU).filter(n => NOTA.has(n.tipo) && n.x >= xa - 0.01 && n.x <= xb + 0.01).sort((a, b) => a.x - b.x);
+    if (grupo.some(n => n.tipo === 'minima' || n.tipo === 'semibreve')) return falha('Mínima e semibreve não levam barra de colcheias.');
+    return { ok: true, viga: grupo.map(n => n.id), partes: 'risco ligando as hastes' };
+  }
+
+  function reconhecer(tracos) {
+    const ponto = reconhecerPonto(tracos);
+    if (ponto) return ponto;
+    if (tracos.length === 1) {
+      const vg = reconhecerViga(tracos[0]);
+      if (vg) return vg;
+      const t = tracos[0], bx = caixa(t);
+      // Ligadura: risco quase horizontal de uma nota até outra
+      if (bx.w >= 2 * SP && bx.h <= 0.7 * bx.w) {
+        const A = notaPerto(t[0]), B = notaPerto(t[t.length - 1]);
+        if (A && B && A !== B) {
+          const [a, b] = A.x <= B.x ? [A, B] : [B, A];
+          if (itens().some(i => i.tipo === 'ligadura' && i.a === a.id && i.b === b.id)) return falha('Essas duas notas já estão ligadas.');
+          return { ok: true, partes: 'risco ligando duas notas', nota: { id: novoId(), tipo: 'ligadura', a: a.id, b: b.id, l: LIN, p: PAU } };
+        }
+      }
+      // Barra de compasso: risco reto e vertical que cobre a pauta
+      const h = acharHaste(t);
+      if (h && comprimento(h.antes) < 0.8 * SP && comprimento(h.depois) < 0.8 * SP && h.y0 <= TOPO + 0.8 * SP && h.y1 >= BASE - 0.8 * SP) {
+        return { ok: true, partes: 'risco vertical', nota: { id: novoId(), tipo: 'barra', l: LIN, p: 0, x: +Math.min(Math.max(h.x, INICIO + 1), X1 - 1).toFixed(2) } };
+      }
+    }
+    let haste = null, idx = -1;
+    tracos.forEach((t, k) => { const h = acharHaste(t); if (h && (!haste || h.ext > haste.ext)) { haste = h; idx = k; } });
+    const pecas = [];
+    tracos.forEach((t, k) => {
+      if (k === idx) {
+        if (comprimento(haste.antes) > 0.5 * SP) pecas.push(peca(haste.antes));
+        if (comprimento(haste.depois) > 0.5 * SP) pecas.push(peca(haste.depois));
+      } else pecas.push(peca(t));
+    });
+    const sDe = y => Math.round((BASE - y) / (SP / 2));
+    if (!haste) {
+      const cab = pecas.filter(pareceCabeca);
+      if (!cab.length) return falha('Não encontrei a cabeça da nota.');
+      const bx = cab.map(p => p.bx).reduce(unir);
+      const ss = cab.map(p => sDe(p.bx.cy));
+      // Cabeça desenhada na coluna de uma nota que já existe: entra no acorde dela
+      const alvo = notaNaColuna(bx.cx, 1.6 * SP);
+      if (alvo) return { ok: true, acrescentar: { id: alvo.id, ss }, partes: 'cabeça na coluna de uma nota' };
+      const cxs = cab.map(p => p.bx.cx).sort((a, b) => a - b), med = cxs[Math.floor(cxs.length / 2)];
+      if (cab.some(p => Math.abs(p.bx.cx - med) > 1.6 * SP)) return falha('As cabeças ficaram desalinhadas. Para um acorde, empilhe uma sobre a outra.');
+      if (contarCheias(cab) * 2 >= cab.length) return falha('Cabeça cheia sem haste. Falta a haste.');
+      const nC = new Set(ss).size;
+      return montar('semibreve', ss, med, null, nC > 1 ? `${nC} cabeças vazias, sem haste` : 'cabeça vazia, sem haste');
+    }
+    // Cabeças: as que encostam na haste, do lado que tem mais tinta
+    const naHaste = p => { const y = Math.min(Math.max(p.bx.cy, haste.y0), haste.y1); return distCaixa(p.bx, { x: haste.x, y }) <= 1.2 * SP; };
+    const cabs = pecas.filter(p => pareceCabeca(p) && naHaste(p));
+    const meio = (haste.y0 + haste.y1) / 2;
+    const soma = a => a.reduce((s, p) => s + p.L, 0);
+    const deBaixo = cabs.filter(p => p.bx.cy >= meio), deCima = cabs.filter(p => p.bx.cy < meio);
+    if (!deBaixo.length && !deCima.length) return falha('Não encontrei a cabeça junto da haste.');
+    const naBase = soma(deBaixo) >= soma(deCima);
+    const cab = naBase ? deBaixo : deCima;
+    const bxC = cab.map(p => p.bx).reduce(unir);
+    const sobra = naBase ? bxC.y0 - haste.y0 : haste.y1 - bxC.y1;
+    if (sobra < 1.5 * SP) return falha('A haste ficou curta: ela precisa passar das cabeças.');
+    const ponta = naBase ? { x: haste.x, y: haste.y0 } : { x: haste.x, y: haste.y1 };
+    let band = 0;
+    for (const p of pecas) {
+      if (cab.includes(p) || p.L < 0.6 * SP) continue;
+      const junto = distCaixa(p.bx, ponta) <= 2 * SP ||
+        (p.bx.x0 <= haste.x + SP && p.bx.x1 >= haste.x - SP && Math.abs(p.bx.cy - ponta.y) <= Math.max(sobra * 0.7, 2 * SP));
+      if (junto) band += contarBandeirolas(p);
+    }
+    if (band > 3) return falha('Contei mais de 3 bandeirolas.');
+    const cheia = contarCheias(cab) * 2 >= cab.length;
+    const tipo = band > 0 ? ['colcheia', 'semicolcheia', 'fusa'][band - 1] : (cheia ? 'seminima' : 'minima');
+    const ss = cab.map(p => sDe(p.bx.cy)), nC = new Set(ss).size;
+    const x = naBase ? haste.x - 0.56 * SP : haste.x + 0.56 * SP;
+    const desc = (nC > 1 ? `${nC} cabeças ${cheia ? 'cheias' : 'vazias'}` : `cabeça ${cheia ? 'cheia' : 'vazia'}`) +
+      `, haste ${naBase ? 'para cima' : 'para baixo'}` + (band ? `, ${band} bandeirola${band > 1 ? 's' : ''}` : '');
+    return montar(tipo, ss, x, naBase ? 'up' : 'down', desc);
+  }
+  function contarCheias(cab) { return cab.filter(p => p.tinta >= 1.7 || (p.bx.w < 0.9 * SP && p.bx.h < 0.9 * SP)).length; }
+  function montar(tipo, ss, cx, dir, partes) {
+    ss = [...new Set(ss)].sort((a, b) => a - b);
+    if (ss[0] < -8 || ss[ss.length - 1] > 16) return falha('A nota ficou longe demais da pauta.');
+    const x = +Math.min(Math.max(cx, INICIO + 1.5), X1 - 2).toFixed(2);
+    const centro = (ss[0] + ss[ss.length - 1]) / 2;
+    return { ok: true, partes, nota: { id: novoId(), tipo, s: ss[0], ss, x, l: LIN, p: PAU, dir: dir || (centro >= 4 ? 'down' : 'up') } };
+  }
+
+  // ---------- Desenhos ensinados: comparação por nuvem de pontos ($P) ----------
+  // Cada símbolo pode ter de 3 a 10 desenhos da pessoa. Um desenho novo é comparado com todos.
+  const TREINAVEIS = new Set([...PAUSA, ...ACID, 'acento', 'fermata', 'respira', 'dinP', 'dinMP', 'dinMF', 'dinF', 'dinFF',
+    'cresc', 'decresc', 'segno', 'coda', 'barraDupla', 'barraFinal', 'repInicio', 'repFim']);
+  const NP = 32, D_CERTO = 0.6, D_PROVAVEL = 1.0, D_DUVIDA = 1.4;
+  function reamostrarNuvem(pts, n) {
+    let L = 0; for (let i = 1; i < pts.length; i++) if (pts[i].id === pts[i - 1].id) L += dist(pts[i - 1], pts[i]);
+    if (L === 0) return Array.from({ length: n }, () => ({ ...pts[0] }));
+    const I = L / (n - 1), arr = pts.map(p => ({ ...p })), out = [{ ...arr[0] }]; let D = 0;
+    for (let i = 1; i < arr.length; i++) {
+      if (arr[i].id !== arr[i - 1].id) continue;
+      const d = dist(arr[i - 1], arr[i]);
+      if (d > 0 && D + d >= I) {
+        const t = (I - D) / d, q = { x: arr[i - 1].x + t * (arr[i].x - arr[i - 1].x), y: arr[i - 1].y + t * (arr[i].y - arr[i - 1].y), id: arr[i].id };
+        out.push(q); arr.splice(i, 0, q); D = 0;
+      } else D += d;
+    }
+    while (out.length < n) out.push({ ...arr[arr.length - 1] });
+    return out.slice(0, n);
+  }
+  function nuvem(tracos) {
+    const pts = []; tracos.forEach((t, id) => t.forEach(p => pts.push({ x: p.x, y: p.y, id })));
+    const r = reamostrarNuvem(pts, NP), bx = caixa(r), s = Math.max(bx.w, bx.h) || 1;
+    const q = r.map(p => ({ x: (p.x - bx.x0) / s, y: (p.y - bx.y0) / s }));
+    const cx = q.reduce((a, p) => a + p.x, 0) / q.length, cy = q.reduce((a, p) => a + p.y, 0) / q.length;
+    return q.map(p => [+(p.x - cx).toFixed(4), +(p.y - cy).toFixed(4)]);
+  }
+  function distParcial(a, b, ini) {
+    const n = a.length, usado = new Array(n).fill(false); let soma = 0, i = ini;
+    do {
+      let m = -1, md = Infinity;
+      for (let j = 0; j < n; j++) if (!usado[j]) { const d = Math.hypot(a[i][0] - b[j][0], a[i][1] - b[j][1]); if (d < md) { md = d; m = j; } }
+      usado[m] = true; soma += (1 - ((i - ini + n) % n) / n) * md; i = (i + 1) % n;
+    } while (i !== ini);
+    return soma;
+  }
+  function distNuvem(a, b) { const passo = Math.floor(Math.sqrt(NP)); let mn = Infinity; for (let i = 0; i < NP; i += passo) mn = Math.min(mn, distParcial(a, b, i), distParcial(b, a, i)); return mn; }
+  const modelos = () => banco.modelos || {};
+  function reconhecerModelo(tracos) {
+    const mods = modelos(), tipos = Object.keys(mods).filter(t => mods[t] && mods[t].length);
+    if (!tipos.length) return null;
+    const bx = caixa(tracos.flat()), tam = Math.max(bx.w, bx.h) / SP;
+    if (tam < 0.3) return null;
+    const c = nuvem(tracos);
+    const lista = tipos.map(t => {
+      let d = Math.min(...mods[t].map(m => distNuvem(c, m.pts)));
+      const ref = mods[t].reduce((s, m) => s + m.tam, 0) / mods[t].length, r = tam / ref;
+      if (r < 0.4 || r > 2.5) d *= 1.6; // tamanho muito diferente do que a pessoa costuma desenhar
+      return { tipo: t, d };
+    }).sort((a, b) => a.d - b.d);
+    return { bx, lista, melhor: lista[0] };
+  }
+  // Onde o símbolo desenhado fica na pauta (o "pé" do bemol é a barriga; fermata e respiração, a base)
+  function itemDoModelo(tipo, bx) {
+    let ay = bx.cy;
+    if (tipo === 'bemol') ay = bx.y1 - 0.3 * bx.h;
+    else if (tipo === 'fermata' || tipo === 'respira') ay = bx.y1;
+    const it = posicaoDe(tipo, { x: bx.cx, y: ay });
+    return it ? { ...it, id: novoId() } : null;
+  }
+  function aprender(tipo, tracos) {
+    const bx = caixa(tracos.flat());
+    banco.modelos = modelos();
+    const lista = banco.modelos[tipo] || (banco.modelos[tipo] = []);
+    lista.push({ pts: nuvem(tracos), tam: +(Math.max(bx.w, bx.h) / SP).toFixed(2) });
+    if (lista.length > 10) lista.shift();
+    gravar();
+  }
+
+  function avisar(html, tipo) { statusEl.className = 'status' + (tipo ? ' ' + tipo : ''); statusEl.innerHTML = html; }
+  function descrever(n) {
+    if (NOTA.has(n.tipo)) {
+      const ss = [...cabecas(n)].sort((a, b) => a - b);
+      if (ss.length === 1) return `<b>${NOMES[n.tipo]}</b> · ${nomeNota(n)} · ${nomePosicao(n.s)}`;
+      const cifra = nomeAcorde(n);
+      return `<b>Acorde de ${NOMES[n.tipo].toLowerCase()}</b> · ${ss.map(s => nomeNota(n, s)).join(', ')}` + (cifra ? ` · cifra <b>${cifra}</b>` : '');
+    }
+    if (n.tipo === 'ligadura') return '<b>Ligadura</b> criada.';
+    if (n.tipo === 'barra') {
+      const sg = segmentos().find(g => g.l === n.l && n.x - 0.01 > g.a && n.x - 0.01 <= g.b);
+      return sg ? `<b>Compasso ${sg.numero} fechado.</b> Pode seguir no compasso ${sg.numero + 1}.` : '<b>Barra de compasso</b> colocada.';
+    }
+    return `<b>${NOMES[n.tipo]}</b> colocado.`;
+  }
+  function acrescentarCabecas(id, novas) {
+    const n = M().itens.find(i => i.id === id);
+    if (!n) return;
+    const faltam = [...new Set(novas)].filter(s => !cabecas(n).includes(s) && s >= -8 && s <= 16);
+    if (!faltam.length) { avisar('Essa nota já está no acorde.'); return; }
+    guardarDesfazer();
+    n.ss = [...cabecas(n), ...faltam]; normalizar(n);
+    renderizar(n.id); gravar();
+    avisar(descrever(n), 'ok');
+  }
+  function adicionar(n, extra) {
+    if (n.l == null) n.l = LIN;
+    if (n.p == null) n.p = BARRA.has(n.tipo) ? 0 : PAU;
+    if (NOTA.has(n.tipo)) normalizar(n);
+    guardarDesfazer();
+    M().itens.push(n); renderizar(n.id); gravar();
+    avisar(descrever(n) + (extra ? ` <span>(${extra})</span>` : ''), 'ok');
+  }
+
+  // ---------- Entrada: caneta, mouse e dedo ----------
+  let pendente = null, atual = null, timer = null, canetaNaTela = false, apagando = null, apagouAlgo = false;
+  const toques = new Map();
+  let pinca = null;
+  function ptSvg(e) { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
+  const dTraco = pts => 'M' + pts.map(p => p.x.toFixed(2) + ' ' + p.y.toFixed(2)).join(' L');
+
+  function finalizar() {
+    clearTimeout(timer); timer = null;
+    if (!pendente) return;
+    const grupo = pendente; pendente = null;
+    const [l, p] = pautaDeY(grupo.bx.cy); usar(l, p); // reconhece na pauta mais próxima do desenho
+    const tr = grupo.tracos.map(t => t.pts);
+    const r = reconhecer(tr);                 // regras (notas, acordes, barra, ligadura, ponto)
+    const m = reconhecerModelo(tr);           // desenhos que a pessoa ensinou
+    const tirarTinta = () => grupo.tracos.forEach(t => t.el.remove());
+    const usarModelo = tipo => { const it = itemDoModelo(tipo, m.bx); if (!it) return false; tirarTinta(); adicionar(it, 'pelo seu desenho'); registrarRecente(tipo); return true; };
+    if (r.ok && r.viga) { tirarTinta(); aplicarViga(r.viga); registrarRecente('viga'); return; }
+    const ehPonto = r.ok && r.nota && (r.nota.tipo === 'ponto' || r.nota.tipo === 'staccato');
+    if (m && !ehPonto && m.melhor.d < D_CERTO && usarModelo(m.melhor.tipo)) return;
+    if (m && r.ok && r.nota && !ehPonto && m.melhor.d < D_PROVAVEL) { perguntar(grupo, m, r, [m.melhor.tipo, r.nota.tipo]); return; }
+    if (r.ok && r.acrescentar) { tirarTinta(); acrescentarCabecas(r.acrescentar.id, r.acrescentar.ss); return; }
+    if (r.ok) { tirarTinta(); adicionar(r.nota, r.partes); registrarRecente(r.nota.tipo); return; }
+    if (m && m.melhor.d < D_PROVAVEL && usarModelo(m.melhor.tipo)) return;
+    if (m && m.melhor.d < D_DUVIDA) { perguntar(grupo, m, null, m.lista.filter(x => x.d < D_DUVIDA).slice(0, 3).map(x => x.tipo)); return; }
+    grupo.tracos.forEach(t => { t.el.classList.add('erro'); setTimeout(() => t.el.remove(), 900); });
+    avisar(`<b>Não reconheci.</b> ${r.motivo} Veja o Guia, arraste o símbolo pela paleta, ou ensine o seu desenho na Biblioteca.`, 'falha');
+  }
+
+  // ---------- "Qual destes?": quando o desenho pode ser mais de um símbolo ----------
+  const escolhaEl = $('escolha');
+  let escolha = null;
+  function posTela(x, y) {
+    const ctm = svg.getScreenCTM ? svg.getScreenCTM() : null;
+    if (!ctm) return { x: innerWidth / 2, y: 140 };
+    const pt = svg.createSVGPoint(); pt.x = x; pt.y = y; const q = pt.matrixTransform(ctm);
+    return { x: q.x, y: q.y };
+  }
+  function perguntar(grupo, m, r, tipos) {
+    escolha = { grupo, m, r, l: LIN, p: PAU };
+    const lista = $('escolhaItens'); lista.replaceChildren();
+    for (const tipo of [...new Set(tipos)]) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'item';
+      b.appendChild(miniSvg(tipo));
+      const s = document.createElement('span'); s.textContent = CURTO[tipo] || NOMES[tipo]; b.appendChild(s);
+      b.onclick = () => escolher(tipo);
+      lista.appendChild(b);
+    }
+    escolhaEl.hidden = false;
+    const pos = posTela(m.bx.cx, m.bx.y1), w = escolhaEl.offsetWidth, h = escolhaEl.offsetHeight;
+    escolhaEl.style.left = Math.min(Math.max(pos.x - w / 2, 8), innerWidth - w - 8) + 'px';
+    escolhaEl.style.top = Math.min(Math.max(pos.y + 14, 8), innerHeight - h - 8) + 'px';
+    avisar('Fiquei em dúvida: toque no símbolo certo.');
+  }
+  function escolher(tipo) {
+    const e = escolha; escolha = null; escolhaEl.hidden = true;
+    if (!e) return;
+    usar(e.l, e.p);
+    e.grupo.tracos.forEach(t => t.el.remove());
+    if (e.r && e.r.nota && tipo === e.r.nota.tipo) { adicionar(e.r.nota, e.r.partes); registrarRecente(tipo); return; }
+    const it = itemDoModelo(tipo, e.m.bx);
+    if (!it) { avisar('Esse símbolo não cabe nesse lugar da pauta.', 'falha'); return; }
+    adicionar(it, 'pelo seu desenho'); registrarRecente(tipo);
+    aprender(tipo, e.grupo.tracos.map(t => t.pts)); // o app aprende com a escolha
+    atualizarBadges(tipo);
+  }
+  function recusarEscolha() {
+    if (!escolha) return;
+    escolha.grupo.tracos.forEach(t => { t.el.classList.add('erro'); setTimeout(() => t.el.remove(), 600); });
+    escolha = null; escolhaEl.hidden = true;
+  }
+  $('escolhaNenhum').onclick = () => { recusarEscolha(); avisar('Desenho descartado.'); };
+  function descartarPendente() { if (pendente) { clearTimeout(timer); pendente.tracos.forEach(t => t.el.remove()); pendente = null; return true; } return false; }
+
+  // ---------- Borracha que varre: apaga tudo o que o risco encosta (um Desfazer volta o risco inteiro) ----------
+  let apagados = 0;
+  function apagarTrecho(a, b) {
+    const m = M(); if (!m) return;
+    const R = 1.0, n = Math.max(1, Math.ceil(dist(a, b) / 0.5));
+    const pts = Array.from({ length: n + 1 }, (_, i) => ({ x: a.x + (b.x - a.x) * i / n, y: a.y + (b.y - a.y) * i / n }));
+    const naCaixa = bx => pts.some(p => p.x >= bx.x - R && p.x <= bx.x + bx.width + R && p.y >= bx.y - R && p.y <= bx.y + bx.height + R);
+    const naLinha = lp => lp.some(q => pts.some(p => Math.hypot(p.x - q.x, p.y - q.y) <= R + 0.4));
+    const remover = new Set(), cabecasFora = [];
+    for (const it of m.itens) {
+      if (it.tipo === 'ligadura' || it.tipo === 'viga') { const lp = LINHAS_TOQUE.get(it.id); if (lp && naLinha(lp)) remover.add(it.id); continue; }
+      const bx = CAIXAS.get(it.id); if (!bx || !naCaixa(bx)) continue;
+      if (NOTA.has(it.tipo) && cabecas(it).length > 1) { // acorde: só as cabeças tocadas
+        const base = baseDe(it);
+        const tocadas = cabecas(it).filter(s => pts.some(p => Math.hypot(p.x - it.x, p.y - yDe(s, base)) <= 0.8 * SP));
+        if (tocadas.length) cabecasFora.push([it, tocadas]);
+      } else remover.add(it.id);
+    }
+    const anotFora = m.anot.filter(an => { const bx = CAIXAS.get(an.id); return bx && naCaixa(bx); }).map(an => an.id);
+    if (!remover.size && !cabecasFora.length && !anotFora.length) return;
+    if (!apagouAlgo) { guardarDesfazer(); apagouAlgo = true; } // uma foto por risco: Desfazer devolve tudo
+    for (const [it, ss] of cabecasFora) { const resto = cabecas(it).filter(s => !ss.includes(s)); if (resto.length) { it.ss = resto; normalizar(it); } else remover.add(it.id); }
+    m.itens = m.itens.filter(x => !remover.has(x.id) && !(x.tipo === 'ligadura' && (remover.has(x.a) || remover.has(x.b))));
+    m.anot = m.anot.filter(an => !anotFora.includes(an.id));
+    apagados += remover.size + cabecasFora.length + anotFora.length;
+    renderizar(); gravar();
+    avisar(`<b>${apagados} apagado${apagados > 1 ? 's' : ''}</b> neste risco. Desfazer devolve tudo de uma vez.`);
+  }
+  function cursorBorracha(p) {
+    camPrevia.replaceChildren();
+    if (p) mk('circle', { class: 'cursor-borracha', cx: p.x, cy: p.y, r: 1.0 }, camPrevia);
+  }
+
+  function apagarEm(e) {
+    const alvo = document.elementFromPoint(e.clientX, e.clientY);
+    if (!alvo || !alvo.closest || !M()) return;
+    const ga = alvo.closest('.anot');
+    if (ga && camAnot.contains(ga)) {
+      if (!apagouAlgo) { guardarDesfazer(); apagouAlgo = true; }
+      M().anot = M().anot.filter(a => a.id !== ga.getAttribute('data-id'));
+      renderizar(); gravar(); avisar('<b>Anotação</b> apagada. Desfazer traz de volta.');
+      return;
+    }
+    const g = alvo.closest('.nota');
+    if (!g || !camNotas.contains(g)) return;
+    const id = g.getAttribute('data-id');
+    const n = M().itens.find(x => x.id === id);
+    if (!n) return;
+    // No acorde, a borracha tira só a cabeça tocada
+    if (NOTA.has(n.tipo) && cabecas(n).length > 1) {
+      usar(n.l, n.p);
+      const sP = Math.round((BASE - ptSvg(e).y) / (SP / 2));
+      const alvoS = cabecas(n).reduce((a, s) => (Math.abs(s - sP) < Math.abs(a - sP) ? s : a));
+      if (Math.abs(alvoS - sP) > 1) return;
+      if (!apagouAlgo) { guardarDesfazer(); apagouAlgo = true; }
+      const nome = nomeNota(n, alvoS);
+      n.ss = cabecas(n).filter(s => s !== alvoS); normalizar(n);
+      renderizar(); gravar();
+      avisar(`<b>${nome}</b> tirado do acorde. Desfazer traz de volta.`);
+      return;
+    }
+    if (!apagouAlgo) { guardarDesfazer(); apagouAlgo = true; }
+    M().itens = M().itens.filter(x => x.id !== id && !(x.tipo === 'ligadura' && (x.a === id || x.b === id)));
+    renderizar(); gravar();
+    avisar(`<b>${NOMES[n.tipo]}</b> apagado. Desfazer traz de volta.`);
+  }
+
+  // ---------- (+), (−) e troca de clave: funcionam com qualquer ferramenta ----------
+  function acaoUi(e) {
+    const t = e.target && e.target.closest ? e.target.closest('[data-acao], .toque-clave') : null;
+    if (!t || !camUi.contains(t)) return false;
+    e.preventDefault();
+    if (t.classList.contains('toque-clave')) abrirMenuClave(+t.getAttribute('data-linha'), e.clientX, e.clientY);
+    else if (t.getAttribute('data-acao') === 'mais') adicionarLinha();
+    else removerLinha();
+    return true;
+  }
+  function rolarAte(y) {
+    const ctm = svg.getScreenCTM ? svg.getScreenCTM() : null; if (!ctm) return;
+    const pt = svg.createSVGPoint(); pt.x = 0; pt.y = y;
+    const sy = pt.matrixTransform(ctm).y, r = mesa.getBoundingClientRect();
+    if (sy > r.bottom - 20) mesa.scrollBy({ top: sy - r.bottom + 60, behavior: 'smooth' });
+  }
+  function adicionarLinha() {
+    const m = M(); descartarPendente(); guardarDesfazer();
+    const pagAntes = LAYOUT.length ? LAYOUT[LAYOUT.length - 1].pagina : 0;
+    m.linhas.push({ pautas: [...m.linhas[m.linhas.length - 1].pautas] }); // repete a linha anterior
+    renderizar(); gravar();
+    const L = LAYOUT[LAYOUT.length - 1];
+    avisar(L.pagina > pagAntes ? `<b>Folha ${L.pagina + 1} criada</b>, com a linha ${m.linhas.length}.` : `<b>Linha ${m.linhas.length}</b> criada.`, 'ok');
+    rolarAte(L.y0 + L.alto);
+  }
+  function removerLinha() {
+    const m = M(), ult = m.linhas.length - 1;
+    if (ult < 1 || itensDe(ult).length) return;
+    guardarDesfazer(); m.linhas.pop(); m.anot = m.anot.filter(a => a.l < m.linhas.length);
+    renderizar(); gravar(); avisar('Última linha removida. Desfazer traz de volta.');
+  }
+
+  // ---------- Ponteiro: selecionar sem desenhar e rolar a folha ----------
+  let selId = null, rolando = null;
+  function iniciarPonteiro(e) {
+    const alvo = document.elementFromPoint(e.clientX, e.clientY);
+    const g = alvo && alvo.closest ? (alvo.closest('.anot') || alvo.closest('.nota')) : null;
+    if (g && (camAnot.contains(g) || camNotas.contains(g))) {
+      const id = g.getAttribute('data-id');
+      selId = id; renderizar();
+      const n = M().itens.find(x => x.id === id);
+      if (n) avisar(descrever(n).replace(/ criada\.| colocado\./, '') + ' <span>· Delete apaga</span>');
+      else avisar('<b>Anotação</b> selecionada. <span>Use Mover para levar a outro lugar; Delete apaga.</span>');
+      return;
+    }
+    if (selId) { selId = null; renderizar(); avisar(DICA_MODO.ponteiro); }
+    rolando = { id: e.pointerId, x: e.clientX, y: e.clientY }; // arrastar no vazio rola a folha
+    svg.setPointerCapture(e.pointerId);
+  }
+  function apagarSelecionado() {
+    if (!selId || !M()) return;
+    const id = selId; selId = null;
+    guardarDesfazer();
+    M().itens = M().itens.filter(x => x.id !== id && !(x.tipo === 'ligadura' && (x.a === id || x.b === id)));
+    M().anot = M().anot.filter(a => a.id !== id);
+    renderizar(); gravar(); avisar('Apagado. Desfazer traz de volta.');
+  }
+  document.addEventListener('keydown', e => {
+    if (modo !== 'ponteiro' || !selId) return;
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); apagarSelecionado(); }
+  });
+
+  // ---------- Mover o que já está na pauta (símbolos e anotações) ----------
+  let movendo = null;
+  function iniciarMover(e) {
+    const alvo = document.elementFromPoint(e.clientX, e.clientY);
+    const ga = alvo && alvo.closest ? alvo.closest('.anot') : null;
+    const gn = alvo && alvo.closest ? alvo.closest('.nota') : null;
+    const p0 = ptSvg(e);
+    if (ga && camAnot.contains(ga)) {
+      const a = M().anot.find(x => x.id === ga.getAttribute('data-id'));
+      if (a) movendo = { id: e.pointerId, tipo: 'anot', obj: a, p0, ox: a.ox || 0, oy: a.oy || 0, salvo: false };
+    } else if (gn && camNotas.contains(gn)) {
+      const n = M().itens.find(x => x.id === gn.getAttribute('data-id'));
+      if (!n) return;
+      if (n.tipo === 'ligadura' || n.tipo === 'viga') { avisar('Ligaduras e barras acompanham as notas: mova as notas.'); return; }
+      movendo = { id: e.pointerId, tipo: 'item', obj: n, p0, orig: JSON.parse(JSON.stringify(n)), salvo: false };
+    } else { avisar('Toque num símbolo ou numa anotação e arraste.'); return; }
+    svg.setPointerCapture(e.pointerId);
+  }
+  function arrastarMover(e) {
+    const mv = movendo, p = ptSvg(e), dx = p.x - mv.p0.x, dy = p.y - mv.p0.y;
+    if (!mv.salvo) { if (Math.hypot(dx, dy) < 0.8) return; guardarDesfazer(); mv.salvo = true; }
+    if (mv.tipo === 'anot') { mv.obj.ox = +(mv.ox + dx).toFixed(2); mv.obj.oy = +(mv.oy + dy).toFixed(2); renderizar(); return; }
+    const n = mv.obj, o = mv.orig;
+    usar(n.l, n.p);
+    n.x = +Math.min(Math.max(o.x + dx, INICIO + 1), X1 - 1).toFixed(2);
+    if (o.s != null && !BARRA.has(n.tipo) && !PAUSA.has(n.tipo)) {
+      const ss0 = cabecas(o), [mn, mx] = NOTA.has(n.tipo) ? [-8, 16] : [-12, 20];
+      const ds = Math.max(mn - Math.min(...ss0), Math.min(mx - Math.max(...ss0), Math.round(-dy / (SP / 2))));
+      if (NOTA.has(n.tipo)) { n.ss = ss0.map(s => s + ds); normalizar(n); } else n.s = o.s + ds;
+    }
+    renderizar();
+    avisar(NOTA.has(n.tipo) ? descrever(n) : `Movendo: ${NOMES[n.tipo].toLowerCase()}`);
+  }
+
+  // ---------- Anotações coloridas (fora da partitura) ----------
+  const CORES_ANOT = [['#D32F2F', 'Vermelho'], ['#1565C0', 'Azul'], ['#2E7D32', 'Verde'], ['#EF6C00', 'Laranja'], ['#6A1B9A', 'Roxo']];
+  let anotCor = banco.anotCor || CORES_ANOT[0][0], anotTipo = 'traco';
+  function salvarAnot(obj, yRef) {
+    const [l] = pautaDeY(yRef), L = LAYOUT[l];
+    guardarDesfazer();
+    if (obj.tipo === 'traco') obj.pts = obj.pts.map(q => [+q.x.toFixed(2), +(q.y - L.y0).toFixed(2)]);
+    M().anot.push({ id: novoId(), l, cor: anotCor, ...obj });
+    renderizar(); gravar();
+    avisar('<b>Anotação</b> colocada. Use Mover para reposicionar.', 'ok');
+  }
+  const entrada = $('entradaTexto');
+  let entradaPos = null;
+  function abrirEntradaTexto(cx, cy, p) {
+    entradaPos = p; entrada.value = ''; entrada.hidden = false;
+    entrada.style.left = Math.max(8, Math.min(cx, innerWidth - 230)) + 'px';
+    entrada.style.top = Math.max(cy - 22, 8) + 'px';
+    entrada.style.color = anotCor;
+    setTimeout(() => entrada.focus(), 0);
+  }
+  function confirmarTexto() {
+    if (entrada.hidden) return;
+    const txt = entrada.value.trim(); entrada.hidden = true;
+    if (!txt || !entradaPos) return;
+    const [l] = pautaDeY(entradaPos.y);
+    salvarAnot({ tipo: 'texto', x: +entradaPos.x.toFixed(2), dy: +(entradaPos.y - LAYOUT[l].y0).toFixed(2), texto: txt }, entradaPos.y);
+  }
+  entrada.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); confirmarTexto(); } else if (e.key === 'Escape') entrada.hidden = true; });
+  entrada.addEventListener('blur', confirmarTexto);
+
+  svg.addEventListener('pointerdown', e => {
+    if (!M()) return;
+    if (e.pointerType === 'touch' && (canetaNaTela || (e.width > 40 && e.height > 40))) return; // ignora a mão apoiada
+    if (document.body.classList.contains('visualizar') && (e.pointerType !== 'touch' || dedo)) {
+      rolando = { id: e.pointerId, x: e.clientX, y: e.clientY }; svg.setPointerCapture(e.pointerId); return; // só rola a folha
+    }
+    if (acaoUi(e)) return;
+    if (e.pointerType === 'touch' && !dedo) {
+      toques.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      svg.setPointerCapture(e.pointerId);
+      if (toques.size === 2) { const [a, b] = [...toques.values()]; pinca = { d: dist(a, b), z: zoom }; }
+      return;
+    }
+    if (e.button > 0) return;
+    e.preventDefault();
+    if (e.pointerType === 'pen') canetaNaTela = true;
+    svg.setPointerCapture(e.pointerId);
+    if (modo === 'ponteiro') { iniciarPonteiro(e); return; }
+    if (modo === 'borracha') {
+      const p = ptSvg(e);
+      apagando = { id: e.pointerId, ult: p }; apagouAlgo = false; apagados = 0;
+      cursorBorracha(p); apagarTrecho(p, p);
+      return;
+    }
+    if (modo === 'mover') { iniciarMover(e); return; }
+    if (modo === 'anotar') {
+      const p = ptSvg(e);
+      if (anotTipo === 'texto') { confirmarTexto(); abrirEntradaTexto(e.clientX, e.clientY, p); return; }
+      atual = { id: e.pointerId, pts: [{ x: p.x, y: p.y }], el: mk('path', {}, camTinta), anot: true };
+      atual.el.style.stroke = anotCor;
+      atual.el.setAttribute('d', dTraco(atual.pts));
+      return;
+    }
+    clearTimeout(timer);
+    recusarEscolha(); // começou outro desenho: a pergunta anterior é descartada
+    const p = ptSvg(e);
+    if (pendente) { const b = pendente.bx, m = 3 * SP; if (p.x < b.x0 - m || p.x > b.x1 + m || p.y < b.y0 - m || p.y > b.y1 + m) finalizar(); }
+    atual = { id: e.pointerId, pts: [{ x: p.x, y: p.y }], el: mk('path', {}, camTinta) };
+    atual.el.setAttribute('d', dTraco(atual.pts));
+  });
+  svg.addEventListener('pointermove', e => {
+    if (toques.has(e.pointerId)) {
+      const ant = toques.get(e.pointerId), novo = { x: e.clientX, y: e.clientY };
+      toques.set(e.pointerId, novo);
+      if (toques.size === 1) mesa.scrollBy(ant.x - novo.x, ant.y - novo.y);
+      else if (toques.size === 2 && pinca) { const [a, b] = [...toques.values()]; aplicarZoom(pinca.z * dist(a, b) / Math.max(pinca.d, 1)); }
+      return;
+    }
+    if (apagando && apagando.id === e.pointerId) {
+      const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+      for (const ev of (evs.length ? evs : [e])) { const q = ptSvg(ev); apagarTrecho(apagando.ult, q); apagando.ult = q; }
+      cursorBorracha(apagando.ult);
+      return;
+    }
+    if (movendo && movendo.id === e.pointerId) { arrastarMover(e); return; }
+    if (rolando && rolando.id === e.pointerId) { mesa.scrollBy(rolando.x - e.clientX, rolando.y - e.clientY); rolando.x = e.clientX; rolando.y = e.clientY; return; }
+    if (!atual || atual.id !== e.pointerId) return;
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+    for (const ev of (evs.length ? evs : [e])) { const p = ptSvg(ev); atual.pts.push({ x: p.x, y: p.y }); }
+    atual.el.setAttribute('d', dTraco(atual.pts));
+  });
+  function soltar(e) {
+    if (toques.has(e.pointerId)) { toques.delete(e.pointerId); if (toques.size < 2) { if (pinca) gravar(); pinca = null; } return; }
+    if (e.pointerType === 'pen') canetaNaTela = false;
+    if (apagando && apagando.id === e.pointerId) { apagando = null; cursorBorracha(null); return; }
+    if (rolando && rolando.id === e.pointerId) { rolando = null; return; }
+    if (movendo && movendo.id === e.pointerId) { const mv = movendo; movendo = null; if (mv.salvo) { gravar(); avisar('Movido. Desfazer volta para onde estava.'); } return; }
+    if (!atual || atual.id !== e.pointerId) return;
+    const t = atual; atual = null;
+    if (e.type === 'pointercancel') { t.el.remove(); return; }
+    if (t.anot) { t.el.remove(); if (t.pts.length > 1) salvarAnot({ tipo: 'traco', pts: t.pts }, t.pts[0].y); return; }
+    const bx = caixa(t.pts);
+    if (!pendente) pendente = { tracos: [], bx };
+    pendente.tracos.push(t); pendente.bx = unir(pendente.bx, bx);
+    timer = setTimeout(finalizar, espera);
+  }
+  svg.addEventListener('pointerup', soltar);
+  svg.addEventListener('pointercancel', soltar);
+  svg.addEventListener('contextmenu', e => e.preventDefault());
+
+  // ---------- Arrastar símbolos até a pauta ----------
+  const fab = $('fab'), paleta = $('paleta'), biblio = $('biblio'), fantasma = $('fantasma');
+  let arrasto = null;
+  function posicaoDe(tipo, p) {
+    const [l0, p0] = pautaDeY(p.y); usar(l0, p0); // a pauta mais perto de onde o símbolo está
+    const s = Math.round((BASE - p.y) / (SP / 2));
+    const x = +Math.min(Math.max(p.x, INICIO + 1), X1 - 1).toFixed(2);
+    const onde = { l: LIN, p: PAU };
+    if (NOTA.has(tipo)) {
+      if (s < -8 || s > 16) return null;
+      const alvo = notaNaColuna(p.x, 1.2 * SP); // solta em cima de uma nota: soma ao acorde
+      return alvo ? { tipo: 'cabeca', alvo: alvo.id, s } : { tipo, s, x, dir: s >= 4 ? 'down' : 'up', ...onde };
+    }
+    if (BARRA.has(tipo)) return { tipo, x, l: LIN, p: 0 };
+    if (PAUSA.has(tipo)) return { tipo, x, ...onde };
+    if (tipo === 'viga') {
+      const ns = itensDe(LIN, PAU).filter(i => NOTA.has(i.tipo) && i.tipo !== 'minima' && i.tipo !== 'semibreve');
+      const esq = ns.filter(n => n.x <= p.x).sort((a, b) => b.x - a.x)[0];
+      const dir = ns.filter(n => n.x > p.x).sort((a, b) => a.x - b.x)[0];
+      return esq && dir ? { tipo, ns: [esq.id, dir.id], ...onde } : null;
+    }
+    if (tipo === 'ligadura') {
+      const ns = itensDe(LIN, PAU).filter(i => NOTA.has(i.tipo));
+      const esq = ns.filter(n => n.x <= p.x).sort((a, b) => b.x - a.x)[0];
+      const dir = ns.filter(n => n.x > p.x).sort((a, b) => a.x - b.x)[0];
+      return esq && dir ? { tipo, a: esq.id, b: dir.id, ...onde } : null;
+    }
+    if (tipo === 'ponto') return { tipo, x, s: s % 2 === 0 ? s + 1 : s, ...onde };
+    return s >= -12 && s <= 20 ? { tipo, x, s, ...onde } : null;
+  }
+  function atualizarPrevia(e) {
+    const cx = e.clientX, cy = e.clientY - (arrasto.toque ? 48 : 0); // com o dedo, o símbolo fica acima do dedo
+    const r = svg.getBoundingClientRect();
+    let item = null;
+    if (M() && cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+      const p = ptSvg({ clientX: cx, clientY: cy });
+      item = arrasto.tipo === 'acordePronto' ? posicaoAcorde(arrasto.spec, p) : posicaoDe(arrasto.tipo, p);
+    }
+    arrasto.item = item;
+    camPrevia.replaceChildren();
+    if (item) {
+      const mapa = new Map(itens().map(n => [n.id, n]));
+      fantasma.hidden = true;
+      if (item.tipo === 'acordePronto') {
+        desenharItem({ ...item.plano.nota, id: 'previa' }, camPrevia, BASE, mapa, false);
+        for (const a of item.plano.acids) desenharItem({ ...a, id: 'previa' }, camPrevia, BASE, mapa, false);
+        avisar(`Solte para ${item.alvo ? 'transformar a nota no acorde' : 'colocar o acorde'} <b>${nomeSpec(arrasto.spec)}</b> · ${item.plano.nomes.join(', ')}`);
+        return;
+      }
+      if (item.tipo === 'viga') { avisar('Solte para unir as duas notas com barra de colcheias.'); return; }
+      if (item.tipo === 'cabeca') {
+        const alvo = mapa.get(item.alvo);
+        desenharItem({ ...alvo, ss: [...cabecas(alvo), item.s], id: 'previa' }, camPrevia, baseDe(alvo), mapa, false);
+        avisar(cabecas(alvo).includes(item.s) ? 'Essa nota já está no acorde.' : `Solte para somar ao acorde: ${nomeNota(alvo, item.s)}`);
+        return;
+      }
+      desenharItem({ ...item, id: 'previa' }, camPrevia, BASE, mapa, false);
+      avisar(NOTA.has(item.tipo) ? `${NOMES[item.tipo]} · ${nomeNota(item)} · ${nomePosicao(item.s)}` : `Solte para colocar: ${NOMES[item.tipo].toLowerCase()}.`);
+    } else {
+      fantasma.hidden = false; fantasma.style.left = cx + 'px'; fantasma.style.top = cy + 'px';
+      if (arrasto.tipo === 'ligadura') avisar('Leve a ligadura até o espaço entre duas notas.');
+    }
+  }
+  function tornarArrastavel(el, tipo, specFn) {
+    el.addEventListener('pointerdown', e => {
+      if (e.button > 0) return;
+      e.preventDefault();
+      el.setPointerCapture(e.pointerId);
+      const spec = specFn ? specFn() : null;
+      arrasto = { tipo, spec, id: e.pointerId, toque: e.pointerType === 'touch', x0: e.clientX, y0: e.clientY, moveu: false, item: null };
+      fantasma.replaceChildren(spec ? miniAcorde(spec) : miniSvg(tipo));
+    });
+    el.addEventListener('pointermove', e => {
+      if (!arrasto || arrasto.id !== e.pointerId) return;
+      if (!arrasto.moveu && Math.hypot(e.clientX - arrasto.x0, e.clientY - arrasto.y0) < 6) return;
+      arrasto.moveu = true;
+      if (!janGuia.hidden) mostrarGuia(false); // arrastou um cartão do Guia: a janela sai da frente
+      paleta.classList.add('arrastando'); biblio.classList.add('arrastando');
+      atualizarPrevia(e);
+    });
+    const fim = e => {
+      if (!arrasto || arrasto.id !== e.pointerId) return;
+      const a = arrasto; arrasto = null;
+      paleta.classList.remove('arrastando'); biblio.classList.remove('arrastando');
+      fantasma.hidden = true; camPrevia.replaceChildren();
+      if (e.type === 'pointercancel') return;
+      if (!a.moveu) { avisar(a.spec ? `Arraste o acorde <b>${nomeSpec(a.spec)}</b> até a pauta. A altura onde você solta define o baixo.` : `Arraste até a pauta e solte onde quiser: ${NOMES[a.tipo].toLowerCase()}.`); return; }
+      if (!a.item) { avisar(a.tipo === 'ligadura' || a.tipo === 'viga' ? 'Solte entre duas notas.' : 'Solte o símbolo sobre a pauta.'); return; }
+      if (a.item.tipo === 'viga') { finalizar(); aplicarViga(a.item.ns); registrarRecente('viga'); return; }
+      if (a.item.tipo === 'acordePronto') { aplicarAcorde(a.item.plano, a.item.alvo); registrarRecente(chaveAc(a.spec)); return; }
+      registrarRecente(a.tipo);
+      if (a.item.tipo === 'ligadura' && itens().some(i => i.tipo === 'ligadura' && i.a === a.item.a && i.b === a.item.b)) { avisar('Essas duas notas já estão ligadas.'); return; }
+      finalizar();
+      if (a.item.tipo === 'cabeca') { acrescentarCabecas(a.item.alvo, [a.item.s]); return; }
+      adicionar({ ...a.item, id: novoId() });
+    };
+    el.addEventListener('pointerup', fim);
+    el.addEventListener('pointercancel', fim);
+  }
+  function criarItem(tipo, rotulo) {
+    const b = document.createElement('div');
+    b.className = 'item';
+    b.setAttribute('aria-label', NOMES[tipo] + ': arraste para a pauta');
+    b.appendChild(miniSvg(tipo));
+    const t = document.createElement('span'); t.textContent = rotulo || CURTO[tipo] || NOMES[tipo];
+    b.appendChild(t);
+    tornarArrastavel(b, tipo);
+    b.dataset.chave = tipo; b.appendChild(estrela(tipo));
+    if (TREINAVEIS.has(tipo)) b.appendChild(botaoEnsinar(tipo));
+    return b;
+  }
+  // Lápis pequeno no cartão: ensinar o meu desenho (o número mostra quantos desenhos já tem)
+  function botaoEnsinar(tipo) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'ensinar';
+    b.setAttribute('aria-label', `Ensinar meu desenho: ${NOMES[tipo]}`); b.title = 'Ensinar meu desenho';
+    pintarEnsinar(b, tipo);
+    b.addEventListener('pointerdown', e => e.stopPropagation());
+    b.onclick = e => { e.stopPropagation(); abrirTreino(tipo); };
+    return b;
+  }
+  function pintarEnsinar(b, tipo) {
+    const n = (modelos()[tipo] || []).length;
+    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>${n ? `<span>${n}</span>` : ''}`;
+    b.classList.toggle('treinado', n > 0);
+  }
+  function atualizarBadges(tipo) { document.querySelectorAll('.item').forEach(it => { if (it.dataset.chave === tipo) { const e = it.querySelector('.ensinar'); if (e) pintarEnsinar(e, tipo); } }); }
+
+  // ---------- Tela de treino: desenhar o símbolo de 3 a 10 vezes ----------
+  const janTreino = $('janTreino'), tSvg = $('treinoSvg');
+  let treino = null;
+  function abrirTreino(tipo) {
+    treino = { tipo, amostras: (modelos()[tipo] || []).map(m => ({ ...m })), tracos: [], atual: null, timer: null };
+    $('treinoTit').textContent = `Ensinar meu desenho: ${NOMES[tipo]}`;
+    tSvg.replaceChildren();
+    const g = mk('g', { class: 'linhas' }, tSvg);
+    for (let i = 0; i < 5; i++) mk('line', { x1: 2, x2: 58, y1: 13 + i * SP, y2: 13 + i * SP }, g);
+    const ref = mk('g', { class: 'treino-ref' }, tSvg);
+    desenharItem({ tipo, s: MINI[tipo] ? MINI[tipo][0] : 4, x: 7, dir: 'up' }, ref, 23, null, false);
+    treino.cam = mk('g', { class: 'tinta' }, tSvg);
+    renderAmostras();
+    janTreino.hidden = false;
+  }
+  function ptTreino(e) { const p = tSvg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(tSvg.getScreenCTM().inverse()); }
+  tSvg.addEventListener('pointerdown', e => {
+    if (!treino || (e.pointerType === 'touch' && e.width > 40 && e.height > 40)) return;
+    e.preventDefault(); tSvg.setPointerCapture(e.pointerId); clearTimeout(treino.timer);
+    const p = ptTreino(e);
+    treino.atual = { id: e.pointerId, pts: [{ x: p.x, y: p.y }], el: mk('path', {}, treino.cam) };
+  });
+  tSvg.addEventListener('pointermove', e => {
+    const a = treino && treino.atual; if (!a || a.id !== e.pointerId) return;
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+    for (const ev of (evs.length ? evs : [e])) { const p = ptTreino(ev); a.pts.push({ x: p.x, y: p.y }); }
+    a.el.setAttribute('d', dTraco(a.pts));
+  });
+  const soltarTreino = e => {
+    const a = treino && treino.atual; if (!a || a.id !== e.pointerId) return;
+    treino.atual = null; treino.tracos.push(a);
+    treino.timer = setTimeout(capturarAmostra, 900); // parou de desenhar: guarda este desenho
+  };
+  tSvg.addEventListener('pointerup', soltarTreino);
+  tSvg.addEventListener('pointercancel', soltarTreino);
+  function capturarAmostra() {
+    if (!treino || !treino.tracos.length) return;
+    const tr = treino.tracos.map(t => t.pts), bx = caixa(tr.flat()), s = Math.max(bx.w, bx.h) || 1;
+    treino.amostras.push({ pts: nuvem(tr), tam: +(Math.max(bx.w, bx.h) / SP).toFixed(2), bruto: tr.map(t => t.map(q => [(q.x - bx.x0) / s, (q.y - bx.y0) / s])) });
+    treino.tracos.forEach(t => t.el.remove()); treino.tracos = [];
+    renderAmostras();
+  }
+  function renderAmostras() {
+    const box = $('treinoAmostras'); box.replaceChildren();
+    treino.amostras.forEach((a, i) => {
+      const d = document.createElement('div'); d.className = 'amostra';
+      const sv = mk('svg', { viewBox: '-0.15 -0.15 1.3 1.3', 'aria-hidden': 'true' });
+      if (a.bruto) for (const t of a.bruto) mk('path', { d: 'M' + t.map(q => q[0].toFixed(3) + ' ' + q[1].toFixed(3)).join(' L'), class: 'amostra-traco' }, sv);
+      else for (const q of a.pts) mk('circle', { cx: q[0] + 0.5, cy: q[1] + 0.5, r: 0.035, class: 'amostra-ponto' }, sv);
+      d.appendChild(sv);
+      const x = document.createElement('button'); x.type = 'button'; x.textContent = '✕'; x.setAttribute('aria-label', `Tirar o desenho ${i + 1}`);
+      x.onclick = () => { treino.amostras.splice(i, 1); renderAmostras(); };
+      d.appendChild(x); box.appendChild(d);
+    });
+    const n = treino.amostras.length;
+    $('treinoConta').textContent = n === 0 ? 'Nenhum desenho ainda. Desenhe o símbolo na pauta acima e pare: ele é guardado sozinho.'
+      : n < 3 ? `${n} desenho${n > 1 ? 's' : ''}. Faça pelo menos 3 para o app reconhecer bem.` : `${n} desenhos. Pronto para salvar (até 10; mais desenhos, mais acerto).`;
+    $('tSalvar').disabled = n > 0 && n < 3;
+  }
+  $('tCancelar').onclick = () => { if (treino) clearTimeout(treino.timer); treino = null; janTreino.hidden = true; };
+  $('tApagarTodos').onclick = () => { treino.amostras = []; renderAmostras(); };
+  $('tSalvar').onclick = () => {
+    capturarAmostra();
+    const { tipo, amostras } = treino; clearTimeout(treino.timer);
+    banco.modelos = modelos();
+    if (amostras.length) banco.modelos[tipo] = amostras.slice(-10).map(({ pts, tam }) => ({ pts, tam }));
+    else delete banco.modelos[tipo];
+    gravar(); treino = null; janTreino.hidden = true; atualizarBadges(tipo);
+    avisar(amostras.length ? `<b>${NOMES[tipo]}</b>: ${amostras.length} desenhos guardados. Agora é só desenhar na pauta.` : `Desenhos de <b>${NOMES[tipo]}</b> apagados.`, 'ok');
+  };
+
+  // Guia (gestos de desenho)
+  const GESTOS = [
+    ['semibreve', 'Círculo vazio, sem haste.'], ['minima', 'Círculo vazio + haste.'], ['seminima', 'Cabeça cheia (rabisque) + haste.'],
+    ['colcheia', 'Semínima + 1 bandeirola.'], ['semicolcheia', 'Semínima + 2 bandeirolas.'], ['fusa', 'Semínima + 3 bandeirolas.'],
+    ['acorde', 'Empilhe as cabeças e faça uma haste só.'],
+    ['barra', 'Risco vertical atravessando a pauta.'], ['ligadura', 'Risco de uma nota até a outra.']
+  ];
+  for (const [tipo, receita] of GESTOS) {
+    const c = document.createElement('div'); c.className = 'cartao';
+    c.appendChild(miniSvg(tipo));
+    const t = document.createElement('div'); t.innerHTML = `<strong>${tipo === 'acorde' ? 'Acorde' : NOMES[tipo]}</strong><span>${receita}</span>`;
+    c.appendChild(t);
+    if (tipo === 'acorde') c.style.cursor = 'default'; else tornarArrastavel(c, tipo);
+    $('cartoes').appendChild(c);
+  }
+  // Paleta rápida
+  // (a paleta rápida mostra os Favoritos; é montada mais abaixo)
+  // Biblioteca
+  const IDS_GRUPO = ['notas', 'pausas', 'barras', 'acidentes', 'ligponto', 'articulacao', 'dinamica', 'navegacao'];
+  for (const [gi, [titulo, tipos]] of SECOES.entries()) {
+    const sec = document.createElement('section');
+    sec.dataset.grupo = IDS_GRUPO[gi]; sec.dataset.titulo = titulo;
+    const h = document.createElement('h3'); h.textContent = titulo; sec.appendChild(h);
+    const grade = document.createElement('div'); grade.className = 'itens';
+    for (const t of tipos) grade.appendChild(criarItem(t));
+    sec.appendChild(grade); $('biblioCorpo').appendChild(sec);
+  }
+  const rod = document.createElement('p'); rod.className = 'rodape'; rod.textContent = 'Outros símbolos poderão ser importados depois.';
+  $('biblioCorpo').appendChild(rod);
+
+  // ---------- Acordes prontos: escolher a cifra e arrastar ----------
+  const TIPOS_AC = {
+    '': [[0, 0], [2, 4], [4, 7]], 'm': [[0, 0], [2, 3], [4, 7]],
+    '7': [[0, 0], [2, 4], [4, 7], [6, 10]], '7M': [[0, 0], [2, 4], [4, 7], [6, 11]], 'm7': [[0, 0], [2, 3], [4, 7], [6, 10]],
+    'sus4': [[0, 0], [3, 5], [4, 7]], '7(sus4)': [[0, 0], [3, 5], [4, 7], [6, 10]], '(add9)': [[0, 0], [1, 2], [2, 4], [4, 7]],
+    '6': [[0, 0], [2, 4], [4, 7], [5, 9]], '°': [[0, 0], [2, 3], [4, 6]], '+': [[0, 0], [2, 4], [4, 8]], 'm7(b5)': [[0, 0], [2, 3], [4, 6], [6, 10]]
+  };
+  const ROT_TIPO = [['', 'Maior'], ['m', 'Menor'], ['7', '7'], ['7M', '7M'], ['m7', 'm7'], ['sus4', 'sus4'], ['7(sus4)', '7(sus4)'],
+    ['(add9)', 'add9'], ['6', '6'], ['°', 'Diminuto'], ['+', 'Aumentado'], ['m7(b5)', 'm7(b5)']];
+  const nomeLetra = (L, ac) => LET_EN[L] + (ac === 1 ? '#' : ac === -1 ? 'b' : ac === 2 ? '##' : ac === -2 ? 'bb' : '');
+  function notasDoAcorde(spec) {
+    const rootPc = (SEMI[spec.L] + spec.ac + 12) % 12;
+    return TIPOS_AC[spec.tipo].map(([st, se]) => {
+      const L = (spec.L + st) % 7;
+      let ac = ((rootPc + se - SEMI[L]) % 12 + 12) % 12; if (ac > 6) ac -= 12;
+      return { L, ac };
+    });
+  }
+  function nomeSpec(spec) {
+    const ns = notasDoAcorde(spec), inv = Math.min(spec.inv || 0, ns.length - 1);
+    return nomeLetra(spec.L, spec.ac) + spec.tipo + (inv ? '/' + nomeLetra(ns[inv].L, ns[inv].ac) : '');
+  }
+  const letraDe = (s, cl) => (((cl.l + s) % 7) + 7) % 7;
+  // Empilha as notas em posição fechada, com o baixo na linha/espaço mais perto de sAprox
+  function vozes(spec, sAprox, cl = CLV || CLAVE.sol) {
+    const ns = notasDoAcorde(spec), inv = Math.min(spec.inv || 0, ns.length - 1);
+    const ord = [...ns.slice(inv), ...ns.slice(0, inv)];
+    let sB = sAprox;
+    for (let d = 0; d <= 3; d++) { if (letraDe(sAprox - d, cl) === ord[0].L) { sB = sAprox - d; break; } if (letraDe(sAprox + d, cl) === ord[0].L) { sB = sAprox + d; break; } }
+    const res = [{ s: sB, ...ord[0] }];
+    for (let i = 1; i < ord.length; i++) {
+      const ant = res[i - 1].s;
+      let dl = ((ord[i].L - letraDe(ant, cl)) % 7 + 7) % 7; if (dl === 0) dl = 7;
+      res.push({ s: ant + dl, ...ord[i] });
+    }
+    return res;
+  }
+  function acidenteEm(x, s) { const nm = nomeNota({ x, s }, s); return nm.endsWith('♯') ? 1 : nm.endsWith('♭') ? -1 : 0; }
+  function planoAcorde(spec, sAprox, x, figura) {
+    let vs = vozes(spec, sAprox);
+    while (vs[vs.length - 1].s > 16) vs = vs.map(v => ({ ...v, s: v.s - 7 }));
+    while (vs[0].s < -8) vs = vs.map(v => ({ ...v, s: v.s + 7 }));
+    if (vs[vs.length - 1].s > 16) return null;
+    const ss = vs.map(v => v.s);
+    // Acidentes que faltam (nota fora da armadura ou já alterada no compasso)
+    const precisa = vs.filter(v => Math.abs(v.ac) <= 1 && acidenteEm(x, v.s) !== v.ac)
+      .map(v => ({ s: v.s, tipo: v.ac === 1 ? 'sustenido' : v.ac === -1 ? 'bemol' : 'bequadro' }))
+      .sort((a, b) => b.s - a.s);
+    precisa.forEach((p, i) => { let c = 0; while (precisa.slice(0, i).some(q => q.col === c && Math.abs(q.s - p.s) < 6)) c++; p.col = c; });
+    const nCols = precisa.length ? Math.max(...precisa.map(p => p.col)) + 1 : 0;
+    x = Math.min(Math.max(x, INICIO + 1.5 + nCols * 1.25 * SP), X1 - 2);
+    const acids = precisa.map(p => ({ tipo: p.tipo, s: p.s, x: +(x - 1.9 * SP - p.col * 1.25 * SP).toFixed(2), l: LIN, p: PAU }));
+    const centro = (ss[0] + ss[ss.length - 1]) / 2;
+    const nomes = vs.map(v => LETRAS[v.L] + (v.ac === 1 ? '♯' : v.ac === -1 ? '♭' : v.ac === 2 ? '𝄪' : v.ac === -2 ? '𝄫' : ''));
+    return { nota: { tipo: figura, s: ss[0], ss, x: +x.toFixed(2), l: LIN, p: PAU, dir: centro >= 4 ? 'down' : 'up' }, acids, nomes };
+  }
+  function posicaoAcorde(spec, p) {
+    const [l0, p0] = pautaDeY(p.y); usar(l0, p0);
+    const s = Math.round((BASE - p.y) / (SP / 2));
+    if (s < -8 || s > 16) return null;
+    const alvo = notaNaColuna(p.x, 1.2 * SP); // solto em cima de uma nota: ela vira o acorde
+    const plano = alvo ? planoAcorde(spec, Math.min(...cabecas(alvo)), alvo.x, alvo.tipo) : planoAcorde(spec, s, p.x, spec.figura);
+    return plano ? { tipo: 'acordePronto', alvo: alvo ? alvo.id : null, plano } : null;
+  }
+  function aplicarAcorde(plano, alvoId) {
+    finalizar(); guardarDesfazer();
+    let n = alvoId ? M().itens.find(i => i.id === alvoId) : null;
+    if (n) { n.ss = plano.nota.ss; n.x = plano.nota.x; n.dir = plano.nota.dir; normalizar(n); }
+    else { n = normalizar({ ...plano.nota, id: novoId() }); M().itens.push(n); }
+    for (const a of plano.acids) M().itens.push({ ...a, id: novoId() });
+    renderizar(n.id); gravar();
+    avisar(descrever(n), 'ok');
+  }
+  function miniAcorde(spec) {
+    const m = mk('svg', { viewBox: '0 0 18 22', 'aria-hidden': 'true' });
+    const l = mk('g', { class: 'linhas' }, m);
+    for (let i = 0; i < 5; i++) mk('line', { x1: 0.5, x2: 17.5, y1: 6 + i * SP, y2: 6 + i * SP }, l);
+    const vs = vozes(spec, 0, CLAVE.sol), ss = vs.map(v => v.s);
+    desenharItem({ tipo: 'semibreve', s: ss[0], ss, x: 10, dir: 'up' }, m, 16, null, false);
+    return m;
+  }
+  function acordesDoTom() {
+    const id = M() ? M().tom : 'C', menor = id.endsWith('m'), raiz = id.replace(/m$/, '');
+    const L0 = 'CDEFGAB'.indexOf(raiz[0]), ac0 = raiz.includes('#') ? 1 : raiz.includes('b') ? -1 : 0;
+    const pc0 = (SEMI[L0] + ac0 + 12) % 12;
+    const escala = menor ? [0, 2, 3, 5, 7, 8, 10] : [0, 2, 4, 5, 7, 9, 11];
+    const quals = menor ? ['m', '°', '', 'm', '', '', ''] : ['', 'm', 'm', '', '', 'm', '°'];
+    const grau = i => { const L = (L0 + i) % 7; let ac = ((pc0 + escala[i] - SEMI[L]) % 12 + 12) % 12; if (ac > 6) ac -= 12; return { L, ac }; };
+    const lista = quals.map((q, i) => ({ ...grau(i), tipo: q, inv: 0 }));
+    lista.push({ ...grau(4), tipo: '7', inv: 0 }); // dominante com sétima
+    return lista;
+  }
+  function tileAcorde(specFn) {
+    const b = document.createElement('div'); b.className = 'item';
+    const spec = specFn();
+    b.setAttribute('aria-label', `Acorde ${nomeSpec(spec)}: arraste para a pauta`);
+    b.appendChild(miniAcorde(spec));
+    const t = document.createElement('span'); t.className = 'cifra-ac'; t.textContent = nomeSpec(spec);
+    b.appendChild(t);
+    tornarArrastavel(b, 'acordePronto', specFn);
+    b.dataset.chave = chaveAc(spec); b.appendChild(estrela(chaveAc(spec)));
+    return b;
+  }
+
+  const secAc = document.createElement('section');
+  secAc.innerHTML = `<h3>Acordes</h3>
+    <div class="ac-linha"><label for="acFig">Figura</label><select id="acFig"></select></div>
+    <p class="ac-sub" id="acTomTit">Do tom</p>
+    <div class="itens" id="acTom"></div>
+    <p class="ac-sub">Montar acorde</p>
+    <div class="ac-montar">
+      <div class="chips-ac" id="acLetra" role="group" aria-label="Nota"></div>
+      <div class="chips-ac" id="acAcid" role="group" aria-label="Acidente"></div>
+      <div class="ac-linha"><label for="acTipo">Tipo</label><select id="acTipo"></select></div>
+      <div class="ac-linha"><label for="acInv">Baixo</label><select id="acInv"></select></div>
+      <div class="ac-resultado"><div class="itens" id="acMontado"></div><p id="acNotas"></p></div>
+    </div>`;
+  secAc.dataset.grupo = 'acordes'; secAc.dataset.titulo = 'Acordes';
+  $('biblioCorpo').appendChild(secAc);
+  const acFig = $('acFig'), acTipo = $('acTipo'), acInv = $('acInv');
+  for (const u of UNIDADES) acFig.appendChild(new Option(NOMES[u], u));
+  acFig.value = 'minima';
+  for (const [v, r] of ROT_TIPO) acTipo.appendChild(new Option(r, v));
+  const acSel = { L: 0, ac: 0, tipo: '', inv: 0 };
+  const btnsLetra = LETRAS.map((nome, L) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = nome;
+    b.onclick = () => { acSel.L = L; atualizarMontador(); };
+    $('acLetra').appendChild(b); return b;
+  });
+  const btnsAcid = [[0, 'natural'], [1, '♯'], [-1, '♭']].map(([ac, rot]) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = rot;
+    b.setAttribute('aria-label', ac === 0 ? 'Sem acidente' : ac === 1 ? 'Sustenido' : 'Bemol');
+    b.onclick = () => { acSel.ac = ac; atualizarMontador(); };
+    $('acAcid').appendChild(b); return [ac, b];
+  });
+  acTipo.onchange = () => { acSel.tipo = acTipo.value; acSel.inv = 0; atualizarMontador(); };
+  acInv.onchange = () => { acSel.inv = +acInv.value; atualizarMontador(); };
+  acFig.onchange = () => atualizarMontador();
+  function atualizarMontador() {
+    btnsLetra.forEach((b, L) => b.setAttribute('aria-pressed', L === acSel.L));
+    btnsAcid.forEach(([ac, b]) => b.setAttribute('aria-pressed', ac === acSel.ac));
+    const ns = notasDoAcorde(acSel);
+    acInv.replaceChildren();
+    ['Fundamental', '1ª inversão', '2ª inversão', '3ª inversão'].slice(0, ns.length).forEach((r, i) => {
+      acInv.appendChild(new Option(i ? `${r} (${nomeSpec({ ...acSel, inv: i })})` : `${r} (${nomeLetra(ns[0].L, ns[0].ac)} no baixo)`, i));
+    });
+    acInv.value = Math.min(acSel.inv, ns.length - 1);
+    const spec = () => ({ ...acSel, figura: acFig.value });
+    $('acMontado').replaceChildren(tileAcorde(spec));
+    const ord = [...ns.slice(acSel.inv), ...ns.slice(0, acSel.inv)];
+    $('acNotas').textContent = ord.map(v => LETRAS[v.L] + (v.ac === 1 ? '♯' : v.ac === -1 ? '♭' : v.ac === 2 ? '𝄪' : v.ac === -2 ? '𝄫' : '')).join(' · ');
+  }
+  let tomMontado = null;
+  function atualizarAcordesDoTom() {
+    const chave = M() ? M().tom : 'C';
+    if (chave === tomMontado) return;
+    tomMontado = chave;
+    $('acTomTit').textContent = `Do tom de ${tomDe(M() ? M().tom : 'C')[1]}`;
+    $('acTom').replaceChildren(...acordesDoTom().map(sp => tileAcorde(() => ({ ...sp, figura: acFig.value }))));
+    atualizarMontador();
+  }
+  atualizarAcordesDoTom();
+
+  // ---------- Favoritos e Recentes ----------
+  // (declaradas como function para já valerem quando a Biblioteca é montada, mais acima)
+  function chaveAc(sp) { return `ac|${sp.L}|${sp.ac}|${sp.tipo}|${sp.inv || 0}`; }
+  function favs() { return Array.isArray(banco.favs) ? banco.favs : ['seminima', 'minima', 'colcheia', 'semibreve', 'pSeminima', 'barra', 'ligadura', 'sustenido']; }
+  function itemDeChave(k) {
+    if (k.startsWith('ac|')) {
+      const [, L, ac, tipo, inv] = k.split('|');
+      if (!(tipo in TIPOS_AC)) return null;
+      const sp = { L: +L, ac: +ac, tipo, inv: +inv };
+      return tileAcorde(() => ({ ...sp, figura: acFig.value }));
+    }
+    return NOMES[k] ? criarItem(k) : null;
+  }
+  function estrela(k) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'estrela';
+    pintarEstrela(b, favs().includes(k));
+    b.addEventListener('pointerdown', e => e.stopPropagation()); // tocar na estrela não começa a arrastar
+    b.onclick = e => { e.stopPropagation(); alternarFav(k); };
+    return b;
+  }
+  function pintarEstrela(b, on) { b.setAttribute('aria-pressed', on); b.textContent = on ? '★' : '☆'; b.setAttribute('aria-label', on ? 'Tirar dos favoritos' : 'Pôr nos favoritos'); }
+  function alternarFav(k) {
+    const lista = favs(), on = !lista.includes(k);
+    banco.favs = on ? [...lista, k] : lista.filter(x => x !== k);
+    gravar();
+    document.querySelectorAll('.item').forEach(it => { if (it.dataset.chave === k) { const e = it.querySelector('.estrela'); if (e) pintarEstrela(e, on); } });
+    renderFavoritos(); renderPaleta();
+    const nome = k.startsWith('ac|') ? 'Acorde ' + nomeSpec((([, L, ac, tipo, inv]) => ({ L: +L, ac: +ac, tipo, inv: +inv }))(k.split('|'))) : NOMES[k];
+    avisar(on ? `<b>${nome}</b> nos favoritos.` : `<b>${nome}</b> saiu dos favoritos.`);
+  }
+  function registrarRecente(k) {
+    if (!k || !(k.startsWith('ac|') || NOMES[k])) return;
+    banco.recentes = [k, ...(banco.recentes || []).filter(x => x !== k)].slice(0, 12);
+    gravar();
+    if (abaAtual === 'rec') renderFavoritos();
+  }
+  const secFav = document.createElement('section');
+  secFav.className = 'sec-fav';
+  secFav.innerHTML = `<div class="abas" role="tablist" aria-label="Atalhos">
+      <button type="button" role="tab" id="abaFav" aria-selected="true" aria-controls="favItens">Favoritos</button>
+      <button type="button" role="tab" id="abaRec" aria-selected="false" aria-controls="favItens">Recentes</button>
+    </div>
+    <div class="itens" id="favItens" role="tabpanel"></div>
+    <p class="vazio-aba" id="favVazio" hidden></p>`;
+  $('biblioCorpo').prepend(secFav);
+  let abaAtual = 'fav';
+  function mostrarAba(a) {
+    abaAtual = a;
+    $('abaFav').setAttribute('aria-selected', a === 'fav');
+    $('abaRec').setAttribute('aria-selected', a === 'rec');
+    renderFavoritos();
+  }
+  function renderFavoritos() {
+    const chaves = abaAtual === 'fav' ? favs() : (banco.recentes || []);
+    const tiles = chaves.map(itemDeChave).filter(Boolean);
+    $('favItens').replaceChildren(...tiles);
+    $('favVazio').hidden = tiles.length > 0;
+    $('favVazio').textContent = abaAtual === 'fav' ? 'Toque na ☆ de qualquer símbolo para guardar aqui.' : 'Os símbolos que você usar aparecem aqui.';
+  }
+  function renderPaleta() {
+    const tiles = favs().map(itemDeChave).filter(Boolean);
+    $('paletaItens').replaceChildren(...tiles);
+    if (!tiles.length) { const p = document.createElement('p'); p.className = 'vazio-aba'; p.textContent = 'Sem favoritos. Na Biblioteca, toque na ☆ de um símbolo.'; p.style.gridColumn = '1 / -1'; $('paletaItens').appendChild(p); }
+  }
+  $('abaFav').onclick = () => mostrarAba('fav');
+  $('abaRec').onclick = () => mostrarAba('rec');
+  acFig.addEventListener('change', () => { renderFavoritos(); renderPaleta(); });
+  renderFavoritos(); renderPaleta();
+
+  // ---------- Botão flutuante ----------
+  function colocarFab(x, y) {
+    x = Math.min(Math.max(x, 8), innerWidth - 64); y = Math.min(Math.max(y, 8), innerHeight - 64);
+    Object.assign(fab.style, { left: x + 'px', top: y + 'px', right: 'auto', bottom: 'auto' });
+  }
+  function posicionarPaleta() {
+    const r = fab.getBoundingClientRect(), w = paleta.offsetWidth, h = paleta.offsetHeight;
+    const left = Math.min(Math.max(r.right - w, 16), innerWidth - w - 16);
+    let top = r.top - h - 10; if (top < 16) top = Math.min(r.bottom + 10, innerHeight - h - 16);
+    paleta.style.left = left + 'px'; paleta.style.top = Math.max(top, 16) + 'px';
+  }
+  function abrirPaleta(v) { paleta.hidden = !v; fab.setAttribute('aria-expanded', v); if (v) posicionarPaleta(); }
+  let fabArr = null;
+  fab.addEventListener('pointerdown', e => { fab.setPointerCapture(e.pointerId); const r = fab.getBoundingClientRect(); fabArr = { id: e.pointerId, dx: e.clientX - r.left, dy: e.clientY - r.top, x0: e.clientX, y0: e.clientY, moveu: false }; });
+  fab.addEventListener('pointermove', e => {
+    if (!fabArr || fabArr.id !== e.pointerId) return;
+    if (!fabArr.moveu && Math.hypot(e.clientX - fabArr.x0, e.clientY - fabArr.y0) < 8) return;
+    fabArr.moveu = true; colocarFab(e.clientX - fabArr.dx, e.clientY - fabArr.dy);
+    if (!paleta.hidden) posicionarPaleta();
+  });
+  fab.addEventListener('pointerup', e => {
+    if (!fabArr || fabArr.id !== e.pointerId) return;
+    const moveu = fabArr.moveu; fabArr = null;
+    if (moveu) { const r = fab.getBoundingClientRect(); posFab = { x: r.left, y: r.top }; gravar(); } else abrirPaleta(paleta.hidden);
+  });
+  fab.addEventListener('pointercancel', () => { fabArr = null; });
+  fab.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirPaleta(paleta.hidden); } });
+  if (posFab) colocarFab(posFab.x, posFab.y);
+
+  // ---------- Guia e Biblioteca ----------
+  const janGuia = $('janGuia'), bGuia = $('bGuia'), bBiblio = $('bBiblio');
+  // O Guia é um tutorial em janela: abre sozinho ao entrar, até a pessoa marcar "Não mostrar de novo"
+  function mostrarGuia(v) {
+    janGuia.hidden = !v; bGuia.setAttribute('aria-pressed', v);
+    if (v) { abrirPaleta(false); $('cGuiaNao').checked = !!banco.guiaNaoMostrar; setTimeout(() => $('bGuiaOk').focus(), 30); }
+  }
+  $('bFecharGuia').onclick = () => mostrarGuia(false);
+  $('bGuiaOk').onclick = () => mostrarGuia(false);
+  janGuia.addEventListener('pointerdown', e => { if (e.target === janGuia) mostrarGuia(false); }); // tocar fora fecha
+  $('cGuiaNao').onchange = () => { banco.guiaNaoMostrar = $('cGuiaNao').checked; gravar(); };
+
+  // ---------- Tempo para converter o desenho (na barra) ----------
+  const popTempo = $('popTempo'), bTempo = $('bTempo');
+  function abrirTempo(v) {
+    popTempo.hidden = !v; bTempo.setAttribute('aria-expanded', v);
+    if (v) { const r = bTempo.getBoundingClientRect(), w = popTempo.offsetWidth; popTempo.style.left = Math.min(Math.max(r.left, 8), innerWidth - w - 8) + 'px'; popTempo.style.top = (r.bottom + 6) + 'px'; }
+  }
+  bTempo.onclick = () => abrirTempo(popTempo.hidden);
+  document.addEventListener('pointerdown', e => { if (!popTempo.hidden && !popTempo.contains(e.target) && !bTempo.contains(e.target)) abrirTempo(false); }, true);
+  function mostrarBiblio(v) { biblio.hidden = !v; bBiblio.setAttribute('aria-pressed', v); if (v) { abrirPaleta(false); mostrarAba('fav'); } else organizar(false); }
+  // Tocar na partitura (ou no fundo) com a Biblioteca aberta só fecha a Biblioteca, sem desenhar
+  mesa.addEventListener('pointerdown', e => {
+    if (biblio.hidden) return;
+    e.stopPropagation(); e.preventDefault();
+    mostrarBiblio(false);
+  }, true);
+
+  // ---------- Organizar a Biblioteca: ordem e grupos visíveis ----------
+  const ORDEM_PADRAO = ['notas', 'pausas', 'barras', 'acidentes', 'ligponto', 'articulacao', 'dinamica', 'navegacao', 'acordes'];
+  function prefsBiblio() {
+    const p = banco.biblio || {};
+    const ordem = (p.ordem || []).filter(g => ORDEM_PADRAO.includes(g));
+    for (const g of ORDEM_PADRAO) if (!ordem.includes(g)) ordem.push(g); // grupos novos entram no fim
+    return { ordem, ocultos: (p.ocultos || []).filter(g => ORDEM_PADRAO.includes(g)) };
+  }
+  const secaoDe = g => $('biblioCorpo').querySelector(`section[data-grupo="${g}"]`);
+  function aplicarBiblio() {
+    const { ordem, ocultos } = prefsBiblio(), corpo = $('biblioCorpo');
+    for (const g of ordem) { const s = secaoDe(g); s.hidden = ocultos.includes(g); corpo.appendChild(s); }
+    let vazio = corpo.querySelector('.vazio-biblio');
+    if (!vazio) { vazio = document.createElement('p'); vazio.className = 'vazio-biblio'; vazio.textContent = 'Todos os grupos estão ocultos. Toque em Organizar para mostrar algum.'; }
+    vazio.hidden = ocultos.length < ordem.length;
+    corpo.appendChild(vazio);
+    corpo.appendChild(rod);
+    // lista do modo Organizar
+    const ul = $('orgLista'); ul.replaceChildren();
+    ordem.forEach((g, i) => {
+      const li = document.createElement('li'); li.classList.toggle('oculto', ocultos.includes(g));
+      const lab = document.createElement('label');
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !ocultos.includes(g); cb.id = 'org-' + g;
+      cb.onchange = () => { const p = prefsBiblio(); p.ocultos = cb.checked ? p.ocultos.filter(x => x !== g) : [...new Set([...p.ocultos, g])]; banco.biblio = p; gravar(); aplicarBiblio(); };
+      lab.append(cb, secaoDe(g).dataset.titulo);
+      const mover = (d, rot) => {
+        const b = document.createElement('button'); b.type = 'button'; b.textContent = d < 0 ? '↑' : '↓';
+        b.setAttribute('aria-label', `${rot}: ${secaoDe(g).dataset.titulo}`);
+        b.disabled = (d < 0 && i === 0) || (d > 0 && i === ordem.length - 1);
+        b.onclick = () => { const p = prefsBiblio(); const j = i + d; [p.ordem[i], p.ordem[j]] = [p.ordem[j], p.ordem[i]]; banco.biblio = p; gravar(); aplicarBiblio(); const alvo = $('orgLista').children[j]; if (alvo) alvo.querySelectorAll('button')[d < 0 ? 0 : 1].focus(); };
+        return b;
+      };
+      li.append(lab, mover(-1, 'Subir'), mover(1, 'Descer'));
+      ul.appendChild(li);
+    });
+  }
+  function organizar(v) {
+    $('biblioOrg').hidden = !v; $('biblioCorpo').hidden = v; $('biblioSub').hidden = v;
+    $('bOrganizar').setAttribute('aria-pressed', v); $('bOrganizar').textContent = v ? 'Pronto' : 'Organizar';
+  }
+  $('bOrganizar').onclick = () => organizar($('biblioOrg').hidden);
+  $('bOrgPadrao').onclick = () => { delete banco.biblio; gravar(); aplicarBiblio(); avisar('Biblioteca de volta à ordem padrão.'); };
+  aplicarBiblio();
+  bGuia.onclick = () => mostrarGuia(janGuia.hidden);
+  $('bPaletaGuia').onclick = () => mostrarGuia(true);
+  bBiblio.onclick = () => mostrarBiblio(biblio.hidden);
+  $('bPaletaBiblio').onclick = () => mostrarBiblio(true);
+  $('bFecharBiblio').onclick = () => mostrarBiblio(false);
+
+  // ---------- Zoom ----------
+  function aplicarZoom(z) {
+    zoom = Math.min(3, Math.max(0.6, Math.round(z * 20) / 20));
+    const largura = Math.min(mesa.clientWidth - 32, 1100);
+    folha.style.width = Math.round(largura * zoom) + 'px';
+    $('zoomTxt').textContent = $('zoomTxt2').textContent = Math.round(zoom * 100) + '%';
+  }
+  $('bMenos').onclick = () => { aplicarZoom(zoom - 0.25); gravar(); };
+  $('bMais').onclick = () => { aplicarZoom(zoom + 0.25); gravar(); };
+  window.addEventListener('resize', () => { aplicarZoom(zoom); if (posFab) colocarFab(posFab.x, posFab.y); if (!paleta.hidden) posicionarPaleta(); });
+
+  // ---------- Barra de ferramentas ----------
+  const MODOS = { ponteiro: 'bPonteiro', caneta: 'bCaneta', mover: 'bMover', anotar: 'bAnotar', borracha: 'bBorracha' };
+  const DICA_MODO = {
+    ponteiro: 'Ponteiro: toque num símbolo para ver o que é; arraste a folha para rolar. Nada é desenhado.',
+    caneta: 'Desenhe sobre a pauta.',
+    mover: 'Toque num símbolo ou numa anotação e arraste para o lugar certo.',
+    anotar: 'Escolha a cor e escreva fora (ou em cima) da partitura. Anotações não viram notas.',
+    borracha: 'Toque nos símbolos ou anotações que quer apagar, ou passe a caneta por cima.'
+  };
+  function trocarModo(m) {
+    modo = m;
+    for (const k in MODOS) $(MODOS[k]).setAttribute('aria-pressed', k === m);
+    folha.classList.toggle('borracha', m === 'borracha');
+    folha.classList.toggle('mover', m === 'mover');
+    folha.classList.toggle('ponteiro', m === 'ponteiro');
+    if (m !== 'ponteiro' && selId) { selId = null; renderizar(); }
+    $('barraAnot').hidden = m !== 'anotar';
+    finalizar(); confirmarTexto();
+    avisar(DICA_MODO[m]);
+  }
+  for (const k in MODOS) $(MODOS[k]).onclick = () => trocarModo(k);
+  function desfazer() {
+    if (descartarPendente()) { avisar('Desenho descartado.'); return; }
+    if (!pilha.length || !M()) { avisar('Nada para desfazer.'); return; }
+    restaurar(pilha.pop()); renderizar(); gravar(); avisar('Desfeito.');
+  }
+  $('bDesfazer').onclick = desfazer;
+  $('bLimpar').onclick = () => {
+    descartarPendente();
+    if (!M() || (!M().itens.length && !M().anot.length)) { avisar('A partitura já está em branco.'); return; }
+    guardarDesfazer(); M().itens = []; M().anot = []; renderizar(); gravar();
+    avisar('<b>Partitura limpa</b> (as linhas continuam). Desfazer traz tudo de volta.');
+  };
+
+  // ---------- Ajustar: espaçamento igual e centralizado em cada compasso ----------
+  function ajustar() {
+    const m = M(); if (!m) return;
+    descartarPendente();
+    const segs = segmentos().filter(s => s.temNota);
+    if (!segs.length) { avisar('Ainda não há notas para ajustar.'); return; }
+    guardarDesfazer();
+    for (const sg of segs) {
+      const dentro = itensDe(sg.l).filter(i => i.x != null && i.x > sg.a && i.x < sg.b && !BARRA.has(i.tipo));
+      const eventos = dentro.filter(i => NOTA.has(i.tipo) || PAUSA.has(i.tipo)).sort((a, b) => a.x - b.x);
+      // colunas: notas quase no mesmo x (inclusive nas duas pautas do piano) ficam alinhadas
+      const cols = [];
+      for (const ev of eventos) { const c = cols[cols.length - 1]; if (c && ev.x - c.x0 <= 1.6) c.membros.push(ev); else cols.push({ x0: ev.x, membros: [ev] }); }
+      for (const c of cols) c.xv = c.membros.reduce((s, e) => s + e.x, 0) / c.membros.length;
+      const acidNoInicio = dentro.some(i => ACID.has(i.tipo) && i.x < cols[0].xv);
+      const padE = 2.4 + (acidNoInicio ? 2.2 : 0), padD = 2.2, largura = sg.b - sg.a - padE - padD;
+      cols.forEach((c, k) => { c.xn = sg.a + padE + (k + 0.5) * largura / cols.length; });
+      // acidentes, pontos, articulações e dinâmicas acompanham a nota a que pertencem
+      for (const it of dentro) {
+        if (NOTA.has(it.tipo) || PAUSA.has(it.tipo)) continue;
+        let alvo;
+        if (ACID.has(it.tipo)) alvo = cols.find(c => c.xv > it.x) || cols[cols.length - 1];
+        else if (it.tipo === 'ponto') alvo = [...cols].reverse().find(c => c.xv < it.x) || cols[0];
+        else alvo = cols.reduce((a, c) => (Math.abs(c.xv - it.x) < Math.abs(a.xv - it.x) ? c : a), cols[0]);
+        it.x = +(alvo.xn + (it.x - alvo.xv)).toFixed(2);
+      }
+      for (const c of cols) for (const ev of c.membros) ev.x = +c.xn.toFixed(2);
+    }
+    renderizar(); gravar();
+    avisar(`<b>Pronto:</b> ${segs.length} compasso${segs.length > 1 ? 's' : ''} com espaçamento igual e centralizado. Desfazer volta como estava.`, 'ok');
+  }
+  $('bAjustar').onclick = ajustar;
+
+  // ---------- Cores e tipo das anotações ----------
+  for (const [cor, nome] of CORES_ANOT) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'cor';
+    b.style.setProperty('--c', cor); b.setAttribute('aria-label', nome); b.title = nome;
+    b.setAttribute('aria-pressed', cor === anotCor);
+    b.onclick = () => { anotCor = cor; banco.anotCor = cor; gravar(); $('anotCores').querySelectorAll('.cor').forEach(x => x.setAttribute('aria-pressed', x === b)); };
+    $('anotCores').appendChild(b);
+  }
+  $('anTraco').onclick = () => { anotTipo = 'traco'; $('anTraco').setAttribute('aria-pressed', true); $('anTexto').setAttribute('aria-pressed', false); };
+  $('anTexto').onclick = () => { anotTipo = 'texto'; $('anTraco').setAttribute('aria-pressed', false); $('anTexto').setAttribute('aria-pressed', true); avisar('Toque onde quer escrever o texto.'); };
+
+  // ---------- Clave de cada linha ----------
+  const menuClave = $('menuClave');
+  let menuLinha = null, confirmaClave = null;
+  const formacaoDe = ps => (ps.length > 1 ? 'piano' : ps[0]);
+  function abrirMenuClave(l, cx, cy) {
+    menuLinha = l; confirmaClave = null; $('menuClaveAviso').hidden = true;
+    $('menuClaveTit').textContent = `Clave da linha ${l + 1}`;
+    const f = formacaoDe(M().linhas[l].pautas);
+    menuClave.querySelectorAll('[data-f]').forEach(b => b.setAttribute('aria-pressed', b.dataset.f === f));
+    menuClave.hidden = false;
+    const w = menuClave.offsetWidth, h = menuClave.offsetHeight;
+    menuClave.style.left = Math.min(Math.max(cx, 8), innerWidth - w - 8) + 'px';
+    menuClave.style.top = Math.min(Math.max(cy + 12, 8), innerHeight - h - 8) + 'px';
+  }
+  function escolherClave(f) {
+    const m = M(), l = menuLinha, ln = m.linhas[l];
+    if (formacaoDe(ln.pautas) === f) { menuClave.hidden = true; return; }
+    const novas = f === 'piano' ? ['sol', 'fa'] : [f];
+    const perde = itensDe(l).filter(i => i.p >= novas.length && !BARRA.has(i.tipo));
+    if (perde.length && confirmaClave !== f) {
+      confirmaClave = f; $('menuClaveAviso').hidden = false;
+      $('menuClaveAviso').textContent = `A pauta de baixo tem ${perde.length} símbolo${perde.length > 1 ? 's, que serão apagados' : ', que será apagado'}. Toque de novo para confirmar.`;
+      return;
+    }
+    guardarDesfazer();
+    const ids = new Set(perde.map(i => i.id));
+    m.itens = m.itens.filter(i => !ids.has(i.id) && !(i.tipo === 'ligadura' && (ids.has(i.a) || ids.has(i.b))));
+    const tinhaNotas = itensDe(l).some(i => NOTA.has(i.tipo));
+    ln.pautas = novas; if (l === 0) m.clave = novas[0];
+    menuClave.hidden = true; renderizar(); gravar();
+    const nome = { sol: 'clave de Sol', fa: 'clave de Fá', do: 'clave de Dó', piano: 'piano (Sol + Fá)' }[f];
+    avisar(`<b>Linha ${l + 1}: ${nome}.</b>` + (tinhaNotas ? ' As notas ficaram no mesmo lugar; os nomes mudaram. Desfazer volta como era.' : ' As próximas linhas seguem esta.'), 'ok');
+  }
+  menuClave.querySelectorAll('[data-f]').forEach(b => { b.onclick = () => escolherClave(b.dataset.f); });
+  document.addEventListener('pointerdown', e => {
+    if (!menuClave.hidden && !menuClave.contains(e.target) && !(e.target.closest && e.target.closest('.toque-clave'))) menuClave.hidden = true;
+  }, true);
+
+  // ---------- Recolher as barras e tela cheia ----------
+  const telaCheiaOk = !!document.documentElement.requestFullscreen;
+  function recolher(v) {
+    document.body.classList.toggle('recolhido', v);
+    $('barraMin').hidden = !v;
+    $('bSairTela').hidden = !document.fullscreenElement;
+    aplicarZoom(zoom);
+  }
+  $('bRecolher').onclick = () => { recolher(true); avisar('Barras recolhidas.'); };
+  $('bMostrar').onclick = () => recolher(false);
+  $('bMinDesfazer').onclick = desfazer;
+  $('bTelaCheia').onclick = async () => {
+    recolher(true);
+    if (!telaCheiaOk) return;
+    try { await document.documentElement.requestFullscreen(); } catch (e) { /* o navegador não liberou: fica só com as barras recolhidas */ }
+    $('bSairTela').hidden = !document.fullscreenElement;
+  };
+  $('bSairTela').onclick = async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); } catch (e) {} recolher(false); };
+  document.addEventListener('fullscreenchange', () => { $('bSairTela').hidden = !document.fullscreenElement; aplicarZoom(zoom); });
+  const bDedo = $('bDedo');
+  bDedo.setAttribute('aria-pressed', dedo);
+  bDedo.onclick = () => { dedo = !dedo; bDedo.setAttribute('aria-pressed', dedo); gravar(); avisar(dedo ? '<b>Dedo desenha:</b> ligado.' : '<b>Dedo desenha:</b> desligado. Um dedo rola a pauta; dois dedos dão zoom.'); };
+  const rEspera = $('rEspera'), oEspera = $('oEspera');
+  const mostrarEspera = () => { oEspera.textContent = $('tTempo').textContent = (espera / 1000).toFixed(2).replace('.', ',') + ' s'; };
+  rEspera.value = espera; mostrarEspera();
+  rEspera.oninput = () => { espera = +rEspera.value; mostrarEspera(); gravar(); };
+
+  // ---------- Ficha da música ----------
+  const janFicha = $('janFicha'), janLista = $('janLista');
+  const fTom = $('fTom'), fComp = $('fComp'), fUni = $('fUni');
+  { const gM = document.createElement('optgroup'); gM.label = 'Maiores'; const gm = document.createElement('optgroup'); gm.label = 'Menores';
+    for (const [id, nome, n] of TONS) { const o = new Option(`${nome} (${rotuloAcid(n)})`, id); (id.endsWith('m') ? gm : gM).appendChild(o); }
+    fTom.append(gM, gm); }
+  for (const [id, rot] of COMPASSOS) fComp.appendChild(new Option(rot, id));
+  for (const u of UNIDADES) fUni.appendChild(new Option(NOMES[u], u));
+  function lerCompasso() {
+    const c = COMPASSOS.find(x => x[0] === fComp.value);
+    if (c[0] === 'outro') return { num: Math.min(32, Math.max(1, parseInt($('fNum').value, 10) || 4)), den: +$('fDen').value, simbolo: '' };
+    return { num: c[2], den: c[3], simbolo: c[4] };
+  }
+  fComp.onchange = () => { $('fOutro').hidden = fComp.value !== 'outro'; const c = lerCompasso(); const u = sugerirUnidade(c.num, c.den); fUni.value = u.tipo; $('fPonto').checked = u.ponto; };
+  $('fNum').oninput = $('fDen').onchange = () => { const c = lerCompasso(); const u = sugerirUnidade(c.num, c.den); fUni.value = u.tipo; $('fPonto').checked = u.ponto; };
+
+  let modoFicha = 'nova', confirmaExcluir = false;
+  const obrigatoria = () => banco.musicas.length === 0;
+  function abrirFicha(m) {
+    modoFicha = m; confirmaExcluir = false;
+    const mus = m === 'editar' ? M() : null;
+    $('fichaTitulo').textContent = mus ? 'Ficha da música' : 'Nova música';
+    $('fichaSub').textContent = mus ? 'Altere os dados. As notas continuam onde estão.' : 'Preencha a ficha. A pauta já começa com a clave, o tom e o compasso.';
+    $('fSalvar').textContent = mus ? 'Salvar ficha' : 'Criar música';
+    $('fExcluir').hidden = !mus; $('fExcluir').textContent = 'Excluir música';
+    $('fCancelar').hidden = obrigatoria();
+    $('fErro').hidden = true;
+    $('fTitulo').value = mus ? mus.titulo : '';
+    $('fAutor').value = mus ? (mus.autor || '') : '';
+    document.querySelector('input[name="fForm"][value="sol"]').checked = true;
+    $('fsForm').hidden = !!mus; $('fFormDica').hidden = !mus;
+    fTom.value = mus ? mus.tom : 'C';
+    if (mus) {
+      const c = mus.compasso;
+      const id = c.simbolo || (COMPASSOS.some(x => x[0] === `${c.num}/${c.den}`) ? `${c.num}/${c.den}` : 'outro');
+      fComp.value = id; $('fOutro').hidden = id !== 'outro';
+      $('fNum').value = c.num; $('fDen').value = c.den;
+      fUni.value = mus.unidade.tipo; $('fPonto').checked = !!mus.unidade.ponto;
+      $('fAnd').value = mus.andamento || '';
+    } else {
+      fComp.value = '4/4'; $('fOutro').hidden = true; fUni.value = 'seminima'; $('fPonto').checked = false; $('fAnd').value = '';
+    }
+    janLista.hidden = true; janFicha.hidden = false;
+    setTimeout(() => $('fTitulo').focus(), 30);
+  }
+  function fecharFicha() { if (obrigatoria()) return; janFicha.hidden = true; }
+  $('ficha').addEventListener('submit', e => {
+    e.preventDefault();
+    const titulo = $('fTitulo').value.trim();
+    if (!titulo) { $('fErro').hidden = false; $('fTitulo').focus(); return; }
+    const and = parseInt($('fAnd').value, 10);
+    const dados = {
+      titulo, autor: $('fAutor').value.trim(),
+      tom: fTom.value, compasso: lerCompasso(),
+      unidade: { tipo: fUni.value, ponto: $('fPonto').checked },
+      andamento: and >= 20 && and <= 300 ? and : null
+    };
+    descartarPendente();
+    if (modoFicha === 'editar' && M()) Object.assign(M(), dados);
+    else {
+      const f = document.querySelector('input[name="fForm"]:checked').value;
+      const pautas = f === 'piano' ? ['sol', 'fa'] : [f];
+      const m = { id: novoId(), ...dados, clave: pautas[0], linhas: [{ pautas }], itens: [], anot: [] };
+      banco.musicas.push(m); banco.atual = m.id; pilha = [];
+      if (banco.musicas.length === 1 && !banco.guiaNaoMostrar) setTimeout(() => mostrarGuia(true), 50); // primeira vez: abre o tutorial
+    }
+    janFicha.hidden = true; renderizar(); gravar();
+    const c = M().compasso;
+    avisar(`<b>${M().titulo}</b> · ${tomDe(M().tom)[1]} · ${c.simbolo === 'C' ? 'C' : c.simbolo === 'Cc' ? 'C cortado' : c.num + '/' + c.den}. Desenhe as notas do compasso 1.`, 'ok');
+  });
+  $('fCancelar').onclick = fecharFicha;
+  $('fExcluir').onclick = () => {
+    if (!confirmaExcluir) { confirmaExcluir = true; $('fExcluir').textContent = 'Toque de novo para excluir'; return; }
+    const nome = M().titulo;
+    banco.musicas = banco.musicas.filter(m => m.id !== banco.atual);
+    banco.atual = banco.musicas.length ? banco.musicas[banco.musicas.length - 1].id : null;
+    pilha = []; gravar(); renderizar();
+    if (!M()) { abrirFicha('nova'); avisar(`<b>${nome}</b> excluída. Crie uma música nova para começar.`); }
+    else { janFicha.hidden = true; avisar(`<b>${nome}</b> excluída.`); }
+  };
+
+  // ---------- Lista de músicas ----------
+  function abrirLista() {
+    const ul = $('listaMus'); ul.replaceChildren();
+    for (const m of [...banco.musicas].reverse()) {
+      const li = document.createElement('li'); const b = document.createElement('button');
+      if (m.id === banco.atual) b.setAttribute('aria-current', 'true');
+      const c = m.compasso;
+      const nNotas = m.itens.filter(i => NOTA.has(i.tipo)).length;
+      b.innerHTML = `<span class="t"></span><span class="m">${tomDe(m.tom)[1]} · ${c.simbolo === 'C' ? 'C' : c.simbolo === 'Cc' ? 'C cortado' : c.num + '/' + c.den} · ${m.linhas[0].pautas.length > 1 ? 'piano' : 'clave de ' + { sol: 'Sol', fa: 'Fá', do: 'Dó' }[m.linhas[0].pautas[0]]} · ${m.linhas.length} linha${m.linhas.length > 1 ? 's' : ''} · ${nNotas} nota${nNotas === 1 ? '' : 's'}${m.id === banco.atual ? ' · aberta' : ''}</span>`;
+      b.querySelector('.t').textContent = m.titulo;
+      b.onclick = () => { descartarPendente(); banco.atual = m.id; pilha = []; renderizar(); gravar(); janLista.hidden = true; avisar(`<b>${m.titulo}</b> aberta.`); };
+      li.appendChild(b); ul.appendChild(li);
+    }
+    $('lFicha').hidden = !M();
+    janLista.hidden = false;
+  }
+  $('bMusica').onclick = () => (banco.musicas.length ? abrirLista() : abrirFicha('nova'));
+
+  // ---------- Editar o nome da partitura direto no topo ----------
+  const tituloVer = $('tituloVer'), tituloEd = $('tituloEd'), tituloInput = $('tituloInput');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function editarTitulo(v) {
+    if (v && !M()) { abrirFicha('nova'); return; }
+    tituloVer.hidden = v; tituloEd.hidden = !v;
+    if (v) { tituloInput.value = M().titulo; setTimeout(() => { tituloInput.focus(); tituloInput.select(); }, 0); }
+  }
+  $('bTitulo').onclick = () => editarTitulo(true);
+  $('bTituloCancelar').onclick = () => editarTitulo(false);
+  tituloEd.addEventListener('submit', e => {
+    e.preventDefault();
+    const t = tituloInput.value.trim();
+    if (!t) { avisar('O nome não pode ficar vazio.', 'falha'); tituloInput.focus(); return; }
+    if (t !== M().titulo) { M().titulo = t; renderizar(); gravar(); avisar(`Nome salvo: <b>${esc(t)}</b>`, 'ok'); }
+    editarTitulo(false);
+  });
+  tituloInput.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); editarTitulo(false); } });
+  // tocar fora do campo cancela a edição
+  document.addEventListener('pointerdown', e => { if (!tituloEd.hidden && !tituloEd.contains(e.target)) editarTitulo(false); }, true);
+
+  // ---------- Editar × Visualizar (pré-visualização do PDF / impressão) ----------
+  function modoVisual(v) {
+    document.body.classList.toggle('visualizar', v);
+    $('segEditar').setAttribute('aria-selected', !v); $('segVer').setAttribute('aria-selected', v);
+    if (v) {
+      finalizar(); confirmarTexto(); mostrarBiblio(false); abrirPaleta(false); menuClave.hidden = true;
+      if (selId) { selId = null; renderizar(); }
+      avisar('<b>Pré-visualização:</b> é assim que a partitura sai no PDF e na impressão. Toque em Editar para voltar.');
+    } else avisar(DICA_MODO[modo]);
+  }
+  $('segEditar').onclick = () => modoVisual(false);
+  $('segVer').onclick = () => modoVisual(true);
+  $('bVisMenos').onclick = () => { aplicarZoom(zoom - 0.25); gravar(); };
+  $('bVisMais').onclick = () => { aplicarZoom(zoom + 0.25); gravar(); };
+  const cVisAnot = $('cVisAnot');
+  cVisAnot.checked = !!banco.visAnot; document.body.classList.toggle('vis-anot', cVisAnot.checked);
+  cVisAnot.onchange = () => { banco.visAnot = cVisAnot.checked; document.body.classList.toggle('vis-anot', cVisAnot.checked); gravar(); };
+  $('lFechar').onclick = () => { janLista.hidden = true; };
+  $('lNova').onclick = () => abrirFicha('nova');
+  $('lFicha').onclick = () => abrirFicha('editar');
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (!janTreino.hidden) { $('tCancelar').click(); return; }
+    if (!janGuia.hidden) { mostrarGuia(false); return; }
+    if (!popTempo.hidden) { abrirTempo(false); return; }
+    if (!escolhaEl.hidden) { recusarEscolha(); return; }
+    if (!janFicha.hidden) fecharFicha();
+    else if (!janLista.hidden) janLista.hidden = true;
+    else if (!biblio.hidden) mostrarBiblio(false);
+    else if (!paleta.hidden) { abrirPaleta(false); fab.focus(); }
+  });
+
+  // ---------- Início ----------
+  if (!M() && banco.musicas.length) banco.atual = banco.musicas[banco.musicas.length - 1].id;
+  if (M() && !banco.guiaNaoMostrar) mostrarGuia(true);
+  aplicarZoom(zoom);
+  renderizar();
+  if (!M()) abrirFicha('nova');
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => renderizar());
+})();
+</script>

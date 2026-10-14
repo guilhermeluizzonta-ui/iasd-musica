@@ -1,0 +1,6 @@
+{
+  "name": "testes-pauta",
+  "private": true,
+  "description": "Testes do editor Pauta a Mão Livre (jsdom). Uso: npm install; node testar12.js ../../src/pauta/pauta-mao-livre.html",
+  "dependencies": { "jsdom": "^24.1.0" }
+}
