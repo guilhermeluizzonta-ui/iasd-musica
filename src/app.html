@@ -337,6 +337,10 @@ body.focus .focus-only { display: flex; }
 .theme-thumb.split > span { flex: 1; padding: 8px; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; }
 .folha-thumb { height: 70px; border-radius: 8px; overflow: hidden; display: flex; border: 1px solid rgba(128,128,128,.35); }
 .folha-thumb svg { flex: 1; height: 100%; display: block; }
+.instr-grupo { margin: 4px 0 10px; }
+.instr-grupo > span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.capo-tag { color: var(--accent); }
+.capo-btn[aria-pressed="true"] { color: var(--accent); }
 .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
 .swatch { min-width: 64px; min-height: 64px; border: 0; background: transparent; color: var(--fg); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-family: var(--sans); font-size: 12px; border-radius: 12px; }
 .swatch .dot { width: 34px; height: 34px; border-radius: 17px; border: 2px solid rgba(128,128,128,.4); }
@@ -825,6 +829,11 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
     <!-- Configurações -->
     <section class="view" id="v-config" hidden>
       <div class="box">
+        <p class="sec-title">Meu instrumento</p>
+        <div id="instrs"></div>
+        <p class="hint" id="instr-hint">Com violão, guitarra, ukulele, cavaquinho, viola caipira ou bandolim, a cifra ganha o botão <b>Capo</b>: escolha a casa e os acordes aparecem nas formas que você vai tocar.</p>
+      </div>
+      <div class="box">
         <p class="sec-title">Modo</p>
         <div class="chips" role="group" aria-label="Modo">
           <button type="button" class="chip" data-mode="escuro" aria-pressed="false">Escuro</button>
@@ -892,6 +901,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
               <button type="button" class="key" id="t-key" aria-haspopup="dialog" aria-expanded="false" data-tip="Tom|Toque para escolher outro tom. Só muda na sua tela.">G</button>
               <button type="button" id="t-up" aria-label="Subir meio tom" data-tip="Subir meio tom|Muda o tom só na sua tela.">+</button>
             </div>
+            <div class="group" id="t-capo-g" hidden><button type="button" class="capo-btn" id="t-capo" aria-haspopup="dialog" aria-expanded="false" aria-pressed="false" data-tip="Capotraste|Escolha a casa do capo. O tom continua o mesmo; os acordes mudam para as formas que você toca.">Capo</button></div>
             <div class="group"><button type="button" class="gi" id="t-simp" aria-pressed="false" aria-label="Simplificar acordes" data-tip="Simplificar acordes|Troca acordes difíceis por versões simples (C#m7 vira C#m). Toque de novo para voltar."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20 15 9"/><path d="M14 4v2M14 10v2M18 8h2M10 8h2M16.8 5.2l1.4-1.4M16.8 10.8l1.4 1.4M11.2 5.2 9.8 3.8"/></svg></button></div>
             <div class="group" role="group" aria-label="Colunas">
               <button type="button" id="t-cauto" aria-pressed="true" data-tip="Colunas automáticas|O app escolhe quantas colunas cabem na tela.">Auto</button>
@@ -914,6 +924,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
             </button></div>
           </div>
           <div class="keypick" id="keypick" role="dialog" aria-label="Escolher tom" hidden></div>
+          <div class="keypick" id="capopick" role="dialog" aria-label="Capotraste" hidden></div>
         </div>
         <p class="tipline" aria-live="polite"></p>
       </div>
@@ -1209,8 +1220,12 @@ function renderSheet(el, text, v, mode) {
   const meta = parseMeta(text);
   let keyStr = meta.key, suggested = false;
   if (!keyStr) { const d = detectKey(text); if (d) { keyStr = d.key; suggested = true; } }
-  const ki = keyInfo(keyStr, v.shift);
-  const useFlats = ki ? ki.cur.useFlats : false;
+  const ki = keyInfo(keyStr, v.shift);   // tom que soa
+  /* Capotraste: os acordes aparecem nas formas que a mão faz (tom − casas do capo); o tom mostrado continua o que soa */
+  const capo = v.capoTela || 0;   // só quem chama decide (renderViewer: instrumento com capo); o capo guardado na música não vale sozinho
+  const kf = capo && ki ? keyInfo(keyStr, (v.shift - capo + 120) % 12) : null;
+  const useFlats = (kf || ki) ? (kf || ki).cur.useFlats : false;
+  const capoHtml = capo ? ` · <b class="capo-tag">Capo ${capo}ª casa</b>${kf ? ` (formas de ${esc(kf.cur.label)})` : ''}` : '';
   const isEditor = db.role === 'editor';
   let keyHtml = '';
   if (ki && !suggested) {
@@ -1225,9 +1240,10 @@ function renderSheet(el, text, v, mode) {
   } else if (mode === 'preview') {
     keyHtml = 'Tom não informado <button type="button" class="link" data-act="keyset">Definir tom</button>';
   }
+  if (capo) v = Object.assign({}, v, { shift: (v.shift - capo + 120) % 12 });   // daqui em diante, os acordes saem nas formas do capo
   let html = '';
   if (meta.title) html += `<h2 class="title">${esc(meta.title)}</h2>`;
-  html += `<p class="meta">${esc(meta.artist)}${meta.artist && keyHtml ? ' · ' : ''}${keyHtml}</p>`;
+  html += `<p class="meta">${esc(meta.artist)}${meta.artist && keyHtml ? ' · ' : ''}${keyHtml}${keyHtml ? capoHtml : capoHtml.replace(/^ · /, '')}</p>`;
   html += `<div class="body cols-${v.cols}">`;
   let open = false; const problems = [];
   const openSec = (cls, name) => { if (open) html += '</div>'; html += `<div class="section ${cls}">` + (name ? `<div class="section-name">${esc(secLabel(name))}</div>` : ''); open = true; };
@@ -1813,9 +1829,15 @@ function openViewer(id) {
   $('fit-status').hidden = true;
   renderViewer();
 }
+function capoAtual() { return usaCapo() ? (cur.v.capo || 0) : 0; }
 function renderViewer() {
   const s = songById(cur.id); if (!s) return;
-  const r = renderSheet($('sheet'), s.text, cur.v, 'viewer');
+  const capo = capoAtual();
+  const r = renderSheet($('sheet'), s.text, Object.assign({}, cur.v, { capoTela: capo }), 'viewer');
+  $('t-capo-g').hidden = !usaCapo();
+  $('t-capo').textContent = capo ? `Capo ${capo}` : 'Capo';
+  $('t-capo').setAttribute('aria-pressed', String(!!capo));
+  $('t-capo').setAttribute('aria-label', capo ? `Capotraste na ${capo}ª casa. Trocar` : 'Sem capotraste. Escolher casa');
   cur.ki = r.ki; cur.suggested = r.suggested;
   const k = $('t-key');
   k.textContent = r.ki ? r.ki.cur.main : '—';
@@ -1834,7 +1856,7 @@ function renderViewer() {
   $('t-zval').textContent = pct === 100 ? '100%' : '↺ ' + pct + '%';
   $('t-zval').disabled = pct === 100;
   $('t-zval').setAttribute('aria-label', pct === 100 ? 'Texto em 100%' : `Texto em ${pct}%. Voltar para 100%`);
-  if (cur.listBase) ['simplify', 'colsMode', 'cols', 'zoom', 'fit'].forEach(k => { cur.listBase[k] = cur.v[k]; });   // tom do culto não muda o tom pessoal
+  if (cur.listBase) ['simplify', 'colsMode', 'cols', 'zoom', 'fit', 'capo'].forEach(k => { cur.listBase[k] = cur.v[k]; });   // capo é da música, vale também na lista   // tom do culto não muda o tom pessoal
   save();
   drawCifraInk();
 }
@@ -1868,7 +1890,7 @@ function fitToScreen(showMsg) {
   const avail = Math.max(260, window.innerHeight - reservedTop() - 16);
   const steps = []; for (let z = ZFIT_MIN; z <= ZMAX + 1e-9; z += 0.05) steps.push(Math.round(z * 100) / 100);
   cur.v.colsMode = 'auto';
-  const fits = (z) => { cur.v.zoom = z; renderSheet(el, s.text, cur.v, 'viewer'); return el.scrollHeight <= avail; };
+  const fits = (z) => { cur.v.zoom = z; renderSheet(el, s.text, Object.assign({}, cur.v, { capoTela: capoAtual() }), 'viewer'); return el.scrollHeight <= avail; };
   let lo = 0, hi = steps.length - 1, best = -1;
   while (lo <= hi) { const mid = (lo + hi) >> 1; if (fits(steps[mid])) { best = mid; lo = mid + 1; } else hi = mid - 1; }
   cur.v.zoom = best >= 0 ? steps[best] : ZFIT_MIN;
@@ -1904,8 +1926,31 @@ function buildPicker() {
   });
   box.innerHTML = h + '</div>';
 }
-function openKeypick() { buildPicker(); $('keypick').hidden = false; $('t-key').setAttribute('aria-expanded', 'true'); const c = $('keypick').querySelector('[aria-current="true"]'); if (c) c.focus(); }
-function closeKeypick() { $('keypick').hidden = true; $('t-key').setAttribute('aria-expanded', 'false'); }
+function openKeypick() { $('capopick').hidden = true; $('t-capo').setAttribute('aria-expanded', 'false'); buildPicker(); $('keypick').hidden = false; $('t-key').setAttribute('aria-expanded', 'true'); const c = $('keypick').querySelector('[aria-current="true"]'); if (c) c.focus(); }
+function closeKeypick() { $('keypick').hidden = true; $('t-key').setAttribute('aria-expanded', 'false'); if ($('capopick')) { $('capopick').hidden = true; $('t-capo').setAttribute('aria-expanded', 'false'); } }
+/* Capotraste: Sem capo, 1ª a 9ª casa. Cada casa mostra em que formas os acordes ficam; formas abertas (C, G, D, A, E, Am, Em, Dm) ganham "fácil". */
+const FORMAS_FACEIS = new Set(['C', 'G', 'D', 'A', 'E', 'Am', 'Em', 'Dm']);
+function buildCapo() {
+  const ki = cur.ki, c = capoAtual(), real = ki ? ki.cur : null;
+  const forma = n => { if (!real) return null; const i = (real.idx - n + 12) % 12; return showKey(i, ki.orig.minor); };
+  let h = `<div class="keypick-head"><span>Tom que soa: <strong>${real ? esc(real.label) : '—'}</strong><br>O capo não muda o tom; só a forma dos acordes.</span></div><div class="keypick-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">`;
+  for (let n = 0; n <= 9; n++) {
+    const f = forma(n), nome = f ? (ki.orig.minor ? f.sub : f.main) : '', facil = nome && FORMAS_FACEIS.has(nome);
+    h += `<button type="button" data-capo="${n}" aria-current="${n === c}" class="${n === c ? 'orig' : ''}">${n ? `${n}ª casa` : 'Sem capo'}` +
+      (f ? `<small>formas de ${esc(f.label)}</small>` : '') + (facil ? '<small class="o">fácil</small>' : '') + '</button>';
+  }
+  $('capopick').innerHTML = h + '</div>';
+}
+$('t-capo').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const abrir = $('capopick').hidden; closeKeypick();
+  if (abrir) { buildCapo(); $('capopick').hidden = false; $('t-capo').setAttribute('aria-expanded', 'true'); const b = $('capopick').querySelector('[aria-current="true"]'); if (b) b.focus(); }
+});
+$('capopick').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const b = e.target.closest('[data-capo]'); if (!b) return;
+  cur.v.capo = Number(b.dataset.capo); renderViewer(); closeKeypick(); $('t-capo').focus();
+});
 $('t-key').addEventListener('click', (e) => { e.stopPropagation(); $('keypick').hidden ? openKeypick() : closeKeypick(); });
 $('keypick').addEventListener('click', (e) => {
   e.stopPropagation();
@@ -2207,7 +2252,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (!$('ink-text').hidden) { $('ink-text').hidden = true; return; }
   if (ink.on) { inkStop(); return; }
-  if (!$('keypick').hidden) { closeKeypick(); $('t-key').focus(); return; }
+  if (!$('keypick').hidden || !$('capopick').hidden) { closeKeypick(); $('t-key').focus(); return; }
   if (!$('keyset').hidden) { closeKeyset(); return; }
   if (!$('drawer').hidden) { closeDrawer(); $('menu-btn').focus(); return; }
   if (document.body.classList.contains('focus') && !document.fullscreenElement) exitFocus();
@@ -2892,6 +2937,15 @@ function loadFontCss(id, url) {
   const l = document.createElement('link'); l.id = id; l.rel = 'stylesheet'; l.href = url; document.head.appendChild(l);
 }
 const OUTLINES = ['sem', 'suave', 'forte'];
+/* Meu instrumento (Configurações). Quem toca violão, guitarra, ukulele, cavaquinho, viola caipira ou bandolim vê o Capo na cifra. */
+const INSTRUMENTOS = [
+  ['Cordas', [['violao', 'Violão', 1], ['guitarra', 'Guitarra', 1], ['ukulele', 'Ukulele', 1], ['cavaquinho', 'Cavaquinho', 1], ['viola-caipira', 'Viola caipira', 1], ['bandolim', 'Bandolim', 1], ['baixo', 'Contrabaixo'], ['violino', 'Violino'], ['viola', 'Viola (de arco)'], ['violoncelo', 'Violoncelo']]],
+  ['Teclas', [['piano', 'Piano'], ['teclado', 'Teclado'], ['orgao', 'Órgão'], ['acordeom', 'Acordeom']]],
+  ['Sopro', [['flauta', 'Flauta'], ['trompete', 'Trompete'], ['saxofone', 'Saxofone'], ['clarinete', 'Clarinete'], ['trombone', 'Trombone']]],
+  ['Voz e percussão', [['voz', 'Voz'], ['bateria', 'Bateria'], ['percussao', 'Percussão']]]
+];
+const INSTR = Object.fromEntries(INSTRUMENTOS.flatMap(([g, l]) => l.map(([id, nome, capo]) => [id, { nome, grupo: g, capo: !!capo }])));
+const usaCapo = () => { const i = INSTR[(db.prefs || {}).instrumento]; return !!(i && i.capo); };
 /* Folha da partitura escrita no app (pauta.html lê prefs.folha; a mesma tabela está lá, em FOLHAS) */
 const FOLHAS = {
   classica: { name: 'Clássica', hint: 'Preto no branco, como impressa. No escuro, inverte.', light: { papel: '#FFFFFF', tinta: '#141414', linha: '#3B403D' }, dark: { papel: '#000000', tinta: '#F2F2F2', linha: '#A8A8A8' } },
@@ -2901,7 +2955,7 @@ const FOLHAS = {
   retro:    { name: 'Retrô',    hint: 'Visor de LED no escuro, cristal líquido no claro.', light: { papel: '#C9D3B5', tinta: '#1E2A16', linha: '#3E4A33' }, dark: { papel: '#0B120D', tinta: '#7FD69B', linha: '#3C7A52' } }
 };
 /* Padrão definido pelo Guilherme: claro, Simples, contorno suave, fonte Padrão, Verde IASD */
-const PREF_DEFAULT = { mode: 'claro', style: 'simples', outline: 'suave', accent: 'verde', font: 'padrao', folha: 'classica' };
+const PREF_DEFAULT = { mode: 'claro', style: 'simples', outline: 'suave', accent: 'verde', font: 'padrao', folha: 'classica', instrumento: '' };
 const sysDark = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 /* Em Configurações, as mudanças ficam num rascunho (prévia ao vivo) até tocar em Salvar */
 let prefDraft = null;
@@ -2965,6 +3019,9 @@ function renderConfig() {
   document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === P().mode)));
   $('styles').innerHTML = Object.keys(STYLES).map(styleOpt).join('');
   $('folhas').innerHTML = Object.keys(FOLHAS).map(folhaOpt).join('');
+  $('instrs').innerHTML = `<div class="instr-grupo"><div class="chips" role="group" aria-label="Sem instrumento"><button type="button" class="chip" data-instr="" aria-pressed="${!P().instrumento}">Não informar</button></div></div>` +
+    INSTRUMENTOS.map(([g, l]) => `<div class="instr-grupo"><span>${g}</span><div class="chips" role="group" aria-label="${g}">${l.map(([id, nome, capo]) =>
+      `<button type="button" class="chip" data-instr="${id}" aria-pressed="${P().instrumento === id}">${nome}${capo ? ' <small aria-label="usa capotraste">· capo</small>' : ''}</button>`).join('')}</div></div>`).join('');
   $('cfg-save').disabled = !prefsDirty();
   $('cfg-status').textContent = prefsDirty() ? 'Não salvo' : 'Salvo';
   document.querySelectorAll('[data-outline-pick]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.outlinePick === P().outline)));
@@ -2981,6 +3038,8 @@ document.addEventListener('click', (e) => {
   if (m) { P().mode = m.dataset.mode; applyTheme(); renderConfig(); return; }
   const st = e.target.closest('[data-style-pick]');
   if (st) { P().style = st.dataset.stylePick; applyTheme(); renderConfig(); return; }
+  const ins = e.target.closest('[data-instr]');
+  if (ins) { P().instrumento = ins.dataset.instr; renderConfig(); return; }
   const fp = e.target.closest('[data-folha-pick]');
   if (fp) { P().folha = fp.dataset.folhaPick; renderConfig(); return; }
   const ol = e.target.closest('[data-outline-pick]');
@@ -2997,7 +3056,8 @@ $('cfg-save').addEventListener('click', () => {
 });
 $('cfg-reset').addEventListener('click', () => {
   const before = Object.assign({}, db.prefs);
-  db.prefs = Object.assign({}, PREF_DEFAULT); prefDraft = Object.assign({}, PREF_DEFAULT); save(); applyTheme(); renderConfig();
+  const padrao = Object.assign({}, PREF_DEFAULT, { instrumento: before.instrumento || '' });   // o instrumento não é aparência: fica
+  db.prefs = Object.assign({}, padrao); prefDraft = Object.assign({}, padrao); save(); applyTheme(); renderConfig();
   toast('Aparência voltou ao padrão.', { label: 'Desfazer', fn: () => { db.prefs = before; prefDraft = route.name === 'config' ? Object.assign({}, before) : null; save(); applyTheme(); if (route.name === 'config') renderConfig(); } });
 });
 
@@ -4004,7 +4064,7 @@ $('sf-form').addEventListener('submit', (e) => {
     if (!liPop.hidden) { closeListPop(); return; }
     if (typeof rowMenu !== 'undefined' && !rowMenu.hidden) { closeRowMenu(); return; }
     if ($('fab-wrap') && $('fab-wrap').classList.contains('open')) { closeFab(); return; }
-    if (!$('keypick').hidden) { closeKeypick(); return; }
+    if (!$('keypick').hidden || !$('capopick').hidden) { closeKeypick(); return; }
     if (document.body.classList.contains('focus')) { exitFocus(); return; }
     if (!$('v-signup').hidden) { show('v-login'); return; }
     if (!$('v-login').hidden) { P.App.exitApp(); return; }
