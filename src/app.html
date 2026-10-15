@@ -404,6 +404,36 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
 #ink-warn .link { margin-left: 6px; }
 #t-ink, #pv-ink { display: flex; align-items: center; gap: 6px; }
 
+/* ---------- Devocional ---------- */
+#v-devocional { max-width: 640px; margin: 0 auto; padding-top: 8px; gap: 22px; }
+#dv-body { display: flex; flex-direction: column; gap: 22px; }
+.dv-head { display: flex; flex-direction: column; gap: 4px; }
+.dv-kicker { font-size: 13px; color: var(--muted); }
+.dv-verse blockquote { font-size: 19px; line-height: 1.5; }
+.dv-card { border: var(--bw) solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: var(--surface); }
+.dv-card .verse { margin-top: 4px; }
+.dv-text { margin: 0; white-space: pre-wrap; line-height: 1.55; font-size: 16px; text-wrap: pretty; }
+.dv-who { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.dv-who svg, .li-devo svg { color: var(--accent); flex: none; }
+.dv-guia { margin: 0; padding: 0; list-style: none; counter-reset: g; display: flex; flex-direction: column; gap: 10px; }
+.dv-guia li { counter-increment: g; display: grid; grid-template-columns: 28px 1fr; column-gap: 10px; }
+.dv-guia li::before { content: counter(g); grid-row: span 2; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--accent); color: var(--accent); font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.dv-guia li span { color: var(--muted); font-size: 14px; }
+.dv-ped { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.dv-ped li { display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--line); min-height: 48px; }
+.dv-ped li:last-child { border-bottom: 0; }
+.dv-ped li > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.dv-ped li.done > span { text-decoration: line-through; color: var(--muted); }
+.dv-ped-ok[aria-pressed="true"] { color: var(--accent); }
+.dv-ped-form { display: flex; gap: 8px; }
+.dv-go { justify-content: flex-end; }
+.dv-go .btn.primary { min-width: 120px; }
+.li-devo { margin: 6px 0 0; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.lf-devo { border: var(--bw) solid var(--line); border-radius: 12px; padding: 12px 14px 14px; margin: 0; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.lf-devo legend { padding: 0 6px; }
+.lf-check { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; }
+.lf-check input { width: 20px; height: 20px; flex: none; accent-color: var(--accent); }
+
 /* ---------- Listas de culto ---------- */
 .ls-body { display: flex; flex-direction: column; gap: 22px; }
 .datetag { width: 58px; height: 50px; border-radius: var(--r); border: var(--bw) solid var(--ctl-eff, var(--line)); background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; flex: none; line-height: 1.15; }
@@ -573,6 +603,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
       <button type="button" class="icon-btn" id="drawer-close" aria-label="Fechar menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
     </div>
     <div class="who"><span class="avatar" id="who-initial">?</span><span><strong id="who-name">—</strong><small id="who-sub">—</small></span></div>
+    <button type="button" class="nav-item" data-nav="devocional"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.5C10.3 5 7.8 4.3 3.5 4.5v13.5c4.3-.2 6.8.5 8.5 2 1.7-1.5 4.2-2.2 8.5-2V4.5c-4.3-.2-6.8.5-8.5 2z"></path><path d="M12 6.5V20"></path></svg>Devocional</button>
     <button type="button" class="nav-item" data-nav="inicio"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>Início</button>
     <button type="button" class="nav-item" data-nav="cifras"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5H20" stroke-width="2.6"></path><path d="M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5" stroke-width="1.3"></path><path d="M4 10.5H20M4 16H20M4 21.5H20" stroke-width="1.3"></path><circle cx="4" cy="18.75" r="2.3" fill="currentColor" stroke="none"></circle><circle cx="9.33" cy="13.25" r="2.3" fill="currentColor" stroke="none"></circle><circle cx="20" cy="7.75" r="2.3" fill="currentColor" stroke="none"></circle></svg>Cifras</button>
     <button type="button" class="nav-item" data-nav="partituras"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9"></path><path d="M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5"></path><circle cx="10.2" cy="21.2" r="1.1" fill="currentColor" stroke="none"></circle></svg>Partituras</button>
@@ -593,6 +624,11 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
   </nav>
 
   <main>
+    <!-- Devocional: meditação e oração (sozinho ou na abertura / no fim da lista do culto) -->
+    <section class="view" id="v-devocional" data-tipscope hidden>
+      <div id="dv-body"></div>
+      <p class="tipline" aria-live="polite"></p>
+    </section>
     <!-- Início: boas-vindas com versículo -->
     <section class="view" id="v-inicio" hidden>
       <div class="w-church">
@@ -809,6 +845,19 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
         </div>
         <div class="field"><label for="lf-leader">Responsável <small>(opcional)</small></label><input class="input" id="lf-leader" maxlength="60" placeholder="Quem dirige o louvor"></div>
         <div class="field"><label for="lf-note">Observações <small>(opcional)</small></label><textarea class="input lf-note" id="lf-note" maxlength="400" placeholder="Ex.: ensaio às 8h; abertura com a orquestra"></textarea></div>
+        <fieldset class="lf-devo">
+          <legend class="sec-title">Devocional</legend>
+          <label class="lf-check"><input type="checkbox" id="lf-devo-on" checked> Começar com meditação e oração e terminar com oração final</label>
+          <div class="stack" id="lf-devo-box">
+            <div class="two">
+              <div class="field"><label for="lf-devo-open">Oração inicial <small>(opcional)</small></label><input class="input" id="lf-devo-open" maxlength="60" placeholder="Quem ora no início"></div>
+              <div class="field"><label for="lf-devo-close">Oração final <small>(opcional)</small></label><input class="input" id="lf-devo-close" maxlength="60" placeholder="Quem ora no fim"></div>
+            </div>
+            <div class="field"><label for="lf-devo-ref">Versículo <small>(opcional · sem ele, usa o versículo do dia)</small></label><input class="input" id="lf-devo-ref" maxlength="40" placeholder="Ex.: Salmos 33:3"></div>
+            <div class="field"><label for="lf-devo-verse" class="sr">Texto do versículo</label><textarea class="input lf-note" id="lf-devo-verse" maxlength="400" placeholder="Texto do versículo"></textarea></div>
+            <div class="field"><label for="lf-devo-text">Meditação <small>(opcional)</small></label><textarea class="input lf-note" id="lf-devo-text" maxlength="1500" placeholder="Uma reflexão curta para a equipe antes de tocar"></textarea></div>
+          </div>
+        </fieldset>
         <p class="status" id="lf-clone-info" hidden></p>
         <p class="hint">Sem nome, a lista se chama pelo dia da semana: "Culto de sábado".</p>
         <p class="tipline" aria-live="polite"></p>
@@ -1379,8 +1428,8 @@ function viewFor(id) {
 }
 
 /* ---------- Navegação ---------- */
-const TITLES = { scoreform: 'Nova partitura', letra: 'Letra', lista: 'Lista', listaform: 'Nova lista', listapick: 'Adicionar músicas', letras: 'Letras', partitura: 'Partitura', inicio: 'Início', cifras: 'Cifras', favoritas: 'Favoritas', partituras: 'Partituras', listas: 'Listas de culto', config: 'Configurações', lixeira: 'Lixeira' };
-const TOP = ['inicio', 'cifras', 'favoritas', 'partituras', 'letras', 'listas', 'config', 'lixeira'];
+const TITLES = { devocional: 'Devocional', scoreform: 'Nova partitura', letra: 'Letra', lista: 'Lista', listaform: 'Nova lista', listapick: 'Adicionar músicas', letras: 'Letras', partitura: 'Partitura', inicio: 'Início', cifras: 'Cifras', favoritas: 'Favoritas', partituras: 'Partituras', listas: 'Listas de culto', config: 'Configurações', lixeira: 'Lixeira' };
+const TOP = ['devocional', 'inicio', 'cifras', 'favoritas', 'partituras', 'letras', 'listas', 'config', 'lixeira'];
 let route = { name: 'inicio' }, lastTop = 'inicio';
 function show(id) { ['v-login', 'v-signup'].forEach(x => $(x).hidden = x !== id); $('app').hidden = id !== 'app'; }
 let pdfFolder = null;   // pasta aberta em Partituras (null = início)
@@ -1409,6 +1458,7 @@ function go(name, params = {}) {
   ['fab-new', 'fab-import'].forEach(i => $(i).hidden = inPdf); $('fab-folder').hidden = !inPdf; $('fab-pdf').hidden = !inPdf; $('fab-score').hidden = !(inPdf && db.role === 'editor');   // todos importam os PDFs que têm no aparelho
   if (TITLES[name]) $('top-title').textContent = TITLES[name];
   if (name === 'inicio') renderWelcome();
+  if (name === 'devocional') renderDevocional(params);
   if (name === 'cifras') renderList();
   if (name === 'favoritas') renderFavs();
   if (name === 'config') renderConfig();
@@ -3474,9 +3524,11 @@ function renderListDetail(id) {
   const ed = canEditLists();
   $('top-title').textContent = listTitle(l);
   const open = db.listOpen || defaultListOpen();
-  $('li-head').innerHTML = `<p class="hint">${esc(listMeta(l).join(' · '))}</p>${l.note ? `<p class="li-note">${esc(l.note)}</p>` : ''}`;
+  const dv = l.devo || {};
+  const dvTxt = devoOn(l) ? ['Começa com meditação e oração' + (dv.openBy ? ` (${dv.openBy})` : ''), 'termina com oração final' + (dv.closeBy ? ` (${dv.closeBy})` : '')].join(' · ') : '';
+  $('li-head').innerHTML = `<p class="hint">${esc(listMeta(l).join(' · '))}</p>${dvTxt ? `<p class="li-devo">${ico('pray', 16)}<span>${esc(dvTxt)}</span></p>` : ''}${l.note ? `<p class="li-note">${esc(l.note)}</p>` : ''}`;
   const B = (attrs, icon, label, tip, cls = 'btn ib') => `<button type="button" class="${cls}" ${attrs} aria-label="${label}" data-tip="${tip}">${ico(icon)}</button>`;
-  $('li-actions').innerHTML = B(`data-li-start="1" ${l.items.length ? '' : 'disabled'}`, 'play', 'Começar', 'Começar|Abre a primeira música no tom do culto. A barra de baixo passa para a próxima.', 'btn ib primary') +
+  $('li-actions').innerHTML = B(`data-li-start="1" ${l.items.length ? '' : 'disabled'}`, 'play', 'Começar', (devoOn(l) ? 'Começar|Abre a meditação e a oração; depois as músicas no tom do culto e, no fim, a oração final. A barra de baixo passa para a próxima.' : 'Começar|Abre a primeira música no tom do culto. A barra de baixo passa para a próxima.'), 'btn ib primary') +
     `<div class="group" role="group" aria-label="Abrir as músicas em"><button type="button" class="gi" data-li-as="cifra" aria-pressed="${open === 'cifra'}" aria-label="Abrir em cifra" data-tip="Abrir em cifra|No modo culto, as músicas abrem na cifra.">${ico('chord')}</button><button type="button" class="gi" data-li-as="partitura" aria-pressed="${open === 'partitura'}" aria-label="Abrir em partitura" data-tip="Abrir em partitura|No modo culto, abrem na partitura (quando a música tiver uma).">${ico('clef')}</button><button type="button" class="gi" data-li-as="letra" aria-pressed="${open === 'letra'}" aria-label="Abrir em letra" data-tip="Abrir em letra|No modo culto, abrem só com a letra e o tom (louvor e coral).">${ico('lyrics')}</button></div>` +
     (ed ? '<span class="spacer"></span>' + B('data-li-add="1"', 'musicadd', 'Adicionar músicas', 'Adicionar músicas|Escolha as músicas na ordem do culto.') +
       B('data-li-edit="1"', 'edit', 'Editar dados da lista', 'Editar dados|Nome, data, horário, responsável e observações.') +
@@ -3571,6 +3623,11 @@ function openListForm(p) {
   $('lf-time').value = l ? (l.time || '') : '';
   $('lf-leader').value = l ? (l.leader || '') : '';
   $('lf-note').value = l ? (l.note || '') : '';
+  const dv = (l && l.devo) || {};
+  $('lf-devo-on').checked = !l || devoOn(l);
+  $('lf-devo-open').value = dv.openBy || ''; $('lf-devo-close').value = dv.closeBy || '';
+  $('lf-devo-ref').value = dv.ref || ''; $('lf-devo-verse').value = dv.verse || ''; $('lf-devo-text').value = dv.text || '';
+  $('lf-devo-box').hidden = !$('lf-devo-on').checked;
   $('lf-clone-info').hidden = !p.clone;
   if (p.clone && l) $('lf-clone-info').textContent = `Copiando ${l.items.length} ${l.items.length === 1 ? 'música' : 'músicas'}, com a ordem, os tons e as observações. Confira a data.`;
   const lbl = editing ? 'Salvar' : p.clone ? 'Criar cópia' : 'Criar lista';
@@ -3581,7 +3638,8 @@ function openListForm(p) {
 $('lf-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const p = route, now = Date.now();
-  const data = { title: $('lf-title').value.trim().replace(/\s+/g, ' '), date: $('lf-date').value, time: $('lf-time').value, leader: $('lf-leader').value.trim(), note: $('lf-note').value.trim() };
+  const data = { title: $('lf-title').value.trim().replace(/\s+/g, ' '), date: $('lf-date').value, time: $('lf-time').value, leader: $('lf-leader').value.trim(), note: $('lf-note').value.trim(),
+    devo: { on: $('lf-devo-on').checked, openBy: $('lf-devo-open').value.trim(), closeBy: $('lf-devo-close').value.trim(), ref: $('lf-devo-ref').value.trim(), verse: $('lf-devo-verse').value.trim(), text: $('lf-devo-text').value.trim() } };
   if (!Array.isArray(db.lists)) db.lists = [];
   let l;
   if (p.id && listById(p.id)) { l = listById(p.id); Object.assign(l, data); l.updated = now; }
@@ -3596,6 +3654,7 @@ $('lf-form').addEventListener('submit', (e) => {
   toast(p.clone ? 'Cópia criada.' : 'Lista salva.');
 });
 $('lf-cancel').addEventListener('click', () => $('back-btn').click());
+$('lf-devo-on').addEventListener('change', () => { $('lf-devo-box').hidden = !$('lf-devo-on').checked; });
 /* Escolher músicas para a lista */
 let pickSel = [];
 function openPick(id) {
@@ -3647,26 +3706,44 @@ function openListItem(l, i, as) {
   else if (mode === 'letra') go('letra', { id: s.id, list: l.id, idx: i, back });
   else go('cifra', { id: s.id, list: l.id, idx: i, back });
 }
+/* Passos do modo culto: -1 = abertura (devocional), 0..n-1 = músicas, n = oração final */
+const okItem = (l, i) => { const it = l.items[i]; const s = it && songById(it.songId); return !!(s && !s.archived); };
+function listNeighbor(l, from, dir) {
+  const n = l.items.length, devo = devoOn(l);
+  let i = from + dir;
+  while (i >= 0 && i < n && !okItem(l, i)) i += dir;
+  if (i >= 0 && i < n) return i;
+  if (!devo) return null;
+  if (i < 0 && from >= 0) return -1;
+  if (i >= n && from < n) return n;
+  return null;
+}
 function listStep(dir) {
   const l = listById(route.list); if (!l) return;
-  let i = route.idx + dir;
-  while (i >= 0 && i < l.items.length) { const s = songById(l.items[i].songId); if (s && !s.archived) break; i += dir; }
-  if (i < 0 || i >= l.items.length) return;
+  const i = listNeighbor(l, route.idx, dir); if (i == null) return;
+  const back = { name: 'lista', params: { id: l.id, back: { name: 'listas' } } };
+  if (i < 0 || i >= l.items.length) { go('devocional', { list: l.id, idx: i, back }); return; }
   openListItem(l, i, route.name === 'partitura' ? 'partitura' : route.name === 'letra' ? 'letra' : (db.listOpen || defaultListOpen()));
+}
+function stepName(l, k) {
+  if (k == null) return '';
+  if (k < 0) return 'Abertura';
+  if (k >= l.items.length) return 'Oração final';
+  const s = songById(l.items[k].songId); return s ? s.title : '';
 }
 function updListNav() {
   const nav = $('list-nav');
-  const l = (route.name === 'cifra' || route.name === 'partitura' || route.name === 'letra') && route.list ? listById(route.list) : null;
+  const l = ['cifra', 'partitura', 'letra', 'devocional'].includes(route.name) && route.list ? listById(route.list) : null;
   nav.hidden = !l || ink.on;
   document.body.classList.toggle('has-listnav', !nav.hidden);
   if (!l) return;
   const i = route.idx, n = l.items.length;
-  const name = (k) => { const it = l.items[k]; const s = it && songById(it.songId); return s ? s.title : ''; };
-  $('ln-prev').disabled = i <= 0; $('ln-next').disabled = i >= n - 1;
-  $('ln-mid').innerHTML = `<b>${i + 1} de ${n}</b><span>${esc(listTitle(l))}</span>`;
-  $('ln-next').querySelector('span').textContent = i < n - 1 ? name(i + 1) : 'Fim da lista';
-  $('ln-prev').setAttribute('aria-label', i > 0 ? 'Anterior: ' + name(i - 1) : 'Anterior');
-  $('ln-next').setAttribute('aria-label', i < n - 1 ? 'Próxima: ' + name(i + 1) : 'Fim da lista');
+  const pv = listNeighbor(l, i, -1), nx = listNeighbor(l, i, 1);
+  $('ln-prev').disabled = pv == null; $('ln-next').disabled = nx == null;
+  $('ln-mid').innerHTML = `<b>${i < 0 ? 'Abertura' : i >= n ? 'Oração final' : `${i + 1} de ${n}`}</b><span>${esc(listTitle(l))}</span>`;
+  $('ln-next').querySelector('span').textContent = nx != null ? stepName(l, nx) : 'Fim da lista';
+  $('ln-prev').setAttribute('aria-label', pv != null ? 'Anterior: ' + stepName(l, pv) : 'Anterior');
+  $('ln-next').setAttribute('aria-label', nx != null ? 'Próxima: ' + stepName(l, nx) : 'Fim da lista');
 }
 $('ln-prev').addEventListener('click', () => listStep(-1));
 $('ln-next').addEventListener('click', () => listStep(1));
@@ -3708,7 +3785,10 @@ document.addEventListener('click', (e) => {
   }
   if (route.name !== 'lista') return;
   const l = listById(route.id); if (!l) return;
-  if ((b = t.closest('[data-li-start]'))) { const i = l.items.findIndex(it => { const s = songById(it.songId); return s && !s.archived; }); if (i >= 0) openListItem(l, i); return; }
+  if ((b = t.closest('[data-li-start]'))) {
+    if (devoOn(l)) { go('devocional', { list: l.id, idx: -1, back: { name: 'lista', params: { id: l.id, back: { name: 'listas' } } } }); return; }
+    const i = l.items.findIndex(it => { const s = songById(it.songId); return s && !s.archived; }); if (i >= 0) openListItem(l, i); return;
+  }
   if ((b = t.closest('[data-li-as]'))) { db.listOpen = b.dataset.liAs; save(); renderListDetail(l.id); if (db.listOpen === 'partitura' && !l.items.some(it => scoresForSong(it.songId).length)) toast('Nenhuma música desta lista tem partitura ligada: elas abrem na cifra.'); return; }
   if ((b = t.closest('[data-li-add]'))) { go('listapick', { id: l.id, back: { name: 'lista', params: { id: l.id, back: { name: 'listas' } } } }); return; }
   if ((b = t.closest('[data-li-edit]'))) { go('listaform', { id: l.id, back: { name: 'lista', params: { id: l.id, back: { name: 'listas' } } } }); return; }
@@ -3750,6 +3830,7 @@ window.addEventListener('scroll', () => {
   document.body.classList.toggle('bars-hidden', dy > 0 && y > 140 && !busy);
 }, { passive: true });
 const ICO = {"score": "<path d=\"M2 4h14M2 8h11M2 12h9M2 16h7M2 20h6\"/><path d=\"M13.5 19.5l-1 3 3-1 7.2-7.2a1.4 1.4 0 0 0-2-2z\"/>", "lyrics": "<path d=\"M4 6h16M4 10h16M4 14h10M4 18h7\"/><path d=\"M18 14v6\"/><circle cx=\"16.5\" cy=\"20\" r=\"1.5\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>", "listadd": "<path d=\"M4 6h11M4 12h11M4 18h7\"/><path d=\"M18 14v6M15 17h6\"/>", "clef": "<path d=\"M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9\"/><path d=\"M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5\"/><circle cx=\"10.2\" cy=\"21.2\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/>", "chord": "<path d=\"M4 5H20\" stroke-width=\"2.6\"/><path d=\"M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5\" stroke-width=\"1.3\"/><path d=\"M4 10.5H20M4 16H20M4 21.5H20\" stroke-width=\"1.3\"/><circle cx=\"4\" cy=\"18.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9.33\" cy=\"13.25\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"7.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/>", "edit": "<path d=\"M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6\"/><path d=\"M18.4 3.6a2 2 0 0 1 2.9 2.9L12.5 15.3 9 16l.7-3.5z\"/>", "pen": "<path d=\"M4 20h4L19 9l-4-4L4 16v4z\"/><path d=\"M14 6l4 4\"/>", "wand": "<path d=\"M4 20 15 9\"/><path d=\"M14 4v2M14 10v2M18 8h2M10 8h2M16.8 5.2l1.4-1.4M16.8 10.8l1.4 1.4M11.2 5.2 9.8 3.8\"/>", "fit": "<path d=\"M12 3v6M9 6l3 3 3-3M12 21v-6M9 18l3-3 3 3\"/><path d=\"M4 12h16\"/>", "full": "<path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/>", "unfull": "<path d=\"M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5\"/>", "play": "<path d=\"M7 4.5v15l12.5-7.5z\" fill=\"currentColor\"/>", "musicadd": "<path d=\"M9 18V5l8-2v6\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><path d=\"M19 14v6M16 17h6\"/>", "check": "<path d=\"M4.5 12.5l5 5L19.5 7\"/>", "x": "<path d=\"M6 6l12 12M18 6 6 18\"/>", "trash": "<path d=\"M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3\"/>", "paste": "<rect x=\"8\" y=\"2.5\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2\"/><path d=\"M9 12h6M9 16h4\"/>", "import": "<path d=\"M12 3v11M7.5 9.5 12 14l4.5-4.5\"/><path d=\"M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3\"/>", "eraser": "<path d=\"M8 20h12\"/><path d=\"M4.6 15.4l9.2-9.2a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8z\"/><path d=\"M9 11l5 5\"/>", "search": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M20 20l-3.5-3.5\"/>", "reset": "<path d=\"M4 12a8 8 0 1 0 2.3-5.6\"/><path d=\"M4 4v4h4\"/>", "more": "<circle cx=\"12\" cy=\"5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"};
+ICO.pray = '<path d="M12 3.5c-.9 1.3-1.3 2.9-1.3 4.6v5l-3.2 3.1a2 2 0 0 0-.6 1.4V21"/><path d="M12 3.5c.9 1.3 1.3 2.9 1.3 4.6v5l3.2 3.1a2 2 0 0 1 .6 1.4V21"/><path d="M12 8.5V21"/>';
 const ico = (n, size = 22) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[n] || ''}</svg>`;
 function setFsBtn(b, on) {
   b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', on ? 'Sair da tela cheia' : 'Tela cheia');
@@ -3787,6 +3868,85 @@ function renderNextList() {
     <strong>${esc(listTitle(l))}</strong><span class="hint">${esc([l.date ? dateLabel(l.date, true) : '', l.time].filter(Boolean).join(' · ') || 'sem data')}</span>
     ${names.length ? `<span class="next-songs">${esc(names.join(' · '))}${l.items.length > 4 ? ` · +${l.items.length - 4}` : ''}</span>` : '<span class="hint">Sem músicas ainda.</span>'}</button>`;
 }
+
+/* ---------- Devocional ----------
+   Tela própria (1º item do menu) e também a abertura e o encerramento da lista do culto:
+   Começar → meditação e oração → músicas → oração final.
+   O texto da meditação é do Editor (na lista); sem texto, usa o versículo do dia.
+   Pedidos de oração ficam só neste aparelho (compartilhar com a equipe depende da fase 2). */
+const DEVO_FIM = ['Números 6:24-26', 'O SENHOR te abençoe e te guarde; o SENHOR faça resplandecer o rosto sobre ti e tenha misericórdia de ti; o SENHOR sobre ti levante o rosto e te dê a paz.'];
+const DEVO_GUIA = {
+  abertura: [['Agradecer', 'Pelo sábado, pela igreja e pelo dom da música.'], ['Consagrar', 'Entregar a Deus as mãos, a voz e a atenção de cada um.'], ['Pedir', 'Que o louvor aponte para Cristo, e não para quem toca.']],
+  final: [['Agradecer', 'Pelo que Deus fez no culto e em cada um.'], ['Entregar', 'Os erros e acertos: o louvor foi para Ele.'], ['Interceder', 'Pelos pedidos da equipe e da igreja.']],
+  dia: [['Louvar', 'Quem Deus é, antes de pedir qualquer coisa.'], ['Ouvir', 'Ler o versículo devagar e pensar no que ele diz hoje.'], ['Pedir', 'Pela sua vida, pela equipe de louvor e pela igreja.']]
+};
+const devoOn = (l) => !!l && !(l.devo && l.devo.on === false);
+const pedidos = () => (db.pedidos = Array.isArray(db.pedidos) ? db.pedidos : []);
+function devoVerse(d, fase) {
+  if (d && d.ref && d.verse) return [d.ref, d.verse];
+  if (fase === 'final') return d && d.closeRef && d.closeVerse ? [d.closeRef, d.closeVerse] : DEVO_FIM;
+  return verseOfDay();
+}
+function devoVerseHtml([ref, txt]) {
+  const ver = VERSES_DEFAULT.some(v => v[0] === ref) || ref === DEVO_FIM[0] ? ` · ${VERSE_VERSION}` : '';
+  return `<figure class="verse dv-verse"><blockquote>“${esc(txt)}”</blockquote><figcaption>${esc(ref)}${ver}</figcaption></figure>`;
+}
+function devoGuiaHtml(fase, who) {
+  return `<div class="dv-card"><span class="sec-title">${fase === 'final' ? 'Oração final' : 'Oração'}</span>
+    ${who ? `<p class="dv-who">${ico('pray', 18)}<span>Conduz: <b>${esc(who)}</b></span></p>` : ''}
+    <ol class="dv-guia">${DEVO_GUIA[fase].map(([t, d]) => `<li><b>${t}</b><span>${d}</span></li>`).join('')}</ol></div>`;
+}
+function pedidosHtml(compact) {
+  const ps = pedidos().filter(p => !compact || !p.done);
+  if (compact && !ps.length) return '';
+  return `<div class="dv-card"><div class="panel-head"><span class="sec-title">Pedidos de oração</span>${compact ? '' : '<span class="hint">só neste aparelho</span>'}</div>
+    ${ps.length ? `<ul class="dv-ped">${ps.map(p => `<li class="${p.done ? 'done' : ''}">
+      <button type="button" class="icon-btn dv-ped-ok" data-ped-done="${esc(p.id)}" aria-pressed="${!!p.done}" aria-label="${p.done ? 'Desmarcar' : 'Marcar como respondido'}" data-tip="${p.done ? 'Desmarcar|Volta o pedido para a lista de oração.' : 'Respondido|Marca o pedido como respondido. Ele continua aqui, riscado.'}">${ico('check', 18)}</button>
+      <span>${esc(p.t)}</span>${compact ? '' : `<button type="button" class="icon-btn" data-ped-del="${esc(p.id)}" aria-label="Apagar pedido" data-tip="Apagar|Tira o pedido da lista.">${ico('x', 18)}</button>`}</li>`).join('')}</ul>` : '<p class="hint">Nenhum pedido ainda. Anote pelo que você quer orar esta semana.</p>'}
+    ${compact ? '' : `<form class="dv-ped-form" id="dv-ped-form"><input class="input" id="dv-ped-in" maxlength="140" placeholder="Ex.: saúde da irmã Maria; ensaio de quarta" aria-label="Novo pedido de oração"><button type="submit" class="btn ib primary" aria-label="Anotar pedido" data-tip="Anotar|Guarda o pedido neste aparelho.">${ico('check')}</button></form>`}</div>`;
+}
+function renderDevocional(p) {
+  const l = p && p.list ? listById(p.list) : null;
+  const el = $('dv-body');
+  const tl = $('v-devocional').querySelector('.tipline'); if (tl) tl.textContent = '';
+  if (l) {
+    const n = l.items.length, fase = p.idx < 0 ? 'abertura' : 'final', d = l.devo || {};
+    $('top-title').textContent = fase === 'final' ? 'Oração final' : 'Abertura';
+    el.innerHTML = `<div class="dv-head"><span class="dv-kicker">${esc([listTitle(l), l.date ? dateLabel(l.date, true) : '', l.time].filter(Boolean).join(' · '))}</span><h2 class="welcome-title">${fase === 'final' ? 'Oração final' : 'Meditação e oração'}</h2></div>
+      ${devoVerseHtml(devoVerse(d, fase))}
+      ${fase === 'abertura' && d.text ? `<div class="dv-card"><span class="sec-title">Meditação</span><p class="dv-text">${esc(d.text)}</p></div>` : ''}
+      ${devoGuiaHtml(fase, fase === 'final' ? d.closeBy : d.openBy)}
+      ${fase === 'final' ? pedidosHtml(true) : ''}
+      <div class="row dv-go">${fase === 'final'
+        ? `<button type="button" class="btn ib primary" data-dv-end="1" aria-label="Concluir" data-tip="Concluir|Volta para a lista do culto.">${ico('check')}</button>`
+        : `<button type="button" class="btn ib primary" data-dv-start="1" ${n ? '' : 'disabled'} aria-label="Começar as músicas" data-tip="Começar as músicas|Abre a primeira música no tom do culto.">${ico('play')}</button>`}</div>`;
+    return;
+  }
+  const d = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const nx = upcomingLists().find(x => x.items.length && devoOn(x));
+  const nd = nx && nx.devo && (nx.devo.text || nx.devo.verse) ? nx.devo : null;
+  el.innerHTML = `<div class="dv-head"><span class="dv-kicker">${esc(d.charAt(0).toUpperCase() + d.slice(1))}</span><h2 class="welcome-title">Meditação do dia</h2></div>
+    ${devoVerseHtml(verseOfDay())}
+    ${devoGuiaHtml('dia')}
+    ${nd ? `<div class="dv-card"><span class="sec-title">Para o próximo culto · ${esc(listTitle(nx))}</span>${nd.ref && nd.verse ? devoVerseHtml([nd.ref, nd.verse]) : ''}${nd.text ? `<p class="dv-text">${esc(nd.text)}</p>` : ''}</div>` : ''}
+    ${pedidosHtml(false)}
+    ${nx ? `<div class="row dv-go"><button type="button" class="btn" data-list-open="${esc(nx.id)}">${ico('play', 18)}Próximo culto: ${esc(listTitle(nx))}</button></div>` : ''}`;
+}
+$('v-devocional').addEventListener('click', (e) => {
+  const t = e.target; let b;
+  if ((b = t.closest('[data-ped-done]'))) { const p = pedidos().find(x => x.id === b.dataset.pedDone); if (p) { p.done = !p.done; save(); renderDevocional(route); } return; }
+  if ((b = t.closest('[data-ped-del]'))) { db.pedidos = pedidos().filter(x => x.id !== b.dataset.pedDel); save(); renderDevocional(route); return; }
+  const l = route.list ? listById(route.list) : null; if (!l) return;
+  if (t.closest('[data-dv-start]')) { listStep(1); return; }
+  if (t.closest('[data-dv-end]')) { go('lista', { id: l.id, back: { name: 'listas' } }); }
+});
+$('v-devocional').addEventListener('submit', (e) => {
+  if (e.target.id !== 'dv-ped-form') return;
+  e.preventDefault();
+  const v = $('dv-ped-in').value.trim().replace(/\s+/g, ' '); if (!v) return;
+  pedidos().unshift({ id: uid('p'), t: v, at: Date.now() }); save(); renderDevocional(route);
+  setTimeout(() => $('dv-ped-in') && $('dv-ped-in').focus(), 30);
+});
 
 /* ---------- Letras (louvor e coral) ----------
    A letra não é um arquivo à parte: sai da própria cifra (os acordes são escondidos).
