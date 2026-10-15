@@ -875,11 +875,17 @@ button:disabled { opacity: 0.45; cursor: default; }
       return g;
     }
     if (comAlvo && g.isConnected) {
-      const b = g.getBBox();
-      if (n.id) CAIXAS.set(n.id, { x: b.x, y: b.y, width: b.width, height: b.height });
-      mk('rect', { class: 'alvo', x: b.x - 1, y: b.y - 1, width: b.width + 2, height: b.height + 2 }, g);
+      if (ALVOS_LOTE) { ALVOS_LOTE.push([g, n.id]); return g; }   // dentro do renderizar: mede tudo de uma vez no fim
+      colocarAlvo(g, n.id, g.getBBox());
     }
     return g;
+  }
+  // Área de toque de cada símbolo. Medir (getBBox) e logo inserir o retângulo obrigava o navegador a recalcular
+  // a folha inteira a cada nota; no renderizar, primeiro mede todas e só depois insere (um cálculo só).
+  let ALVOS_LOTE = null;
+  function colocarAlvo(g, id, b) {
+    if (id) CAIXAS.set(id, { x: b.x, y: b.y, width: b.width, height: b.height });
+    mk('rect', { class: 'alvo', x: b.x - 1, y: b.y - 1, width: b.width + 2, height: b.height + 2 }, g);
   }
 
   // ---------- Folhas, linhas e pautas ----------
@@ -1202,6 +1208,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     TIPS.clear(); CAIXAS.clear(); LINHAS_TOQUE.clear();
     prepararVigas();
     const lista = itens(), mapa = new Map(lista.map(n => [n.id, n]));
+    ALVOS_LOTE = [];
     for (const n of lista) if (n.tipo !== 'ligadura' && n.tipo !== 'viga') {
       if (!LAYOUT[n.l]) continue;
       usar(n.l, n.p);
@@ -1210,6 +1217,9 @@ button:disabled { opacity: 0.45; cursor: default; }
       if (g && n.id === selId) g.classList.add('sel');
     }
     for (const n of lista) if (n.tipo === 'ligadura' && LAYOUT[n.l]) desenharItem(n, camNotas, baseDe(n), mapa);
+    const lote = ALVOS_LOTE; ALVOS_LOTE = null;
+    const medidas = lote.map(([g]) => g.getBBox());          // 1) mede tudo (um cálculo de layout)
+    lote.forEach(([g, id], i) => colocarAlvo(g, id, medidas[i])); // 2) só então insere
     desenharVigas();
     desenharCompassos();
     desenharAnotacoes();

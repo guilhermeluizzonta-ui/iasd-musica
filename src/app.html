@@ -158,6 +158,7 @@ main { padding: 16px; padding-bottom: 96px; max-width: 1400px; margin: 0 auto; }
 .search-box .input { padding-left: 44px; }
 .song-list { display: flex; flex-direction: column; }
 .song { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--line); }
+#list-songs > .song, #pdf-list > .song, #lp-list > .song { content-visibility: auto; contain-intrinsic-size: auto 64px; }   /* listas longas: desenha só o que está na tela */
 .song-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; padding: 12px 0; background: none; border: 0; color: var(--fg); text-align: left; cursor: pointer; }
 .keytag { width: 52px; height: 44px; border-radius: var(--r); border: var(--bw) solid var(--line); background: var(--surface); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-weight: 600; font-size: 15px; color: var(--chord); flex: none; }
 .keytag.sug { font-style: italic; border-style: dashed; }
@@ -1360,7 +1361,14 @@ function load() {
   db.songs = SEED.map((s, i) => ({ id: 's' + (now + i), title: s.title, artist: s.artist, text: s.text, source: '', archived: false, created: now + i, updated: now + i }));
   save();
 }
-function save() { try { localStorage.setItem(STORE, JSON.stringify(db)); } catch (e) {} }
+/* Gravação agrupada: várias mudanças seguidas (tom, zoom, colunas...) viram uma gravação só, ~0,3 s depois.
+   Gravar o banco inteiro a cada toque custava dezenas de ms com o repertório grande. Ao sair/minimizar, grava na hora. */
+let saveT = null;
+function saveNow() { clearTimeout(saveT); saveT = null; try { localStorage.setItem(STORE, JSON.stringify(db)); } catch (e) {} }
+function save() { if (!saveT) saveT = setTimeout(saveNow, 300); }
+window.addEventListener('pagehide', () => { if (saveT) saveNow(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && saveT) saveNow(); });
+function debounce(fn, ms) { let t = null; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }   // busca: redesenha quando a pessoa para de digitar
 const songById = (id) => db.songs.find(s => s.id === id);
 const activeSongs = () => db.songs.filter(s => !s.archived);
 const isFav = (id) => db.favs.includes(id);
@@ -1764,7 +1772,7 @@ document.addEventListener('click', (e) => {
   const nw = e.target.closest('[data-act="new"]');
   if (nw) { go('editor', {}); }
 });
-$('list-q').addEventListener('input', renderList);
+$('list-q').addEventListener('input', debounce(renderList, 140));
 /* ---------- Boas-vindas: saudação e versículos que alternam ---------- */
 const VERSES_DEFAULT = [
   ['Salmos 150:6', 'Todo ser que respira louve ao SENHOR. Aleluia!'],
@@ -2556,7 +2564,7 @@ $('pdf-box').addEventListener('click', (e) => {
   }
 });
 $('pdf-box').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'fd-name') { e.preventDefault(); $('fd-save').click(); } });
-$('pdf-q').addEventListener('input', renderPdfList);
+$('pdf-q').addEventListener('input', debounce(renderPdfList, 140));
 /* APK: baixar de uma vez as que faltam, para usar sem internet */
 $('pdf-dlall').addEventListener('click', async () => {
   const todo = db.scores.filter(x => x.catId && !x.local); let ok = 0, k = 0, lastErr = null;
@@ -2826,7 +2834,7 @@ async function renderPdf(onLayout) {
     const wrap = document.createElement('div');
     wrap.className = 'pdf-page'; wrap.dataset.page = i; wrap.style.width = w + 'px'; wrap.style.height = h + 'px';
     const cv = document.createElement('canvas');
-    cv.width = Math.floor(vp.width * ratio); cv.height = Math.floor(vp.height * ratio);
+    cv.width = 0; cv.height = 0;   // a memória só é usada quando a página chega perto da tela
     cv.style.width = w + 'px'; cv.style.height = h + 'px';
     cv.dataset.page = i; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', `Página ${i} de ${doc.numPages}`);
     const svg = document.createElementNS(SVGNS, 'svg');
@@ -2838,10 +2846,29 @@ async function renderPdf(onLayout) {
   drawPdfInk();
   if (onLayout) onLayout();
   updPdfPage();
-  // 2) desenha as páginas, uma de cada vez
-  for (const j of jobs) {
-    await j.page.render({ canvasContext: j.cv.getContext('2d'), viewport: j.vp, transform: j.ratio !== 1 ? [j.ratio, 0, 0, j.ratio, 0, 0] : null }).promise;
-    if (token !== pv.token) return;
+  // 2) desenha só as páginas perto da tela e libera a memória das que ficaram longe.
+  //    (Cada página desenhada ocupa ~30 MB; desenhar todas de uma vez travava o tablet em PDFs grandes.)
+  if (pv.io) pv.io.disconnect();
+  const desenhar = async (j) => {
+    if (j.estado) return; j.estado = 'desenhando';
+    j.cv.width = Math.floor(j.vp.width * j.ratio); j.cv.height = Math.floor(j.vp.height * j.ratio);
+    j.task = j.page.render({ canvasContext: j.cv.getContext('2d'), viewport: j.vp, transform: j.ratio !== 1 ? [j.ratio, 0, 0, j.ratio, 0, 0] : null });
+    try { await j.task.promise; if (j.estado === 'desenhando') j.estado = 'pronto'; } catch (e) { /* cancelado: a página saiu de perto da tela */ }
+  };
+  const liberar = (j) => {
+    if (!j.estado) return;
+    if (j.task) { try { j.task.cancel(); } catch (e) {} }
+    j.estado = null; j.task = null; j.cv.width = 0; j.cv.height = 0;
+  };
+  const porPagina = new Map(jobs.map(j => [j.cv.parentNode, j]));
+  if ('IntersectionObserver' in window) {
+    pv.io = new IntersectionObserver((entries) => {
+      if (token !== pv.token) return;
+      entries.forEach(en => { const j = porPagina.get(en.target); if (!j) return; en.isIntersecting ? desenhar(j) : liberar(j); });
+    }, { rootMargin: '150% 0px' });   // perto = até 1,5 tela acima ou abaixo
+    porPagina.forEach((j, wrap) => pv.io.observe(wrap));
+  } else {
+    for (const j of jobs) { await desenhar(j); if (token !== pv.token) return; }
   }
   updPdfPage();
 }
@@ -3052,7 +3079,7 @@ document.addEventListener('click', (e) => {
 
 $('cfg-save').addEventListener('click', () => {
   if (!prefDraft) return;
-  db.prefs = Object.assign({}, prefDraft); save(); renderConfig(); toast('Aparência salva neste aparelho.');
+  db.prefs = Object.assign({}, prefDraft); saveNow(); renderConfig(); toast('Aparência salva neste aparelho.');
 });
 $('cfg-reset').addEventListener('click', () => {
   const before = Object.assign({}, db.prefs);
@@ -3593,7 +3620,7 @@ function renderPick() {
   $('lp-go').setAttribute('aria-label', pickSel.length ? `Adicionar ${pickSel.length} ${pickSel.length === 1 ? 'música' : 'músicas'}` : 'Escolha as músicas primeiro');
   $('lp-go').disabled = !pickSel.length;
 }
-$('lp-q').addEventListener('input', renderPick);
+$('lp-q').addEventListener('input', debounce(renderPick, 140));
 $('lp-list').addEventListener('click', (e) => {
   const b = e.target.closest('[data-pick]'); if (!b) return;
   const id = b.dataset.pick, k = pickSel.indexOf(id);
@@ -3943,6 +3970,7 @@ function openPauta(params) {
     : route.name === 'partitura' ? (route.back || { name: 'partituras', params: { folder: pdfFolder } })   // não reabrir o editor ao voltar
     : { name: route.name, params: Object.assign({}, route, { name: undefined }) };
   try { localStorage.setItem('app.voltar', JSON.stringify({ at: Date.now(), name: back.name, params: back.params || {} })); } catch (e) {}
+  saveNow();   // a pauta lê as preferências e as músicas na hora
   location.href = 'pauta.html?' + new URLSearchParams(Object.assign({ app: '1' }, params)).toString();
   return true;
 }
