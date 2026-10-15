@@ -1,4 +1,4 @@
-// Capotraste e Meu instrumento. Uso: node testar15.js ../../www
+// Capotraste e instrumento de cada música. Uso: node testar15.js ../../www
 const fs = require('fs'), path = require('path');
 const { JSDOM, VirtualConsole } = require('jsdom');
 const dir = process.argv[2];
@@ -30,14 +30,22 @@ chk('botão mostra Capo 2', a.d.getElementById('t-capo').textContent === 'Capo 2
 a.d.getElementById('t-up').click();
 chk('subir meio tom com capo: soa Bb, formas G# ...', /Tom: Bb/.test(a.d.querySelector('#sheet .meta').textContent) && acordes().split(' ')[0] === 'Ab', acordes() + ' | ' + a.d.querySelector('#sheet .meta').textContent);
 chk('capo fica guardado na música', a.ev("db.view['sx'].capo") === 2);
-// Configurações
+// Instrumento por música (na cifra; não fica mais em Configurações)
 a.ev("go('config')");
-chk('Configurações: Meu instrumento com grupos', a.d.querySelectorAll('#instrs [data-instr]').length >= 20 && /Cordas/.test(a.d.getElementById('instrs').textContent) && /Teclas/.test(a.d.getElementById('instrs').textContent));
-a.d.querySelector('[data-instr="teclado"]').click(); a.d.getElementById('cfg-save').click();
-chk('trocar para Teclado grava', JSON.parse(a.w.localStorage.getItem('repertorio.v1')).prefs.instrumento === 'teclado');
-a.d.getElementById('cfg-reset').click();
-chk('Restaurar padrão mantém o instrumento', a.ev('db.prefs.instrumento') === 'teclado');
+chk('Configurações não tem mais Meu instrumento', !a.d.getElementById('instrs') && !/Meu instrumento/.test(a.d.getElementById('v-config').textContent));
 a.ev("go('cifra', { id: 'sx' })");
-chk('teclado: capo some e acordes voltam ao tom que soa', a.d.getElementById('t-capo-g').hidden && acordes().split(' ')[0] === 'Bb', acordes());
+chk('botão Instrumento mostra Violão', a.d.getElementById('t-inst').textContent === 'Violão');
+a.d.getElementById('t-inst').click();
+chk('escolher instrumento: grupos na cifra', a.d.querySelectorAll('#instpick [data-inst-pick]').length >= 20 && /Teclas/.test(a.d.getElementById('instpick').textContent));
+a.d.querySelector('#instpick [data-inst-pick="piano"]').click();
+chk('piano nesta música: capo some e acordes voltam ao tom que soa', a.d.getElementById('t-capo-g').hidden && acordes().split(' ')[0] === 'Bb', acordes());
+chk('instrumento guardado na música', a.ev("db.view['sx'].inst") === 'piano' && a.ev("db.view['sx'].capo") === 2);
+chk('desenho dos acordes segue o piano (teclado)', a.ev('diagInst()') === 'teclado');
+a.ev(`db.songs.push({ id: 'sy', title: 'Outra', artist: 'X', text: '{key: G}\\n[G]Glória', created: 1 }); save(); go('cifra', { id: 'sy' });`);
+chk('música nova abre com o último instrumento (piano)', a.d.getElementById('t-inst').textContent === 'Piano' && a.d.getElementById('t-capo-g').hidden);
+a.d.getElementById('t-inst').click(); a.d.querySelector('#instpick [data-inst-pick="violao"]').click();
+chk('violão nesta: capo volta', !a.d.getElementById('t-capo-g').hidden);
+a.ev("go('cifra', { id: 'sx' })");
+chk('a primeira continua no piano, com o capo guardado para quando voltar ao violão', a.d.getElementById('t-inst').textContent === 'Piano' && a.d.getElementById('t-capo-g').hidden);
 chk('sem erros', !a.erros.length, a.erros.join(' ; ').slice(0, 300));
 console.log(`\n${ok} de ${tot}`);

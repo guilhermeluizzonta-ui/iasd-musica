@@ -342,6 +342,10 @@ body.focus .focus-only { display: flex; }
 .instr-grupo > span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
 .capo-tag { color: var(--accent); }
 .capo-btn[aria-pressed="true"] { color: var(--accent); }
+.inst-btn { font-weight: 600; }
+.instpick .instr-grupo { margin-top: 10px; }
+.instpick .instr-grupo > span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.instpick .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
 .swatch { min-width: 64px; min-height: 64px; border: 0; background: transparent; color: var(--fg); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-family: var(--sans); font-size: 12px; border-radius: 12px; }
 .swatch .dot { width: 34px; height: 34px; border-radius: 17px; border: 2px solid rgba(128,128,128,.4); }
@@ -994,11 +998,6 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
     <!-- Configurações -->
     <section class="view" id="v-config" hidden>
       <div class="box">
-        <p class="sec-title">Meu instrumento</p>
-        <div id="instrs"></div>
-        <p class="hint" id="instr-hint">Com violão, guitarra, ukulele, cavaquinho, viola caipira ou bandolim, a cifra ganha o botão <b>Capo</b>: escolha a casa e os acordes aparecem nas formas que você vai tocar.</p>
-      </div>
-      <div class="box">
         <p class="sec-title">Modo</p>
         <div class="chips" role="group" aria-label="Modo">
           <button type="button" class="chip" data-mode="escuro" aria-pressed="false">Escuro</button>
@@ -1066,6 +1065,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
               <button type="button" class="key" id="t-key" aria-haspopup="dialog" aria-expanded="false" data-tip="Tom|Toque para escolher outro tom. Só muda na sua tela.">G</button>
               <button type="button" id="t-up" aria-label="Subir meio tom" data-tip="Subir meio tom|Muda o tom só na sua tela.">+</button>
             </div>
+            <div class="group"><button type="button" class="inst-btn" id="t-inst" aria-haspopup="dialog" aria-expanded="false" data-tip="Instrumento|Em que você toca esta música. Fica guardado nela: violão mostra o Capo e o desenho dos acordes no violão; piano mostra o teclado.">Instrumento</button></div>
             <div class="group" id="t-capo-g" hidden><button type="button" class="capo-btn" id="t-capo" aria-haspopup="dialog" aria-expanded="false" aria-pressed="false" data-tip="Capotraste|Escolha a casa do capo. O tom continua o mesmo; os acordes mudam para as formas que você toca.">Capo</button></div>
             <div class="group"><button type="button" class="gi" id="t-simp" aria-pressed="false" aria-label="Simplificar acordes" data-tip="Simplificar acordes|Troca acordes difíceis por versões simples (C#m7 vira C#m). Toque de novo para voltar."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20 15 9"/><path d="M14 4v2M14 10v2M18 8h2M10 8h2M16.8 5.2l1.4-1.4M16.8 10.8l1.4 1.4M11.2 5.2 9.8 3.8"/></svg></button></div>
             <div class="group" role="group" aria-label="Colunas">
@@ -1090,6 +1090,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
           </div>
           <div class="keypick" id="keypick" role="dialog" aria-label="Escolher tom" hidden></div>
           <div class="keypick" id="capopick" role="dialog" aria-label="Capotraste" hidden></div>
+          <div class="keypick instpick" id="instpick" role="dialog" aria-label="Instrumento desta música" hidden></div>
         </div>
         <p class="tipline" aria-live="polite"></p>
       </div>
@@ -2010,6 +2011,9 @@ function renderViewer() {
   const capo = capoAtual();
   const r = renderSheet($('sheet'), s.text, Object.assign({}, cur.v, { capoTela: capo }), 'viewer');
   $('t-capo-g').hidden = !usaCapo();
+  const ia = INSTR[instAtual()];
+  $('t-inst').textContent = ia ? ia.nome : 'Instrumento';
+  $('t-inst').setAttribute('aria-label', ia ? `Instrumento: ${ia.nome}. Trocar` : 'Escolher o instrumento desta música');
   $('t-capo').textContent = capo ? `Capo ${capo}` : 'Capo';
   $('t-capo').setAttribute('aria-pressed', String(!!capo));
   $('t-capo').setAttribute('aria-label', capo ? `Capotraste na ${capo}ª casa. Trocar` : 'Sem capotraste. Escolher casa');
@@ -2031,7 +2035,7 @@ function renderViewer() {
   $('t-zval').textContent = pct === 100 ? '100%' : '↺ ' + pct + '%';
   $('t-zval').disabled = pct === 100;
   $('t-zval').setAttribute('aria-label', pct === 100 ? 'Texto em 100%' : `Texto em ${pct}%. Voltar para 100%`);
-  if (cur.listBase) ['simplify', 'colsMode', 'cols', 'zoom', 'fit', 'capo'].forEach(k => { cur.listBase[k] = cur.v[k]; });   // capo é da música, vale também na lista   // tom do culto não muda o tom pessoal
+  if (cur.listBase) ['simplify', 'colsMode', 'cols', 'zoom', 'fit', 'capo', 'inst', 'dgInst'].forEach(k => { cur.listBase[k] = cur.v[k]; });   // capo é da música, vale também na lista   // tom do culto não muda o tom pessoal
   save();
   renderRoteiro();
   renderDiagBar();
@@ -2104,8 +2108,8 @@ function buildPicker() {
   box.innerHTML = h + '</div>';
   pickerCantores();
 }
-function openKeypick() { $('capopick').hidden = true; $('t-capo').setAttribute('aria-expanded', 'false'); buildPicker(); $('keypick').hidden = false; $('t-key').setAttribute('aria-expanded', 'true'); const c = $('keypick').querySelector('[aria-current="true"]'); if (c) c.focus(); }
-function closeKeypick() { $('keypick').hidden = true; $('t-key').setAttribute('aria-expanded', 'false'); if ($('capopick')) { $('capopick').hidden = true; $('t-capo').setAttribute('aria-expanded', 'false'); } }
+function openKeypick() { $('capopick').hidden = true; closeInstpick(); $('t-capo').setAttribute('aria-expanded', 'false'); buildPicker(); $('keypick').hidden = false; $('t-key').setAttribute('aria-expanded', 'true'); const c = $('keypick').querySelector('[aria-current="true"]'); if (c) c.focus(); }
+function closeKeypick() { $('keypick').hidden = true; $('t-key').setAttribute('aria-expanded', 'false'); closeInstpick(); if ($('capopick')) { $('capopick').hidden = true; $('t-capo').setAttribute('aria-expanded', 'false'); } }
 /* Capotraste: Sem capo, 1ª a 9ª casa. Cada casa mostra em que formas os acordes ficam; formas abertas (C, G, D, A, E, Am, Em, Dm) ganham "fácil". */
 const FORMAS_FACEIS = new Set(['C', 'G', 'D', 'A', 'E', 'Am', 'Em', 'Dm']);
 function buildCapo() {
@@ -2119,6 +2123,28 @@ function buildCapo() {
   }
   $('capopick').innerHTML = h + '</div>';
 }
+function closeInstpick() { const p = $('instpick'); if (p) { p.hidden = true; $('t-inst').setAttribute('aria-expanded', 'false'); } }
+function buildInstpick() {
+  const atual = instAtual(), s = songById(cur.id);
+  $('instpick').innerHTML = `<div class="keypick-head"><span>Em que você toca <strong>${esc(s ? s.title : 'esta música')}</strong>?<br>Fica guardado nesta música. Com violão e parecidos aparece o Capo.</span></div>` +
+    `<div class="instr-grupo"><div class="chips" role="group" aria-label="Sem instrumento"><button type="button" class="chip" data-inst-pick="" aria-pressed="${!atual}">Só a cifra</button></div></div>` +
+    INSTRUMENTOS.map(([g, l]) => `<div class="instr-grupo"><span>${g}</span><div class="chips" role="group" aria-label="${g}">${l.map(([id, nome, capo]) =>
+      `<button type="button" class="chip" data-inst-pick="${id}" aria-pressed="${atual === id}">${nome}${capo ? ' <small aria-label="usa capotraste">· capo</small>' : ''}</button>`).join('')}</div></div>`).join('');
+}
+$('t-inst').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const abrir = $('instpick').hidden; closeKeypick();
+  if (abrir) { buildInstpick(); $('instpick').hidden = false; $('t-inst').setAttribute('aria-expanded', 'true'); const b = $('instpick').querySelector('[aria-pressed="true"]'); if (b) b.focus(); }
+});
+$('instpick').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const b = e.target.closest('[data-inst-pick]'); if (!b) return;
+  const id = b.dataset.instPick;
+  cur.v.inst = id; delete cur.v.dgInst; if (cur.listBase) delete cur.listBase.dgInst;
+  db.prefs.ultimoInst = id;   // a próxima música sem instrumento abre com este
+  renderViewer(); closeKeypick(); $('t-inst').focus();
+  toast(id ? `${INSTR[id].nome} nesta música.` : 'Sem instrumento nesta música.');
+});
 $('t-capo').addEventListener('click', (e) => {
   e.stopPropagation();
   const abrir = $('capopick').hidden; closeKeypick();
@@ -2430,7 +2456,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (!$('ink-text').hidden) { $('ink-text').hidden = true; return; }
   if (ink.on) { inkStop(); return; }
-  if (!$('keypick').hidden || !$('capopick').hidden) { closeKeypick(); $('t-key').focus(); return; }
+  if (!$('keypick').hidden || !$('capopick').hidden || !$('instpick').hidden) { closeKeypick(); $('t-key').focus(); return; }
   if (!$('keyset').hidden) { closeKeyset(); return; }
   if (!$('drawer').hidden) { closeDrawer(); $('menu-btn').focus(); return; }
   if (document.body.classList.contains('focus') && !document.fullscreenElement) exitFocus();
@@ -3134,7 +3160,8 @@ function loadFontCss(id, url) {
   const l = document.createElement('link'); l.id = id; l.rel = 'stylesheet'; l.href = url; document.head.appendChild(l);
 }
 const OUTLINES = ['sem', 'suave', 'forte'];
-/* Meu instrumento (Configurações). Quem toca violão, guitarra, ukulele, cavaquinho, viola caipira ou bandolim vê o Capo na cifra. */
+/* Instrumento de cada música (escolhido na cifra, guardado em db.view[id].inst). Música que ainda não tem instrumento
+   abre com o último escolhido (prefs.ultimoInst). Violão, guitarra, ukulele, cavaquinho, viola caipira e bandolim mostram o Capo. */
 const INSTRUMENTOS = [
   ['Cordas', [['violao', 'Violão', 1], ['guitarra', 'Guitarra', 1], ['ukulele', 'Ukulele', 1], ['cavaquinho', 'Cavaquinho', 1], ['viola-caipira', 'Viola caipira', 1], ['bandolim', 'Bandolim', 1], ['baixo', 'Contrabaixo'], ['violino', 'Violino'], ['viola', 'Viola (de arco)'], ['violoncelo', 'Violoncelo']]],
   ['Teclas', [['piano', 'Piano'], ['teclado', 'Teclado'], ['orgao', 'Órgão'], ['acordeom', 'Acordeom']]],
@@ -3142,7 +3169,9 @@ const INSTRUMENTOS = [
   ['Voz e percussão', [['voz', 'Voz'], ['bateria', 'Bateria'], ['percussao', 'Percussão']]]
 ];
 const INSTR = Object.fromEntries(INSTRUMENTOS.flatMap(([g, l]) => l.map(([id, nome, capo]) => [id, { nome, grupo: g, capo: !!capo }])));
-const usaCapo = () => { const i = INSTR[(db.prefs || {}).instrumento]; return !!(i && i.capo); };
+const ultimoInst = () => { const p = db.prefs || {}; return p.ultimoInst !== undefined ? p.ultimoInst : (p.instrumento || ''); };
+const instAtual = () => (cur.v && cur.v.inst !== undefined ? cur.v.inst : ultimoInst());
+const usaCapo = () => { const i = INSTR[instAtual()]; return !!(i && i.capo); };
 /* Folha da partitura escrita no app (pauta.html lê prefs.folha; a mesma tabela está lá, em FOLHAS) */
 const FOLHAS = {
   classica: { name: 'Clássica', hint: 'Preto no branco, como impressa. No escuro, inverte.', light: { papel: '#FFFFFF', tinta: '#141414', linha: '#3B403D' }, dark: { papel: '#000000', tinta: '#F2F2F2', linha: '#A8A8A8' } },
@@ -3152,7 +3181,7 @@ const FOLHAS = {
   retro:    { name: 'Retrô',    hint: 'Visor de LED no escuro, cristal líquido no claro.', light: { papel: '#C9D3B5', tinta: '#1E2A16', linha: '#3E4A33' }, dark: { papel: '#0B120D', tinta: '#7FD69B', linha: '#3C7A52' } }
 };
 /* Padrão definido pelo Guilherme: claro, Simples, contorno suave, fonte Padrão, Verde IASD */
-const PREF_DEFAULT = { mode: 'claro', style: 'simples', outline: 'suave', accent: 'verde', font: 'padrao', folha: 'classica', instrumento: '' };
+const PREF_DEFAULT = { mode: 'claro', style: 'simples', outline: 'suave', accent: 'verde', font: 'padrao', folha: 'classica' };
 const sysDark = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 /* Em Configurações, as mudanças ficam num rascunho (prévia ao vivo) até tocar em Salvar */
 let prefDraft = null;
@@ -3216,9 +3245,6 @@ function renderConfig() {
   document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === P().mode)));
   $('styles').innerHTML = Object.keys(STYLES).map(styleOpt).join('');
   $('folhas').innerHTML = Object.keys(FOLHAS).map(folhaOpt).join('');
-  $('instrs').innerHTML = `<div class="instr-grupo"><div class="chips" role="group" aria-label="Sem instrumento"><button type="button" class="chip" data-instr="" aria-pressed="${!P().instrumento}">Não informar</button></div></div>` +
-    INSTRUMENTOS.map(([g, l]) => `<div class="instr-grupo"><span>${g}</span><div class="chips" role="group" aria-label="${g}">${l.map(([id, nome, capo]) =>
-      `<button type="button" class="chip" data-instr="${id}" aria-pressed="${P().instrumento === id}">${nome}${capo ? ' <small aria-label="usa capotraste">· capo</small>' : ''}</button>`).join('')}</div></div>`).join('');
   $('cfg-save').disabled = !prefsDirty();
   $('cfg-status').textContent = prefsDirty() ? 'Não salvo' : 'Salvo';
   document.querySelectorAll('[data-outline-pick]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.outlinePick === P().outline)));
@@ -3235,8 +3261,6 @@ document.addEventListener('click', (e) => {
   if (m) { P().mode = m.dataset.mode; applyTheme(); renderConfig(); return; }
   const st = e.target.closest('[data-style-pick]');
   if (st) { P().style = st.dataset.stylePick; applyTheme(); renderConfig(); return; }
-  const ins = e.target.closest('[data-instr]');
-  if (ins) { P().instrumento = ins.dataset.instr; renderConfig(); return; }
   const fp = e.target.closest('[data-folha-pick]');
   if (fp) { P().folha = fp.dataset.folhaPick; renderConfig(); return; }
   const ol = e.target.closest('[data-outline-pick]');
@@ -3253,7 +3277,7 @@ $('cfg-save').addEventListener('click', () => {
 });
 $('cfg-reset').addEventListener('click', () => {
   const before = Object.assign({}, db.prefs);
-  const padrao = Object.assign({}, PREF_DEFAULT, { instrumento: before.instrumento || '' });   // o instrumento não é aparência: fica
+  const padrao = Object.assign({}, PREF_DEFAULT, { ultimoInst: before.ultimoInst || before.instrumento || '' });   // o instrumento não é aparência: fica
   db.prefs = Object.assign({}, padrao); prefDraft = Object.assign({}, padrao); save(); applyTheme(); renderConfig();
   toast('Aparência voltou ao padrão.', { label: 'Desfazer', fn: () => { db.prefs = before; prefDraft = route.name === 'config' ? Object.assign({}, before) : null; save(); applyTheme(); if (route.name === 'config') renderConfig(); } });
 });
@@ -4551,7 +4575,7 @@ function diagHtml(name, inst) {
   const ct = chordTones(name), notas = ct ? [...new Set([ct.bass, ...ct.ints.map(i => (ct.root + i) % 12)])].map(pc => NOMES_PT[pc]).join(' · ') : '';
   return `<button type="button" class="dg" data-dg-play="${esc(name)}" aria-label="${esc(name)}: tocar o acorde (${notas})"><b>${esc(name)}</b>${inst === 'teclado' ? keysSvg(name) : fretSvg(name, inst)}<small>${esc(notas)}</small></button>`;
 }
-function diagInst() { const v = cur.v && cur.v.dgInst; if (v && DIAG_INSTR[v]) return v; return DIAG_DE[(db.prefs || {}).instrumento] || 'violao'; }
+function diagInst() { const v = cur.v && cur.v.dgInst; if (v && DIAG_INSTR[v]) return v; return DIAG_DE[instAtual()] || 'violao'; }
 function playChordName(name, inst) {
   const ct = chordTones(name); if (!ct) return;
   const t0 = Som.now() + 0.03; Som.stopAll();
@@ -5069,7 +5093,7 @@ $('sf-form').addEventListener('submit', (e) => {
     if (!liPop.hidden) { closeListPop(); return; }
     if (typeof rowMenu !== 'undefined' && !rowMenu.hidden) { closeRowMenu(); return; }
     if ($('fab-wrap') && $('fab-wrap').classList.contains('open')) { closeFab(); return; }
-    if (!$('keypick').hidden || !$('capopick').hidden) { closeKeypick(); return; }
+    if (!$('keypick').hidden || !$('capopick').hidden || !$('instpick').hidden) { closeKeypick(); return; }
     if (document.body.classList.contains('focus')) { exitFocus(); return; }
     if (!$('v-signup').hidden) { show('v-login'); return; }
     if (!$('v-login').hidden) { P.App.exitApp(); return; }

@@ -3039,6 +3039,8 @@ const Som = (() => {
   const TOC = { aberto: false, rodando: false, timer: null, t0: 0, evs: [], prox: 0, fimQ: 0, de: 1, ate: 0, vel: 1, timbre: 'piano', metro: false, contar: true, repetir: false, baixinho: true, partes: {}, luzes: [] };
   try { Object.assign(TOC, JSON.parse(localStorage.getItem('pauta.tocador')) || {}, { aberto: false, rodando: false, timer: null, evs: [], luzes: [] }); } catch (e) {}
   const gravarToc = () => { try { localStorage.setItem('pauta.tocador', JSON.stringify({ vel: TOC.vel, timbre: TOC.timbre, metro: TOC.metro, contar: TOC.contar, repetir: TOC.repetir, baixinho: TOC.baixinho })); } catch (e) {} };
+  // O som (instrumento) fica guardado em cada partitura (m.timbre); partitura sem escolha usa o último som escolhido.
+  const timbreAtual = () => { const m = M(); return (m && m.timbre && Som.TIMBRES[m.timbre]) ? m.timbre : TOC.timbre; };
   function midiDe(n, s) {
     const cl = claveDe(n.l, n.p), idx = cl.l + s, L = ((idx % 7) + 7) % 7, oit = cl.o + Math.floor(idx / 7);
     const nm = nomeNota(n, s), ac = nm.endsWith('♯') ? 1 : nm.endsWith('♭') ? -1 : 0;
@@ -3146,7 +3148,7 @@ const Som = (() => {
     if (TOC.metro) while (tq(TOC.batida) < ate && TOC.batida < TOC.qFim) { const dentro = ((TOC.batida - TOC.qIni) % Q + Q) % Q; Som.click(tq(TOC.batida), Math.abs(dentro) < 1e-6 ? 2 : 0); TOC.batida += pulso; }
     while (TOC.i < mt.evs.length && mt.evs[TOC.i].q < TOC.qFim && tq(mt.evs[TOC.i].q) < ate) {
       const e = mt.evs[TOC.i++], vol = Math.max(...e.vz.map(v => volumeVoz(v, mt.vozes)));
-      if (vol > 0) Som.note(e.midi, tq(e.q), Math.max(0.08, e.d * TOC.spq * 0.95), TOC.timbre, vol);
+      if (vol > 0) Som.note(e.midi, tq(e.q), Math.max(0.08, e.d * TOC.spq * 0.95), timbreAtual(), vol);
       const quando = Math.max(0, (tq(e.q) - agora) * 1000);
       TOC.luzes.push(setTimeout(() => acender(e, Math.max(0.08, e.d * TOC.spq)), quando));
     }
@@ -3194,7 +3196,7 @@ const Som = (() => {
       </div>
       <div class="tc-linha">
         <span class="tc-rot">Som</span>
-        <select id="tcTimbre" aria-label="Instrumento">${Object.entries(Som.TIMBRES).map(([k, v]) => `<option value="${k}"${k === TOC.timbre ? ' selected' : ''}>${v.nome}</option>`).join('')}</select>
+        <select id="tcTimbre" aria-label="Instrumento desta partitura" title="Fica guardado nesta partitura">${Object.entries(Som.TIMBRES).map(([k, v]) => `<option value="${k}"${k === timbreAtual() ? ' selected' : ''}>${v.nome}</option>`).join('')}</select>
         <label class="chave"><input type="checkbox" id="tcMetro" ${TOC.metro ? 'checked' : ''}> Metrônomo junto</label>
         <label class="chave"><input type="checkbox" id="tcContar" ${TOC.contar ? 'checked' : ''}> Contar 1 compasso antes</label>
         ${selId ? '<span class="tc-rot">Começa na nota selecionada</span>' : ''}
@@ -3221,7 +3223,7 @@ const Som = (() => {
     });
     t.addEventListener('change', (e) => {
       const x = e.target;
-      if (x.id === 'tcTimbre') { TOC.timbre = x.value; gravarToc(); Som.note(60, Som.now() + 0.02, 0.6, TOC.timbre, 0.6); }
+      if (x.id === 'tcTimbre') { TOC.timbre = x.value; gravarToc(); const m = M(); if (m) { m.timbre = x.value; gravar(); } Som.note(60, Som.now() + 0.02, 0.6, x.value, 0.6); }
       else if (x.id === 'tcMetro') { TOC.metro = x.checked; gravarToc(); }
       else if (x.id === 'tcContar') { TOC.contar = x.checked; gravarToc(); }
       else if (x.id === 'tcBaixinho') { TOC.baixinho = x.checked; gravarToc(); }
