@@ -324,6 +324,26 @@ button:disabled { opacity: 0.45; cursor: default; }
 @media print {
   :root { --papel: #FFFFFF !important; --tinta: #141414 !important; --linha-pauta: #3B403D !important; --borda-papel: transparent !important; --ok: #00873E !important; --rot: #6B746F !important; }
 }
+.nota.tocando .glifo, .nota.tocando path:not(.alvo), .nota.tocando circle, .nota.tocando ellipse { fill: var(--acento) !important; }
+.nota.tocando line, .nota.tocando .traco-fino, .nota.tocando .haste { stroke: var(--acento) !important; }
+.tocador { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 40; width: min(980px, calc(100vw - 16px)); background: var(--barra); border: 1px solid var(--borda); border-radius: 14px; box-shadow: 0 10px 30px var(--sombra); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.tocador[hidden] { display: none; }
+.tc-linha { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.tc-play, .tc-play:hover { min-width: 64px; min-height: 48px; background: var(--acento); border-color: var(--acento); color: #fff; }
+.tc-play svg { width: 26px; height: 26px; }
+.tc-info { display: flex; flex-direction: column; min-width: 130px; flex: 1; }
+.tc-info small, .tc-rot { color: var(--suave); font-size: 13px; }
+.tc-grupo { display: inline-flex; align-items: center; gap: 6px; }
+.tc-grupo label { display: inline-flex; align-items: center; gap: 4px; color: var(--suave); font-size: 13px; }
+.tc-grupo input { width: 58px; min-height: 38px; border: 1px solid var(--borda); border-radius: 8px; background: transparent; color: var(--texto); font: inherit; padding: 0 6px; }
+.tc-voz { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--borda); border-radius: 10px; padding: 3px 4px 3px 10px; }
+.tc-voz > span { font-weight: 600; font-size: 14px; margin-right: 4px; }
+.tc-voz button { min-height: 34px; padding: 0 9px; font-size: 13px; }
+.tc-voz.mudo > span { text-decoration: line-through; color: var(--suave); }
+.tc-voz.solo { border-color: var(--acento); }
+#tocador select { min-height: 38px; border: 1px solid var(--borda); border-radius: 8px; background: var(--barra); color: var(--texto); font: inherit; padding: 0 8px; }
+body:has(.tocador:not([hidden])) .mesa { padding-bottom: 190px; }
+@media print { .tocador { display: none !important; } }
 </style>
 
 <div class="app">
@@ -2925,6 +2945,291 @@ button:disabled { opacity: 0.45; cursor: default; }
   $('bTema').onclick = () => { escuroNaTela = !temaEscuro(); aplicarTema(true); };
   if (sistemaEscuro && sistemaEscuro.addEventListener) sistemaEscuro.addEventListener('change', () => { if (escuroNaTela === null) aplicarTema(true); });
   aplicarTema(false);
+
+  /* SOM:INÍCIO (cópia idêntica em src/app.html; testes/som/igual.js confere) */
+/* ---------- Som: motor de áudio do app (metrônomo, nota de referência, partitura tocando) ----------
+   Tudo gerado no próprio aparelho (Web Audio), sem arquivos de som: funciona sem internet e não pesa no APK.
+   Timbres sintetizados (aproximações): piano, órgão, cordas, flauta, metais, voz ("ah"). */
+const Som = (() => {
+  let ac = null, master = null;
+  const ctx = () => {
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+      ac = new AC(); master = ac.createGain(); master.gain.value = 0.8;
+      const comp = ac.createDynamicsCompressor(); master.connect(comp); comp.connect(ac.destination);
+    }
+    if (ac.state === 'suspended') ac.resume();
+    return ac;
+  };
+  const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  const TIMBRES = {
+    piano: { nome: 'Piano' }, orgao: { nome: 'Órgão' }, cordas: { nome: 'Cordas' },
+    flauta: { nome: 'Flauta' }, metais: { nome: 'Metais' }, voz: { nome: 'Voz (ah)' }
+  };
+  const live = new Set();
+  function env(g, t, a, peak, d, sus, rel, end) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + a);
+    if (d) g.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak * sus), t + a + d);
+    g.gain.setValueAtTime(Math.max(0.0001, d ? peak * sus : peak), end);
+    g.gain.exponentialRampToValueAtTime(0.0001, end + rel);
+  }
+  function osc(type, f, t, stop, dest, detune) {
+    const o = ac.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); if (detune) o.detune.value = detune;
+    o.connect(dest); o.start(t); o.stop(stop); live.add(o); o.onended = () => live.delete(o); return o;
+  }
+  /* toca uma nota MIDI no tempo t (segundos do relógio do áudio), duração dur */
+  function note(m, t, dur, timbre = 'piano', vel = 0.8, dest) {
+    if (!ctx()) return; t = Math.max(t, ac.currentTime); dur = Math.max(0.05, dur);
+    const f = hz(m), g = ac.createGain(), out = dest || master, v = 0.28 * vel;
+    g.connect(out);
+    const end = t + dur;
+    if (timbre === 'piano') {
+      // decai sozinho como corda percutida; mais grave = dura mais
+      const decay = Math.min(dur, 0.6 + 2.5 * Math.pow(0.5, (m - 48) / 12));
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.005);
+      g.gain.exponentialRampToValueAtTime(v * 0.35, t + 0.15); g.gain.exponentialRampToValueAtTime(Math.max(0.0001, v * 0.08), t + Math.max(0.2, decay));
+      g.gain.setValueAtTime(Math.max(0.0001, v * 0.08), end); g.gain.exponentialRampToValueAtTime(0.0001, end + 0.25);
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(Math.min(9000, f * 8), t); lp.frequency.exponentialRampToValueAtTime(Math.min(4000, f * 3), t + 0.4); lp.connect(g);
+      osc('triangle', f, t, end + 0.3, lp); const h = ac.createGain(); h.gain.value = 0.25; h.connect(lp); osc('sine', f * 2, t, end + 0.3, h); const h3 = ac.createGain(); h3.gain.value = 0.08; h3.connect(lp); osc('sawtooth', f, t, end + 0.3, h3, 4);
+    } else if (timbre === 'orgao') {
+      env(g, t, 0.02, v * 0.6, 0, 1, 0.08, end);
+      [[1, 1], [2, .5], [3, .25], [4, .2], [0.5, .3]].forEach(([k, a]) => { const h = ac.createGain(); h.gain.value = a; h.connect(g); osc('sine', f * k, t, end + 0.1, h); });
+    } else if (timbre === 'cordas') {
+      env(g, t, 0.12, v * 0.55, 0, 1, 0.3, end);
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.min(5000, f * 5); lp.connect(g);
+      const o1 = osc('sawtooth', f, t, end + 0.35, lp, -6), o2 = osc('sawtooth', f, t, end + 0.35, lp, 6);
+      const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 5.5; lg.gain.value = f * 0.004; lfo.connect(lg); lg.connect(o1.frequency); lg.connect(o2.frequency);
+      live.add(lfo); lfo.start(t + 0.2); lfo.stop(end + 0.35);
+    } else if (timbre === 'flauta') {
+      env(g, t, 0.05, v * 0.8, 0, 1, 0.12, end);
+      const o = osc('sine', f, t, end + 0.15, g); const h = ac.createGain(); h.gain.value = 0.12; h.connect(g); osc('sine', f * 2, t, end + 0.15, h);
+      const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 5; lg.gain.value = f * 0.006; lfo.connect(lg); lg.connect(o.frequency); live.add(lfo); lfo.start(t + 0.15); lfo.stop(end + 0.15);
+      const n = ac.createBufferSource(), b = ac.createBuffer(1, ac.sampleRate * 0.08, ac.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * 2; const ng = ac.createGain(); ng.gain.value = 0.05; n.buffer = b; n.connect(bp); bp.connect(ng); ng.connect(g); n.start(t);
+    } else if (timbre === 'metais') {
+      env(g, t, 0.04, v * 0.55, 0.15, 0.7, 0.12, end);
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 2; lp.frequency.setValueAtTime(f * 1.5, t); lp.frequency.exponentialRampToValueAtTime(Math.min(6000, f * 6), t + 0.08); lp.frequency.exponentialRampToValueAtTime(Math.min(4000, f * 4), t + 0.3); lp.connect(g);
+      osc('sawtooth', f, t, end + 0.15, lp);
+    } else { // voz "ah": serra passando por formantes da vogal a
+      env(g, t, 0.09, v * 1.4, 0, 1, 0.2, end);
+      const src = ac.createGain(); src.gain.value = 1;
+      const o = osc('sawtooth', f, t, end + 0.25, src);
+      const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 5.2; lg.gain.value = f * 0.008; lfo.connect(lg); lg.connect(o.frequency); live.add(lfo); lfo.start(t + 0.25); lfo.stop(end + 0.25);
+      [[800, .9, 8], [1150, .5, 9], [2900, .15, 10]].forEach(([fr, a, q]) => { const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = q; const ga = ac.createGain(); ga.gain.value = a * 3; src.connect(bp); bp.connect(ga); ga.connect(g); });
+    }
+  }
+  /* clique do metrônomo: forte (tempo 1), médio (subgrupo) ou fraco */
+  function click(t, nivel = 0) {
+    if (!ctx()) return; t = Math.max(t, ac.currentTime);
+    const g = ac.createGain(); g.connect(master);
+    const f = nivel === 2 ? 1760 : nivel === 1 ? 1320 : 990, v = nivel === 2 ? 0.9 : nivel === 1 ? 0.6 : 0.45;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+    osc('square', f, t, t + 0.06, g); osc('sine', f / 2, t, t + 0.06, g);
+  }
+  function stopAll() { live.forEach(o => { try { o.stop(); } catch (e) {} }); live.clear(); }
+  return { ctx, note, click, stopAll, hz, TIMBRES, now: () => (ctx() ? ac.currentTime : 0) };
+})();
+  /* SOM:FIM */
+
+  // ---------- Tocar a partitura (e tocar ou tirar um naipe) ----------
+  // Lê as notas escritas (altura pela clave, armadura e acidentes do compasso; duração com ponto e ligadura de mesma nota)
+  // e toca no próprio aparelho. As vozes: cada pauta; numa pauta com acordes, a nota de cima e as de baixo viram vozes
+  // separadas (no coral em duas pautas: Soprano/Contralto na de Sol, Tenor/Baixo na de Fá).
+  const TOC = { aberto: false, rodando: false, timer: null, t0: 0, evs: [], prox: 0, fimQ: 0, de: 1, ate: 0, vel: 1, timbre: 'piano', metro: false, contar: true, repetir: false, baixinho: true, partes: {}, luzes: [] };
+  try { Object.assign(TOC, JSON.parse(localStorage.getItem('pauta.tocador')) || {}, { aberto: false, rodando: false, timer: null, evs: [], luzes: [] }); } catch (e) {}
+  const gravarToc = () => { try { localStorage.setItem('pauta.tocador', JSON.stringify({ vel: TOC.vel, timbre: TOC.timbre, metro: TOC.metro, contar: TOC.contar, repetir: TOC.repetir, baixinho: TOC.baixinho })); } catch (e) {} };
+  function midiDe(n, s) {
+    const cl = claveDe(n.l, n.p), idx = cl.l + s, L = ((idx % 7) + 7) % 7, oit = cl.o + Math.floor(idx / 7);
+    const nm = nomeNota(n, s), ac = nm.endsWith('♯') ? 1 : nm.endsWith('♭') ? -1 : 0;
+    return 12 * (oit + 1) + SEMI[L] + ac;
+  }
+  const quartosCompasso = (m) => { const c = m.compasso || { num: 4, den: 4 }; return (c.num || 4) * 4 / (c.den || 4); };
+  /* Vozes da música: id → nome */
+  function vozesDe(m) {
+    const usa = new Map();   // "p" ou "p:cima"/"p:baixo"
+    const npaut = Math.max(...m.linhas.map(ln => ln.pautas.length));
+    for (let p = 0; p < npaut; p++) {
+      const ns = m.itens.filter(i => i.p === p && NOTA.has(i.tipo));
+      if (!ns.length) continue;
+      if (ns.some(n => cabecas(n).length > 1)) { usa.set(p + ':cima', null); usa.set(p + ':baixo', null); } else usa.set(String(p), null);
+    }
+    const ids = [...usa.keys()], clave = (p) => (m.linhas[0].pautas[p] || 'sol');
+    const nomeP = (p) => npaut > 1 ? ({ sol: 'Sol', fa: 'Fá', do: 'Dó' }[clave(p)] || 'Pauta ' + (Number(p) + 1)) + (npaut > 2 ? ' ' + (Number(p) + 1) : '') : 'Melodia';
+    const coral = npaut === 2 && ids.length === 4 && clave(0) === 'sol' && clave(1) === 'fa';
+    const out = {};
+    ids.forEach(id => {
+      const [p, q] = id.split(':');
+      if (coral) out[id] = { '0:cima': 'Soprano', '0:baixo': 'Contralto', '1:cima': 'Tenor', '1:baixo': 'Baixo' }[id];
+      else out[id] = q ? `${nomeP(p)} · ${q === 'cima' ? 'de cima' : 'de baixo'}` : nomeP(p);
+    });
+    return out;
+  }
+  /* Monta a sequência: {q (início em semínimas), d, midi, voz, id, compasso} */
+  function montarEventos(m) {
+    const segs = segmentos(), Q = quartosCompasso(m), evs = [], comp = [];
+    const vozesP = vozesDe(m);
+    let q0 = 0;
+    const pegas = new Map(); // ligaduras de mesma nota: id da nota b → alturas que não soam de novo
+    const liga = m.itens.filter(i => i.tipo === 'ligadura');
+    segs.forEach((sg, k) => {
+      const nPaut = m.linhas[sg.l].pautas.length; let dur = 0;
+      for (let p = 0; p < nPaut; p++) {
+        const ns = m.itens.filter(i => i.l === sg.l && i.p === p && (NOTA.has(i.tipo) || PAUSA.has(i.tipo)) && i.x > sg.a && i.x <= sg.b).sort((a, b) => a.x - b.x);
+        const mesma = itensDe(sg.l, p);
+        let q = 0, i = 0;
+        while (i < ns.length) {
+          const grupo = [ns[i]]; while (i + grupo.length < ns.length && ns[i + grupo.length].x - ns[i].x < 0.9 * SP) grupo.push(ns[i + grupo.length]);
+          i += grupo.length;
+          let passo = Infinity;
+          grupo.forEach(n => {
+            const v = valorDe(n, mesma); passo = Math.min(passo, v);
+            if (!NOTA.has(n.tipo)) return;
+            const hs = [...cabecas(n)].sort((a, b) => b - a), multi = hs.length > 1;
+            hs.forEach((s, j) => {
+              const midi = midiDe(n, s);
+              // nota sozinha numa pauta que tem acordes: é das duas vozes (soa uma vez só)
+              const vz = vozesP[String(p)] ? [String(p)] : !multi ? [p + ':cima', p + ':baixo'] : [p + (j === 0 ? ':cima' : ':baixo')];
+              const pulou = pegas.get(n.id); if (pulou && pulou.has(midi)) return;
+              let d = v;
+              // ligadura para uma nota de mesma altura: soma a duração
+              let cur = n, guard = 0;
+              while (guard++ < 16) {
+                const lg = liga.find(x => x.a === cur.id); if (!lg) break;
+                const b = m.itens.find(x => x.id === lg.b); if (!b || !NOTA.has(b.tipo)) break;
+                const bm = cabecas(b).map(sb => midiDe(b, sb)); if (!bm.includes(midi)) break;
+                d += valorDe(b); if (!pegas.has(b.id)) pegas.set(b.id, new Set()); pegas.get(b.id).add(midi); cur = b;
+              }
+              evs.push({ q: q0 + q, d, midi, vz, id: n.id, c: k + 1 });
+            });
+          });
+          q += passo === Infinity ? 0 : passo;
+        }
+        dur = Math.max(dur, q);
+      }
+      const len = k === 0 && dur > 0 && dur < Q ? dur : Math.max(dur, sg.temNota ? 0 : Q, k === segs.length - 1 ? dur : Q);
+      comp.push({ n: k + 1, q: q0, len });
+      q0 += len || Q;
+    });
+    return { evs: evs.sort((a, b) => a.q - b.q), comp, fimQ: q0, vozes: vozesP };
+  }
+  const bpmDe = (m) => m.andamento || 80;
+  const unQ = (m) => { const u = m.unidade || { tipo: 'seminima' }; return (TEMPOS[u.tipo] || 1) * (u.ponto ? 1.5 : 1); };
+  function estadoVoz(id) { return TOC.partes[id] || 'normal'; }
+  function volumeVoz(id, vozes) {
+    const st = estadoVoz(id); if (st === 'mudo') return 0;
+    const solo = Object.keys(vozes).filter(v => estadoVoz(v) === 'solo');
+    if (solo.length && st !== 'solo') return TOC.baixinho ? 0.18 : 0;
+    return st === 'solo' ? 1 : 0.75;
+  }
+  function tocar() {
+    const m = M(); if (!m) return;
+    if (!Som.ctx()) { avisar('Este aparelho não consegue tocar som aqui.', 'erro'); return; }
+    const mt = montarEventos(m); TOC.mt = mt;
+    if (!mt.evs.length) { avisar('Ainda não há notas para tocar.'); return; }
+    const nC = mt.comp.length; TOC.de = Math.min(Math.max(1, TOC.de), nC); TOC.ate = TOC.ate && TOC.ate >= TOC.de ? Math.min(TOC.ate, nC) : nC;
+    if (selId) { const ev = mt.evs.find(e => e.id === selId); if (ev) TOC.de = ev.c; }
+    TOC.qIni = mt.comp[TOC.de - 1].q; TOC.qFim = mt.comp[TOC.ate - 1].q + mt.comp[TOC.ate - 1].len;
+    TOC.spq = 60 / (bpmDe(m) * TOC.vel) / unQ(m);   // segundos por semínima
+    const Q = quartosCompasso(m), pulso = unQ(m);
+    TOC.lead = TOC.contar ? Q * TOC.spq : 0;
+    TOC.t0 = Som.now() + 0.15 + TOC.lead; TOC.i = mt.evs.findIndex(e => e.q >= TOC.qIni); if (TOC.i < 0) TOC.i = mt.evs.length;
+    TOC.batida = TOC.qIni; TOC.rodando = true;
+    if (TOC.contar) { const nb = Math.round(Q / pulso); for (let b = 0; b < nb; b++) Som.click(TOC.t0 - TOC.lead + b * pulso * TOC.spq, b === 0 ? 2 : 1); }
+    clearInterval(TOC.timer); TOC.timer = setInterval(agendar, 25); agendar();
+    desenharTocador();
+  }
+  function agendar() {
+    const m = M(), mt = TOC.mt; if (!m || !mt) return;
+    const agora = Som.now(), ate = agora + 0.15, Q = quartosCompasso(m), pulso = unQ(m);
+    const tq = (q) => TOC.t0 + (q - TOC.qIni) * TOC.spq;
+    if (TOC.metro) while (tq(TOC.batida) < ate && TOC.batida < TOC.qFim) { const dentro = ((TOC.batida - TOC.qIni) % Q + Q) % Q; Som.click(tq(TOC.batida), Math.abs(dentro) < 1e-6 ? 2 : 0); TOC.batida += pulso; }
+    while (TOC.i < mt.evs.length && mt.evs[TOC.i].q < TOC.qFim && tq(mt.evs[TOC.i].q) < ate) {
+      const e = mt.evs[TOC.i++], vol = Math.max(...e.vz.map(v => volumeVoz(v, mt.vozes)));
+      if (vol > 0) Som.note(e.midi, tq(e.q), Math.max(0.08, e.d * TOC.spq * 0.95), TOC.timbre, vol);
+      const quando = Math.max(0, (tq(e.q) - agora) * 1000);
+      TOC.luzes.push(setTimeout(() => acender(e, Math.max(0.08, e.d * TOC.spq)), quando));
+    }
+    if (tq(TOC.qFim) < agora) {
+      if (TOC.repetir) { TOC.t0 = tq(TOC.qFim); TOC.lead = 0; TOC.i = mt.evs.findIndex(e => e.q >= TOC.qIni); TOC.batida = TOC.qIni; return; }
+      parar(); avisar('Fim. Toque em ▶ para ouvir de novo.');
+    }
+  }
+  function acender(e, seg) {
+    if (!TOC.rodando) return;
+    const g = camNotas.querySelector(`.nota[data-id="${CSS.escape(e.id)}"]`); if (!g) return;
+    g.classList.add('tocando'); setTimeout(() => g.classList.remove('tocando'), seg * 1000);
+    const r = g.getBoundingClientRect(), vh = window.innerHeight;
+    if (r.bottom > vh - 120 || r.top < 90) g.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    const st = $('tcComp'); if (st) st.textContent = 'Compasso ' + e.c;
+  }
+  function parar() {
+    TOC.rodando = false; clearInterval(TOC.timer); TOC.timer = null; TOC.luzes.forEach(clearTimeout); TOC.luzes = []; Som.stopAll();
+    camNotas.querySelectorAll('.nota.tocando').forEach(g => g.classList.remove('tocando'));
+    desenharTocador();
+  }
+  function desenharTocador() {
+    const el = $('tocador'); if (!el) return;
+    el.hidden = !TOC.aberto; $('bTocar').setAttribute('aria-pressed', String(TOC.aberto));
+    if (!TOC.aberto) return;
+    const m = M(); if (!m) { el.innerHTML = ''; return; }
+    if (!TOC.rodando || !TOC.mt) TOC.mt = montarEventos(m);
+    const nC = Math.max(1, TOC.mt.comp.length); if (!TOC.ate || TOC.ate > nC) TOC.ate = nC; if (TOC.de > nC) TOC.de = 1;
+    const vz = TOC.mt.vozes, ic = (n) => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONES[n] || ''}</svg>`;
+    el.innerHTML = `<div class="tc-linha">
+        <button type="button" class="ic primario tc-play" id="tcPlay" aria-label="${TOC.rodando ? 'Parar' : 'Tocar'}" title="${TOC.rodando ? 'Parar' : 'Tocar a partitura'}">${ic(TOC.rodando ? 'parar' : 'tocar')}</button>
+        <span class="tc-info"><b id="tcComp">${TOC.rodando ? '' : `Compassos ${TOC.de} a ${TOC.ate}`}</b><small>${Math.round(bpmDe(m) * TOC.vel)} batidas/min${m.andamento ? '' : ' (sem andamento na ficha)'}</small></span>
+        <span class="tc-grupo" role="group" aria-label="Trecho">
+          <label>de <input type="number" id="tcDe" min="1" max="${nC}" value="${TOC.de}" inputmode="numeric"></label>
+          <label>até <input type="number" id="tcAte" min="1" max="${nC}" value="${TOC.ate}" inputmode="numeric"></label>
+          <button type="button" id="tcRep" aria-pressed="${TOC.repetir}" title="Repetir o trecho sem parar">Repetir</button>
+        </span>
+        <span class="tc-grupo" role="group" aria-label="Velocidade">${[0.5, 0.75, 1].map(v => `<button type="button" data-vel="${v}" aria-pressed="${TOC.vel === v}">${Math.round(v * 100)}%</button>`).join('')}</span>
+        <button type="button" class="ic ic-peq" id="tcFechar" aria-label="Fechar o tocador" title="Fechar">${ic('fechar')}</button>
+      </div>
+      <div class="tc-linha">
+        <span class="tc-rot">Vozes</span>
+        ${Object.entries(vz).map(([id, nome]) => { const st = estadoVoz(id); return `<span class="tc-voz ${st}"><span>${nome}</span><button type="button" data-solo="${id}" aria-pressed="${st === 'solo'}" title="Destacar: ouvir esta voz em evidência">Solo</button><button type="button" data-mudo="${id}" aria-pressed="${st === 'mudo'}" title="Tirar: não tocar esta voz (para cantar ou tocar junto)">Tirar</button></span>`; }).join('') || '<span class="tc-rot">—</span>'}
+        <label class="chave" title="Com Solo, as outras vozes tocam baixinho em vez de sumir"><input type="checkbox" id="tcBaixinho" ${TOC.baixinho ? 'checked' : ''}> As outras baixinho</label>
+      </div>
+      <div class="tc-linha">
+        <span class="tc-rot">Som</span>
+        <select id="tcTimbre" aria-label="Instrumento">${Object.entries(Som.TIMBRES).map(([k, v]) => `<option value="${k}"${k === TOC.timbre ? ' selected' : ''}>${v.nome}</option>`).join('')}</select>
+        <label class="chave"><input type="checkbox" id="tcMetro" ${TOC.metro ? 'checked' : ''}> Metrônomo junto</label>
+        <label class="chave"><input type="checkbox" id="tcContar" ${TOC.contar ? 'checked' : ''}> Contar 1 compasso antes</label>
+        ${selId ? '<span class="tc-rot">Começa na nota selecionada</span>' : ''}
+      </div>`;
+  }
+  ICONES.tocar = '<path d="M7 4.5v15l12.5-7.5z" fill="currentColor" stroke="none"/>';
+  ICONES.parar = '<rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor" stroke="none"/>';
+  ICONES.ouvir = '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>';
+  (() => {
+    const b = document.createElement('button'); b.type = 'button'; b.id = 'bTocar'; b.className = 'ic'; b.setAttribute('aria-label', 'Tocar a partitura'); b.title = 'Tocar a partitura (ouvir, destacar ou tirar uma voz)'; b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONES.ouvir}</svg>`;
+    document.querySelector('.linha-titulo .seg').before(b);
+    const t = document.createElement('div'); t.id = 'tocador'; t.className = 'tocador'; t.hidden = true; t.setAttribute('role', 'region'); t.setAttribute('aria-label', 'Tocar a partitura');
+    document.body.appendChild(t);
+    b.onclick = () => { TOC.aberto = !TOC.aberto; if (!TOC.aberto) parar(); desenharTocador(); };
+    t.addEventListener('click', (e) => {
+      const x = e.target.closest('button'); if (!x) return;
+      if (x.id === 'tcPlay') { TOC.rodando ? parar() : tocar(); return; }
+      if (x.id === 'tcFechar') { TOC.aberto = false; parar(); return; }
+      if (x.id === 'tcRep') { TOC.repetir = !TOC.repetir; gravarToc(); desenharTocador(); return; }
+      if (x.dataset.vel) { const r = TOC.rodando; if (r) parar(); TOC.vel = Number(x.dataset.vel); gravarToc(); if (r) tocar(); else desenharTocador(); return; }
+      if (x.dataset.solo) { const id = x.dataset.solo; TOC.partes[id] = estadoVoz(id) === 'solo' ? 'normal' : 'solo'; desenharTocador(); return; }
+      if (x.dataset.mudo) { const id = x.dataset.mudo; TOC.partes[id] = estadoVoz(id) === 'mudo' ? 'normal' : 'mudo'; desenharTocador(); }
+    });
+    t.addEventListener('change', (e) => {
+      const x = e.target;
+      if (x.id === 'tcTimbre') { TOC.timbre = x.value; gravarToc(); Som.note(60, Som.now() + 0.02, 0.6, TOC.timbre, 0.6); }
+      else if (x.id === 'tcMetro') { TOC.metro = x.checked; gravarToc(); }
+      else if (x.id === 'tcContar') { TOC.contar = x.checked; gravarToc(); }
+      else if (x.id === 'tcBaixinho') { TOC.baixinho = x.checked; gravarToc(); }
+      else if (x.id === 'tcDe' || x.id === 'tcAte') { TOC.de = Math.max(1, Number($('tcDe').value) || 1); TOC.ate = Math.max(TOC.de, Number($('tcAte').value) || TOC.de); if (TOC.rodando) { parar(); tocar(); } else desenharTocador(); }
+    });
+    window.__tocador = { montar: () => montarEventos(M()), TOC };   // para os testes automáticos
+    document.addEventListener('keydown', (e) => { if (TOC.aberto && e.key === ' ' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); TOC.rodando ? parar() : tocar(); } });
+  })();
 
   // ---------- Início ----------
   if (PEDIDO.abrir && banco.musicas.some(x => x.id === PEDIDO.abrir)) banco.atual = PEDIDO.abrir;

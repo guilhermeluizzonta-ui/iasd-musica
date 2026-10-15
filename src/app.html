@@ -3991,6 +3991,7 @@ function renderNextList() {
     ${names.length ? `<span class="next-songs">${esc(names.join(' · '))}${l.items.length > 4 ? ` · +${l.items.length - 4}` : ''}</span>` : '<span class="hint">Sem músicas ainda.</span>'}</button>`;
 }
 
+/* SOM:INÍCIO (cópia idêntica em src/pauta/pauta-mao-livre.html; testes/som/igual.js confere) */
 /* ---------- Som: motor de áudio do app (metrônomo, nota de referência, partitura tocando) ----------
    Tudo gerado no próprio aparelho (Web Audio), sem arquivos de som: funciona sem internet e não pesa no APK.
    Timbres sintetizados (aproximações): piano, órgão, cordas, flauta, metais, voz ("ah"). */
@@ -4074,6 +4075,7 @@ const Som = (() => {
   function stopAll() { live.forEach(o => { try { o.stop(); } catch (e) {} }); live.clear(); }
   return { ctx, note, click, stopAll, hz, TIMBRES, now: () => (ctx() ? ac.currentTime : 0) };
 })();
+/* SOM:FIM */
 
 /* ---------- Ensaio: metrônomo e nota de referência ----------
    Andamento e compasso ficam na própria cifra ({tempo: 72} {time: 4/4}, padrão do ChordPro) — o Editor guarda.
