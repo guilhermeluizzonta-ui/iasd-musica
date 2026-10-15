@@ -18,9 +18,10 @@ Abaixo de ~100 ms parece instantâneo; 100–300 ms dá para perceber; acima de 
 | **PDF de 12 páginas: memória das páginas** | **366 MB** | **61 MB** | **resolvido (era o maior risco)** |
 | **PDF escaneado de 6 páginas: memória** | **183 MB** | **61 MB** | **resolvido** |
 | PDF: primeira página na tela | 888 ms | 765 ms | ok |
-| Pauta 60 notas: redesenhar | 374 ms | 272 ms | melhorou |
-| Pauta 300 notas: abrir / redesenhar | 951 / 528 ms | 619 / 374 ms | melhorou |
-| Pauta 800 notas (14 páginas): abrir / redesenhar | 2945 / 1553 ms | 1074 / 641 ms | melhorou; ainda pesado |
+| **Pauta: um traço (nota escrita/movida/apagada), 60 notas** | 69 ms | **18 ms** | resolvido |
+| **Pauta: um traço, 300 notas** | 327 ms | **30 ms** | resolvido |
+| **Pauta: um traço, 800 notas (14 páginas)** | 1201 ms | **69 ms** | resolvido |
+| Pauta 800 notas: abrir | ~3 s | ~1,3 s | melhorou |
 
 ## O que foi corrigido
 1. **PDF desenhava todas as páginas de uma vez.** Cada página ocupa ~30 MB de imagem; um PDF de 12 páginas passava de 360 MB, o bastante para o Android fechar o app ou travar. Agora só as páginas perto da tela são desenhadas (até 1,5 tela acima/abaixo) e as que ficam longe liberam a memória. Ao sair da partitura, a memória também é liberada.
@@ -28,10 +29,13 @@ Abaixo de ~100 ms parece instantâneo; 100–300 ms dá para perceber; acima de 
 3. **Listas longas.** O navegador só desenha as linhas que estão na tela (`content-visibility`).
 4. **Gravação do banco a cada toque.** Trocar tom, zoom, colunas gravava o banco inteiro (centenas de KB) toda vez. Agora as mudanças seguidas viram uma gravação só (~0,3 s depois) e, ao sair ou minimizar, grava na hora.
 5. **Pauta media cada nota forçando o navegador a recalcular a folha inteira** (custo crescia com o quadrado do número de notas). Agora mede todas de uma vez.
+6. **Pauta redesenhava a folha inteira a cada traço.** Agora cada linha é um grupo com uma "assinatura" (os dados das suas notas, ligaduras e barras de colcheia) e só as linhas que mudaram são refeitas. Folhas, pautas, claves e cabeçalho só são refeitos quando a estrutura muda (linhas, tom, compasso, título). Seleção só troca a classe.
+7. **Conferência dos compassos varria a música inteira para cada nota** (para achar o ponto de aumento). Agora usa um índice por linha/pauta e só refaz os números/selos da linha que mudou.
+   Teste que garante que o redesenho por linha fica igual ao completo: `testes/pauta/testar16.js`.
 
 ## O que ainda pode pesar (próximas melhorias, em ordem)
-1. **Pauta redesenha a folha inteira a cada traço.** Com músicas longas (300+ notas) cada nota escrita custa 0,3–0,6 s no tablet lento. Solução: redesenhar só a linha que mudou (e só a conferência dos compassos dela). É a próxima melhoria recomendada para escrever com a S Pen sem atraso.
-2. **Abrir a pauta com música longa** (~1 s): mesma solução acima, mais desenhar primeiro só as folhas visíveis.
+1. ~~Pauta redesenha a folha inteira a cada traço~~ — resolvido (itens 6 e 7).
+2. **Abrir a pauta com música longa** (~1,3 s com 800 notas): desenhar primeiro só as folhas visíveis.
 3. **Ajustar à tela** testa vários tamanhos (busca binária, ~5 desenhos). Dá para medir uma vez e calcular.
 4. **App num arquivo só (447 KB)**: o navegador lê tudo ao abrir (~0,4 s de processamento). Aceitável hoje; se crescer muito (Criar cifra, slides), separar partes que só carregam quando usadas.
 5. **Banco no localStorage**: cresce com as cifras (300 cifras ≈ 220 KB; com letras completas, ~600 KB+). Até ~2 MB vai bem; acima disso, migrar cifras para o IndexedDB (já usado nos PDFs).
@@ -40,5 +44,5 @@ Abaixo de ~100 ms parece instantâneo; 100–300 ms dá para perceber; acima de 
 ## Conclusão
 - Para o uso normal (abrir cifra, transpor, listas, letras, partituras), o app responde rápido mesmo num aparelho lento.
 - O risco real de travar/fechar era o **PDF com muitas páginas** — corrigido.
-- O ponto que ainda pede trabalho é **escrever na pauta em músicas longas**; para hinos curtos (até ~150 notas) já está fluido.
+- Escrever na pauta ficou fluido também em músicas longas: um traço custa menos de 0,1 s mesmo com 800 notas no aparelho lento. O que sobra é a abertura de músicas muito longas (~1 s).
 - Medir de novo a cada versão grande: `testes/perf/README.md`. Conferir no tablet real (Samsung com S Pen) e no S20 FE.

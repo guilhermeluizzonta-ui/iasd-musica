@@ -753,6 +753,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   const camPauta = mk('g', { class: 'linhas' }, svg);
   const camCab = mk('g', {}, svg);
   const camNotas = mk('g', {}, svg);
+  const camComp = mk('g', {}, svg);   // números e conferência dos compassos (sempre refeitos)
   const camAnot = mk('g', { class: 'anotacoes' }, svg);
   const camPrevia = mk('g', { class: 'previa' }, svg);
   const camTinta = mk('g', { class: 'tinta' }, svg);
@@ -987,22 +988,22 @@ button:disabled { opacity: 0.45; cursor: default; }
 
   // ---------- Compassos e nomes das notas ----------
   // Barras de compasso valem para a linha inteira (todas as pautas dela)
-  function limites(l = LIN) {
+  function limites(l = LIN, de = itensDe) {
     const L = LAYOUT[l];
-    const xs = itensDe(l).filter(i => BARRA.has(i.tipo)).map(i => i.x).sort((a, b) => a - b);
+    const xs = de(l).filter(i => BARRA.has(i.tipo)).map(i => i.x).sort((a, b) => a - b);
     return [L ? L.inicio : INICIO, ...xs, X1];
   }
   function compassoDe(x, l = LIN) { const lm = limites(l); for (let i = 0; i < lm.length - 1; i++) if (x > lm[i] && x <= lm[i + 1]) return [lm[i], lm[i + 1], i]; return [lm[0], lm[1], 0]; }
   // Compassos de toda a música, numerados em sequência (a sobra vazia no fim de uma linha não conta)
-  function segmentos() {
+  function segmentos(de = itensDe) {
     const m = M(), res = []; let numero = 0;
     if (!m) return res;
     m.linhas.forEach((ln, l) => {
-      const lm = limites(l);
+      const lm = limites(l, de);
       for (let i = 0; i < lm.length - 1; i++) {
         const a = lm[i], b = lm[i + 1];
         if (b - a < 2) continue;
-        const temNota = itensDe(l).some(n => TEMPOS[n.tipo] && n.x > a && n.x < b);
+        const temNota = de(l).some(n => TEMPOS[n.tipo] && n.x > a && n.x < b);
         if (i === lm.length - 2 && i > 0 && !temNota && l < m.linhas.length - 1) continue;
         numero++;
         res.push({ l, a, b, i, numero, temNota, ultimo: l === m.linhas.length - 1 && i === lm.length - 2 });
@@ -1010,9 +1011,9 @@ button:disabled { opacity: 0.45; cursor: default; }
     });
     return res;
   }
-  function valorDe(n) {
+  function valorDe(n, mesmaPauta) {
     const v = TEMPOS[n.tipo] || 0;
-    const pontuada = itensDe(n.l, n.p).some(p => p.tipo === 'ponto' && p.x > n.x && p.x - n.x <= 3 * SP && (PAUSA.has(n.tipo) || cabecas(n).some(s => Math.abs(p.s - s) <= 1.5)));
+    const pontuada = (mesmaPauta || itensDe(n.l, n.p)).some(p => p.tipo === 'ponto' && p.x > n.x && p.x - n.x <= 3 * SP && (PAUSA.has(n.tipo) || cabecas(n).some(s => Math.abs(p.s - s) <= 1.5)));
     return pontuada ? v * 1.5 : v;
   }
   function nomeNota(n, s = n.s) {
@@ -1066,31 +1067,54 @@ button:disabled { opacity: 0.45; cursor: default; }
     return invertido || '';
   }
 
+  // Números e conferência dos compassos. Monta um índice das notas por linha/pauta (antes cada nota varria a música
+  // inteira) e só refaz o grupo da linha cujo resultado mudou.
+  const COMP_LINHAS = new Map();   // linha → { sig, g }
   function desenharCompassos() {
     const m = M(); const { num, den } = m.compasso;
     const cap = num * 4 / den;
-    for (const sg of segmentos()) {
+    const idx = new Map();
+    const por = (k, n) => { let a = idx.get(k); if (!a) idx.set(k, a = []); a.push(n); };
+    for (const n of itens()) { por('L' + n.l, n); por(n.l + '|' + n.p, n); }
+    const de = (l, p) => idx.get(p == null ? 'L' + l : l + '|' + p) || [];
+    const ops = new Map();   // linha → lista do que desenhar
+    for (const sg of segmentos(de)) {
       const L = LAYOUT[sg.l], ln = m.linhas[sg.l];
-      if (sg.numero > 1) mk('text', { class: 'rot', x: sg.a + 0.8, y: L.topos[0] - 5 }, camNotas).textContent = sg.numero;
+      if (!L) continue;
+      if (!ops.has(sg.l)) ops.set(sg.l, []);
+      const o = ops.get(sg.l);
+      if (sg.numero > 1) o.push(['num', sg.a + 0.8, L.topos[0] - 5, sg.numero]);
       ln.pautas.forEach((_, p) => {
-        const soma = itensDe(sg.l, p).filter(n => TEMPOS[n.tipo] && n.x > sg.a && n.x < sg.b).reduce((s, n) => s + valorDe(n), 0);
+        const mesma = de(sg.l, p);
+        const soma = mesma.filter(n => TEMPOS[n.tipo] && n.x > sg.a && n.x < sg.b).reduce((s, n) => s + valorDe(n, mesma), 0);
         if (!soma) return;
         const dif = soma - cap, cx = (sg.a + sg.b) / 2;
         const y = L.topos[p] + 4 * SP + (p < ln.pautas.length - 1 ? 6.4 : 10.5);
-        if (Math.abs(dif) < 1e-6) {
-          // compasso certo: só um selo verde discreto, sem texto
-          const g = mk('g', { class: 'rot tempos ok-comp' }, camNotas);
-          mk('title', {}, g).textContent = `${num} de ${num}: compasso completo`;
-          mk('circle', { class: 'selo-ok', cx, cy: y - 0.8, r: 1.35 }, g);
-          mk('path', { class: 'selo-ok-tx', d: `M${cx - 0.65} ${y - 0.8} l0.45 0.45 l0.85 -0.9`, 'stroke-width': 0.35, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
-          return;
-        }
+        if (Math.abs(dif) < 1e-6) { o.push(['ok', cx, y]); return; }
         // errado: em vermelho, com a conta; o último compasso ainda sendo escrito fica neutro
         let cls = 'rot tempos', txt = `${fmt(soma * den / 4)} de ${num}`;
         if (dif > 0) { cls += ' passou'; txt += ' · passou'; }
         else if (!sg.ultimo) { cls += ' passou'; txt += ' · falta'; }
-        mk('text', { class: cls, x: cx, y, 'text-anchor': 'middle' }, camNotas).textContent = txt;
+        o.push(['txt', cx, y, cls, txt]);
       });
+    }
+    for (const l of [...COMP_LINHAS.keys()]) if (!ops.has(l)) { COMP_LINHAS.get(l).g.remove(); COMP_LINHAS.delete(l); }
+    for (const [l, o] of ops) {
+      const sig = JSON.stringify(o), ant = COMP_LINHAS.get(l);
+      if (ant && ant.sig === sig) continue;
+      if (ant) ant.g.remove();
+      const gl = mk('g', { 'data-comp-linha': l }, camComp);
+      for (const op of o) {
+        if (op[0] === 'num') mk('text', { class: 'rot', x: op[1], y: op[2] }, gl).textContent = op[3];
+        else if (op[0] === 'ok') {
+          // compasso certo: só um selo verde discreto, sem texto
+          const [, cx, y] = op, g = mk('g', { class: 'rot tempos ok-comp' }, gl);
+          mk('title', {}, g).textContent = `${num} de ${num}: compasso completo`;
+          mk('circle', { class: 'selo-ok', cx, cy: y - 0.8, r: 1.35 }, g);
+          mk('path', { class: 'selo-ok-tx', d: `M${cx - 0.65} ${y - 0.8} l0.45 0.45 l0.85 -0.9`, 'stroke-width': 0.35, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+        } else mk('text', { class: op[3], x: op[1], y: op[2], 'text-anchor': 'middle' }, gl).textContent = op[4];
+      }
+      COMP_LINHAS.set(l, { sig, g: gl });
     }
   }
 
@@ -1153,9 +1177,10 @@ button:disabled { opacity: 0.45; cursor: default; }
       for (const n of ns) VIGAS_INFO.set(n.id, info);
     }
   }
-  function desenharVigas() {
+  function desenharVigas(pai = camNotas, so = null) {
     for (const [id, inf] of VIGA_GEO) {
-      const g = mk('g', { class: 'nota', 'data-id': id }, camNotas);
+      if (so && !so.has(id)) continue;
+      const g = mk('g', { class: 'nota', 'data-id': id }, pai);
       const { ns, cima, yAt, sx } = inf, esp = 0.5 * SP, passo = 0.75 * SP, sg = cima ? 1 : -1;
       const niveis = n => BANDEIROLAS[n.tipo] || 1, max = Math.max(...ns.map(niveis));
       const faixa = (xa, xb, k) => {
@@ -1176,7 +1201,6 @@ button:disabled { opacity: 0.45; cursor: default; }
       mk('path', { class: 'alvo-linha', d: `M${xa} ${yAt(xa)} L${xb} ${yAt(xb)}` }, g);
       const nPts = Math.max(2, Math.ceil((xb - xa) / 1.5));
       LINHAS_TOQUE.set(id, Array.from({ length: nPts + 1 }, (_, i) => { const x = xa + (xb - xa) * i / nPts; return { x, y: yAt(x) + (cima ? 1 : -1) * 0.6 }; }));
-      if (id === selId) g.classList.add('sel');
     }
   }
   // Une notas com barra; se já estão unidas, o novo risco acrescenta uma barra (colcheia → semicolcheia → fusa)
@@ -1201,29 +1225,71 @@ button:disabled { opacity: 0.45; cursor: default; }
     avisar(`<b>Barra de colcheias</b> em ${notas.length} notas (${tipos.join(' e ')}).` + (mesma ? '' : ' Outro risco igual por cima vira semicolcheia.'), 'ok');
   }
 
+  // ---------- Redesenho por linha ----------
+  // Antes, cada traço redesenhava a folha inteira (todas as notas de todas as linhas). Agora cada linha é um grupo
+  // com uma "assinatura" (os dados das suas notas, ligaduras e barras de colcheia); só as linhas que mudaram são
+  // redesenhadas. Folhas, pautas, claves e cabeçalho só são refeitos quando a estrutura muda (linhas, tom, compasso...).
+  // Números e conferência dos compassos e as anotações são baratos e sempre refeitos.
+  let SIG_ESTRUTURA = null;
+  const LINHAS_DESENHADAS = new Map();   // linha → { sig, g, ids }
+  function esquecerLinha(l) {
+    const d = LINHAS_DESENHADAS.get(l); if (!d) return;
+    d.g.remove();
+    for (const id of d.ids) { TIPS.delete(id); CAIXAS.delete(id); LINHAS_TOQUE.delete(id); }
+    LINHAS_DESENHADAS.delete(l);
+  }
+  function renderizarTudo(novaId) { SIG_ESTRUTURA = null; renderizar(novaId); }
   function renderizar(novaId) {
-    desenharEstrutura();
-    camNotas.replaceChildren(); camAnot.replaceChildren();
-    if (!M()) return;
-    TIPS.clear(); CAIXAS.clear(); LINHAS_TOQUE.clear();
+    const m = M();
+    const ultimaVazia = m ? !itens().some(i => i.l === m.linhas.length - 1) : true;
+    const sigE = m ? JSON.stringify([m.id, m.linhas, m.titulo, m.autor, m.andamento, m.tom, m.compasso, m.unidade, ultimaVazia]) : '';
+    if (sigE !== SIG_ESTRUTURA) {
+      desenharEstrutura(); SIG_ESTRUTURA = sigE;
+      for (const l of [...LINHAS_DESENHADAS.keys()]) esquecerLinha(l);
+      camNotas.replaceChildren(); TIPS.clear(); CAIXAS.clear(); LINHAS_TOQUE.clear();
+      camComp.replaceChildren(); COMP_LINHAS.clear();
+    }
+    camAnot.replaceChildren();
+    if (!m) return;
     prepararVigas();
     const lista = itens(), mapa = new Map(lista.map(n => [n.id, n]));
-    ALVOS_LOTE = [];
-    for (const n of lista) if (n.tipo !== 'ligadura' && n.tipo !== 'viga') {
-      if (!LAYOUT[n.l]) continue;
-      usar(n.l, n.p);
-      const g = desenharItem(n, camNotas, baseDe(n), mapa);
-      if (g && n.id === novaId) g.classList.add('nova');
-      if (g && n.id === selId) g.classList.add('sel');
+    // separa por linha (barra de colcheias sem linha usa a da primeira nota)
+    const porLinha = new Map();
+    const linhaDe = n => n.tipo === 'viga' ? (n.l != null ? n.l : ((mapa.get(n.ns[0]) || {}).l || 0)) : (n.l || 0);
+    for (const n of lista) { const l = linhaDe(n); if (!LAYOUT[l]) continue; if (!porLinha.has(l)) porLinha.set(l, []); porLinha.get(l).push(n); }
+    for (const l of [...LINHAS_DESENHADAS.keys()]) if (!porLinha.has(l)) esquecerLinha(l);
+    // 1) descobre quais linhas mudaram e apaga todas elas antes de redesenhar
+    //    (uma nota movida de uma linha para outra não pode ser apagada depois de desenhada na nova)
+    const refazer = [];
+    for (const [l, ns] of porLinha) {
+      // a ligadura depende das duas notas que liga (podem estar em outra linha)
+      const extra = ns.filter(n => n.tipo === 'ligadura').map(n => [mapa.get(n.a), mapa.get(n.b)]);
+      const sig = JSON.stringify([ns, extra]);
+      const ant = LINHAS_DESENHADAS.get(l);
+      if (ant && ant.sig === sig) continue;
+      refazer.push([l, ns, sig]);
     }
-    for (const n of lista) if (n.tipo === 'ligadura' && LAYOUT[n.l]) desenharItem(n, camNotas, baseDe(n), mapa);
+    refazer.forEach(([l]) => esquecerLinha(l));
+    // 2) desenha só essas
+    ALVOS_LOTE = [];
+    for (const [l, ns, sig] of refazer) {
+      const g = mk('g', { 'data-linha': l }, camNotas), ids = [];
+      for (const n of ns) if (n.tipo !== 'ligadura' && n.tipo !== 'viga') { usar(n.l, n.p); desenharItem(n, g, baseDe(n), mapa); if (n.id) ids.push(n.id); }
+      for (const n of ns) if (n.tipo === 'ligadura') { desenharItem(n, g, baseDe(n), mapa); if (n.id) ids.push(n.id); }
+      const vigas = new Set(ns.filter(n => n.tipo === 'viga').map(n => n.id));
+      if (vigas.size) { desenharVigas(g, vigas); ids.push(...vigas); }
+      LINHAS_DESENHADAS.set(l, { sig, g, ids });
+    }
     const lote = ALVOS_LOTE; ALVOS_LOTE = null;
     const medidas = lote.map(([g]) => g.getBBox());          // 1) mede tudo (um cálculo de layout)
     lote.forEach(([g, id], i) => colocarAlvo(g, id, medidas[i])); // 2) só então insere
-    desenharVigas();
+    // seleção e "nota nova" não fazem parte da assinatura: só trocam a classe
+    camNotas.querySelectorAll('.nota.sel, .nota.nova').forEach(e => e.classList.remove('sel', 'nova'));
+    const marcar = (id, cls) => { if (!id) return; for (const e of camNotas.querySelectorAll('.nota[data-id]')) if (e.dataset.id === id) { e.classList.add(cls); break; } };
+    marcar(selId, 'sel'); marcar(novaId, 'nova');
     desenharCompassos();
     desenharAnotacoes();
-    $('tMusica').textContent = M().titulo;
+    $('tMusica').textContent = m.titulo;
     if (typeof atualizarAcordesDoTom === 'function') atualizarAcordesDoTom();
   }
 
@@ -2887,6 +2953,6 @@ button:disabled { opacity: 0.45; cursor: default; }
   renderizar();
   if (!M()) abrirFicha('nova');
   if (DO_APP && PEDIDO.ver && M()) modoVisual(true); // aberto pelo app só para ver (como os músicos)
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => renderizar());
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => renderizarTudo());
 })();
 </script>
