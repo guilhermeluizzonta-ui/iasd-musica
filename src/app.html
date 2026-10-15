@@ -501,6 +501,24 @@ body.metro-flash1::before { box-shadow: inset 0 0 0 10px var(--gold); }
 .dg-pop .dg small { font-size: 12px; max-width: 240px; }
 #sheet .chord { cursor: pointer; }
 
+.hist-link { font-size: inherit; padding: 0; min-height: 0; text-align: left; }
+.hist-list, .hist-cant { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.hist-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 2px; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--fg); font: inherit; text-align: left; cursor: pointer; }
+.hist-row:hover { background: var(--surface-2); }
+.hist-row .song-text { flex: 1; min-width: 0; }
+.hist-row .datetag { width: 50px; height: 44px; }
+.hist-cant li { display: flex; align-items: center; gap: 10px; min-height: 44px; border-bottom: 1px solid var(--line); }
+.hist-cant li > span:first-child { flex: 1; }
+.kp-singers { display: flex; flex-wrap: wrap; gap: 6px; }
+.kp-singer { min-height: 40px; padding: 0 12px; border-radius: 999px; border: var(--bw) solid var(--line); background: var(--bg); color: var(--fg); font: inherit; font-size: 14px; cursor: pointer; }
+.kp-singer b { font-family: var(--mono); margin-left: 4px; }
+.kp-singer[aria-current="true"] { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); }
+.kp-saveform { display: flex; gap: 8px; margin-top: 6px; }
+.kp-saveform .input { height: 44px; }
+.kp-saveform .btn { white-space: nowrap; }
+.pick-hist { font-style: normal; color: var(--muted); }
+.pick-hist.recent { color: var(--warn, #C0392B); }
+
 /* ---------- Devocional ---------- */
 #v-devocional { max-width: 640px; margin: 0 auto; padding-top: 8px; gap: 22px; }
 #dv-body { display: flex; flex-direction: column; gap: 22px; }
@@ -1980,6 +1998,7 @@ function openViewer(id) {
   $('viewer-pdf').dataset.tip = nPdf > 1 ? `Partituras (${nPdf})|Esta cifra tem ${nPdf} partituras ligadas. Toque para escolher.` : 'Partitura|Abre a partitura ligada a esta cifra.';
   $('top-title').textContent = s.title;
   $('viewer-sub').textContent = [cur.listBase ? `Lista: ${listTitle(inList)} · ${route.idx + 1} de ${inList.items.length}` : '', s.artist, s.source ? 'fonte: ' + s.source : ''].filter(Boolean).join(' · ');
+  viewerHist(id);
   $('viewer-addlist').hidden = db.role !== 'editor' || !!cur.listBase;
   $('viewer-edit').hidden = db.role !== 'editor';
   $('fit-status').hidden = true;
@@ -2083,6 +2102,7 @@ function buildPicker() {
          (sub.length ? `<small>${sub.join(' · ')}</small>` : '') + (isOrig ? `<small class="o">${cur.suggested ? 'sugerido' : 'original'}</small>` : '') + '</button>';
   });
   box.innerHTML = h + '</div>';
+  pickerCantores();
 }
 function openKeypick() { $('capopick').hidden = true; $('t-capo').setAttribute('aria-expanded', 'false'); buildPicker(); $('keypick').hidden = false; $('t-key').setAttribute('aria-expanded', 'true'); const c = $('keypick').querySelector('[aria-current="true"]'); if (c) c.focus(); }
 function closeKeypick() { $('keypick').hidden = true; $('t-key').setAttribute('aria-expanded', 'false'); if ($('capopick')) { $('capopick').hidden = true; $('t-capo').setAttribute('aria-expanded', 'false'); } }
@@ -3678,6 +3698,7 @@ function openListKey(btn, l, i, lyrMode) {
     h += `<button type="button" data-lk="${idx}" aria-current="${idx === ki.cur.idx}" class="${isOrig ? 'orig' : ''}">${main}${sub.length ? `<small>${sub.join(' · ')}</small>` : ''}${isOrig ? '<small class="o">original</small>' : ''}</button>`;
   });
   liPop.innerHTML = h + '</div>';
+  listKeyCantores(l, i, lyrMode);
   liKeyFor = lyrMode ? { lyr: true, orig: o.idx } : { id: l.id, i, orig: o.idx };
   liPop.hidden = false;
   const r = btn.getBoundingClientRect();
@@ -3775,6 +3796,7 @@ function renderPick() {
       <span class="song-text"><strong>${esc(s.title)}</strong><span>${esc([s.artist, inList.has(s.id) ? 'já está na lista' : ''].filter(Boolean).join(' · '))}</span></span>
       <span class="keytag${ki && ki.sug ? ' sug' : ''}">${esc(ki ? ki.orig.main : '—')}</span></button>`;
   }).join('') : `<div class="empty"><p>${q ? 'Nenhuma música encontrada.' : 'O repertório está vazio. Cadastre cifras em Cifras primeiro.'}</p></div>`;
+  pickHist();
   $('lp-n').textContent = pickSel.length || '';
   $('lp-go').setAttribute('aria-label', pickSel.length ? `Adicionar ${pickSel.length} ${pickSel.length === 1 ? 'música' : 'músicas'}` : 'Escolha as músicas primeiro');
   $('lp-go').disabled = !pickSel.length;
@@ -4200,6 +4222,7 @@ function renderEnsPop() {
   if (ensPop.hidden) return;
   if (ens.kind === 'rot') { renderRotPop(); return; }
   if (ens.kind === 'chord') { renderChordPop(); return; }
+  if (ens.kind === 'hist') { renderHistPop(); return; }
   const s = ensSong(), mp = metroPrefs();
   if (ens.kind === 'metro') {
     const t = tempoOf(s), p = pulsesOf(t.time), ed = db.role === 'editor' && s && route.name !== 'partitura';
@@ -4568,6 +4591,96 @@ document.addEventListener('click', (e) => {
 function renderChordPop() {
   const n = ens.chordName, inst = diagInst();
   ensPop.innerHTML = `<div class="dg-pop">${diagHtml(n, inst)}</div><div class="ens-chips dg-inst" role="group" aria-label="Instrumento do desenho">${Object.entries(DIAG_INSTR).map(([k, v]) => `<button type="button" class="chip" data-dg-inst="${k}" aria-pressed="${k === inst}">${v.nome}</button>`).join('')}</div>`;
+}
+
+/* ---------- Histórico e tom de cada cantor ----------
+   Histórico: sai das listas de culto (quando a música foi tocada, em que tom, quem dirigiu).
+   Tom de cada cantor: guardado por música neste aparelho (db.cantores), aparece no seletor de tom. */
+function songHistory(id) {
+  const out = [];
+  (db.lists || []).forEach(l => l.items.forEach(it => {
+    if (it.songId !== id) return;
+    const s = songById(id), ki = songKeyInfo(s, it.shift || 0);
+    out.push({ l, date: l.date || '', key: ki ? ki.cur.main : '—', shift: it.shift || 0 });
+  }));
+  return out.sort((a, b) => (b.date || '0').localeCompare(a.date || '0'));
+}
+function agoLabel(iso) {
+  const d = Math.round((dayOf(todayIso()) - dayOf(iso)) / 864e5);
+  if (d === 0) return 'hoje'; if (d === 1) return 'ontem'; if (d < 0) return d === -1 ? 'amanhã' : `daqui a ${-d} dias`;
+  if (d < 14) return `há ${d} dias`; if (d < 60) return `há ${Math.round(d / 7)} semanas`; if (d < 365) return `há ${Math.round(d / 30)} meses`;
+  return `há ${Math.round(d / 365)} ${Math.round(d / 365) === 1 ? 'ano' : 'anos'}`;
+}
+function histSummary(id) {
+  const h = songHistory(id), t = todayIso();
+  const past = h.filter(x => x.date && x.date <= t), next = h.filter(x => x.date && x.date > t).sort((a, b) => a.date.localeCompare(b.date))[0];
+  return { h, past, next, last: past[0] || null };
+}
+function histLine(id) {
+  const { past, next, last } = histSummary(id);
+  const parts = [];
+  if (last) parts.push(`tocada ${agoLabel(last.date)} em ${last.key}`);
+  if (past.length > 1) parts.push(`${past.length} vezes`);
+  if (next) parts.push(`próxima ${pad2(dayOf(next.date).getDate())}/${pad2(dayOf(next.date).getMonth() + 1)}`);
+  return parts.join(' · ');
+}
+const cantoresDe = (id) => { if (!db.cantores || typeof db.cantores !== 'object') db.cantores = {}; return db.cantores[id] || (db.cantores[id] = []); };
+const todosCantores = () => [...new Set(Object.values(db.cantores || {}).flat().map(c => c.n))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+function cantoresHtml(id, ki, attr) {   // chips que aplicam o tom (attr = data-i no seletor da cifra, data-lk nas listas)
+  const cs = id ? cantoresDe(id) : []; if (!cs.length || !ki) return '';
+  return `<div class="keypick-sec">Tom dos cantores</div><div class="kp-singers">${cs.map(c => `<button type="button" class="kp-singer" ${attr}="${c.k}" aria-current="${c.k === ki.cur.idx}" aria-label="Tom de ${esc(c.n)}: ${esc(showKey(c.k, ki.orig.minor).label)}">${esc(c.n)} <b>${esc(showKey(c.k, ki.orig.minor).main)}</b></button>`).join('')}</div>`;
+}
+function cantorFormHtml(ki) {
+  return `<form class="kp-saveform" data-cantor-form="1"><input class="input" maxlength="30" list="cantores-dl" placeholder="Nome de quem canta" aria-label="Guardar o tom ${esc(ki.cur.main)} para"><button type="submit" class="btn" aria-label="Guardar o tom ${esc(ki.cur.main)} para este cantor">Guardar ${esc(ki.cur.main)}</button></form><datalist id="cantores-dl">${todosCantores().map(n => `<option value="${esc(n)}">`).join('')}</datalist>`;
+}
+function saveCantor(id, nome, k) {
+  nome = nome.trim().replace(/\s+/g, ' '); if (!nome) return false;
+  const cs = cantoresDe(id), ex = cs.find(c => norm(c.n) === norm(nome));
+  if (ex) ex.k = k; else cs.push({ n: nome, k });
+  cs.sort((a, b) => a.n.localeCompare(b.n, 'pt-BR')); save(); return true;
+}
+/* No seletor de tom da cifra: chips dos cantores e "Guardar o tom atual para…" */
+function pickerCantores() {
+  const ki = cur.ki; if (!ki) return;
+  $('keypick').insertAdjacentHTML('beforeend', cantoresHtml(cur.id, ki, 'data-i') + `<details class="others kp-save"${cantoresDe(cur.id).length ? '' : ' open'}><summary>Guardar o tom ${esc(ki.cur.main)} para um cantor</summary>${cantorFormHtml(ki)}</details>`);
+}
+$('keypick').addEventListener('submit', (e) => {
+  if (!e.target.matches('[data-cantor-form]')) return;
+  e.preventDefault(); e.stopPropagation();
+  const inp = e.target.querySelector('input');
+  if (saveCantor(cur.id, inp.value, cur.ki.cur.idx)) { toast(`Tom ${cur.ki.cur.main} guardado para ${inp.value.trim()}.`); buildPicker(); }
+});
+function listKeyCantores(l, i, lyrMode) {
+  const it = lyrMode ? null : l.items[i], sid = lyrMode ? lyr.id : it.songId, ki = songKeyInfo(songById(sid), lyrMode ? lyr.v.shift : it.shift);
+  liPop.insertAdjacentHTML('beforeend', cantoresHtml(sid, ki, 'data-lk'));
+}
+/* Painel do histórico (toque na linha de baixo do título) */
+function renderHistPop() {
+  const s = songById(cur.id); if (!s) { closeEnsPop(); return; }
+  const { h } = histSummary(s.id), cs = cantoresDe(s.id), ki = songKeyInfo(s, 0);
+  ensPop.innerHTML = `<div class="ens-head"><strong>Histórico</strong><span class="hint">${esc(s.title)}</span></div>
+    ${h.length ? `<ul class="hist-list">${h.map(x => `<li><button type="button" class="hist-row" data-list-open="${esc(x.l.id)}"><span class="datetag${x.date === todayIso() ? ' today' : ''}">${x.date ? `<small>${WEEK[dayOf(x.date).getDay()].slice(0, 3)}</small><b>${pad2(dayOf(x.date).getDate())}/${pad2(dayOf(x.date).getMonth() + 1)}</b>` : '<small>sem</small><b>data</b>'}</span><span class="song-text"><strong>${esc(listTitle(x.l))}</strong><span>${esc([x.date ? agoLabel(x.date) : '', x.l.leader ? 'Resp.: ' + x.l.leader : ''].filter(Boolean).join(' · '))}</span></span><span class="keytag${x.shift ? ' changed' : ''}">${esc(x.key)}</span></button></li>`).join('')}</ul>` : '<p class="hint">Esta música ainda não entrou em nenhuma lista de culto.</p>'}
+    <div class="ens-sec">Tom dos cantores</div>
+    ${cs.length && ki ? `<ul class="hist-cant">${cs.map((c, i) => `<li><span>${esc(c.n)}</span><span class="keytag">${esc(showKey(c.k, ki.orig.minor).main)}</span><button type="button" class="icon-btn" data-cantor-del="${i}" aria-label="Apagar o tom de ${esc(c.n)}">${ico('x', 18)}</button></li>`).join('')}</ul>` : '<p class="hint">Nenhum ainda. Escolha o tom no seletor de tom e guarde para quem canta.</p>'}`;
+}
+ensPop.addEventListener('click', (e) => {
+  if (ens.kind !== 'hist') return;
+  const b = e.target.closest('[data-cantor-del]'); if (!b) return;
+  cantoresDe(cur.id).splice(Number(b.dataset.cantorDel), 1); save(); renderHistPop();
+});
+function viewerHist(id) {
+  const line = histLine(id), sub = $('viewer-sub');
+  if (line) sub.insertAdjacentHTML('beforeend', `${sub.textContent ? ' · ' : ''}<button type="button" class="link hist-link" data-ens="hist" aria-haspopup="dialog">${esc(line)}</button>`);
+  else if (cantoresDe(id).length) sub.insertAdjacentHTML('beforeend', `${sub.textContent ? ' · ' : ''}<button type="button" class="link hist-link" data-ens="hist" aria-haspopup="dialog">tom dos cantores</button>`);
+}
+/* Escolher músicas para a lista: mostra quando foi tocada por último */
+function pickHist() {
+  $('lp-list').querySelectorAll('[data-pick]').forEach(b => {
+    const { last, next } = histSummary(b.dataset.pick); if (!last && !next) return;
+    const sp = b.querySelector('.song-text > span');
+    const txt = [next && next.l.id !== route.id ? `marcada para ${dateLabel(next.date)}` : '', last ? `tocada ${agoLabel(last.date)} em ${last.key}` : ''].filter(Boolean).join(' · ');
+    if (txt) sp.insertAdjacentHTML('beforeend', `${sp.textContent ? ' · ' : ''}<em class="pick-hist${last && (dayOf(todayIso()) - dayOf(last.date)) / 864e5 < 21 ? ' recent' : ''}">${esc(txt)}</em>`);
+  });
 }
 
 /* ---------- Devocional ----------
