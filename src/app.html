@@ -468,6 +468,39 @@ body.metro-flash1::before { box-shadow: inset 0 0 0 10px var(--gold); }
 @keyframes rothl { from { background: color-mix(in srgb, var(--gold) 30%, transparent); } to { background: transparent; } }
 @media (prefers-reduced-motion: reduce) { .section.rot-hl { animation: none; } }
 
+.dg-bar { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 4px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.dg-bar[hidden] { display: none; }
+.dg-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.dg-inst .chip { min-height: 36px; font-size: 13px; padding: 0 10px; }
+.dg-inst .chip[aria-pressed="true"] { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); }
+.dg-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.dg { flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 6px 6px; min-width: 92px; border-radius: 12px; border: var(--bw) solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; font: inherit; }
+.dg:hover { border-color: var(--gold); }
+.dg b { font-family: var(--mono); font-size: 16px; color: var(--chord); }
+.dg small { font-size: 10.5px; color: var(--muted); text-align: center; max-width: 120px; line-height: 1.25; }
+.dg-svg { width: 92px; height: auto; display: block; }
+.dg-svg.kb { width: 150px; margin: 8px 0; }
+.dg-str, .dg-fret { stroke: var(--muted); stroke-width: 1.2; }
+.dg-fret.nut { stroke: var(--fg); stroke-width: 4; }
+.dg-dot { fill: var(--fg); }
+.dg-dot.root { fill: var(--accent); }
+.dg-open { fill: none; stroke: var(--fg); stroke-width: 1.5; }
+.dg-x, .dg-pos { fill: var(--muted); font-size: 12px; font-family: var(--sans, sans-serif); }
+.dg-x { font-size: 14px; }
+.dg-none { fill: var(--muted); font-size: 28px; }
+.kb-w { fill: #fff; stroke: #555; stroke-width: .6; }
+.kb-b { fill: #222; stroke: #222; stroke-width: .6; }
+.kb-w.on.t, .kb-b.on.t { fill: var(--gold); }
+.kb-w.on.r, .kb-b.on.r { fill: var(--accent); }
+.kb-w.on.b, .kb-b.on.b { fill: #4A7BD0; }
+.dg-pop { display: flex; justify-content: center; }
+.dg-pop .dg { min-width: 160px; padding: 12px; }
+.dg-pop .dg-svg { width: 150px; }
+.dg-pop .dg-svg.kb { width: 260px; }
+.dg-pop .dg b { font-size: 22px; }
+.dg-pop .dg small { font-size: 12px; max-width: 240px; }
+#sheet .chord { cursor: pointer; }
+
 /* ---------- Devocional ---------- */
 #v-devocional { max-width: 640px; margin: 0 auto; padding-top: 8px; gap: 22px; }
 #dv-body { display: flex; flex-direction: column; gap: 22px; }
@@ -1982,6 +2015,7 @@ function renderViewer() {
   if (cur.listBase) ['simplify', 'colsMode', 'cols', 'zoom', 'fit', 'capo'].forEach(k => { cur.listBase[k] = cur.v[k]; });   // capo é da música, vale também na lista   // tom do culto não muda o tom pessoal
   save();
   renderRoteiro();
+  renderDiagBar();
   drawCifraInk();
 }
 function setZoom(z) { cur.v.zoom = Math.round(Math.min(ZMAX, Math.max(ZMIN, z)) * 100) / 100; cur.v.colsMode = 'auto'; cur.v.fit = false; $('fit-status').hidden = true; renderViewer(); }
@@ -4152,10 +4186,11 @@ ensPop.className = 'ens-pop'; ensPop.hidden = true; ensPop.setAttribute('role', 
 document.body.appendChild(ensPop);
 const metroCount = document.createElement('div'); metroCount.id = 'metro-count'; metroCount.hidden = true; metroCount.setAttribute('aria-hidden', 'true'); document.body.appendChild(metroCount);
 function openEnsPop(btn, kind) {
-  if (!ensPop.hidden && ens.kind === kind) { closeEnsPop(); return; }
+  if (!ensPop.hidden && ens.kind === kind && ens.btn === btn) { closeEnsPop(); return; }
   ens.rotDraft = null; ens.kind = kind; ens.btn = btn; ensPop.hidden = false; renderEnsPop();
   const r = btn.getBoundingClientRect();
-  ensPop.style.top = (r.bottom + window.scrollY + 6) + 'px';
+  const h = ensPop.offsetHeight, below = r.bottom + 6 + h <= window.innerHeight || r.top - 6 - h < 0;
+  ensPop.style.top = (below ? r.bottom + window.scrollY + 6 : r.top + window.scrollY - h - 6) + 'px';
   ensPop.style.left = Math.max(8, Math.min(r.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - ensPop.offsetWidth - 8)) + 'px';
   document.querySelectorAll('[data-ens]').forEach(b => b.setAttribute('aria-expanded', String(b === btn)));
 }
@@ -4164,6 +4199,7 @@ const chip = (attrs, label, on, tip) => `<button type="button" class="chip" ${at
 function renderEnsPop() {
   if (ensPop.hidden) return;
   if (ens.kind === 'rot') { renderRotPop(); return; }
+  if (ens.kind === 'chord') { renderChordPop(); return; }
   const s = ensSong(), mp = metroPrefs();
   if (ens.kind === 'metro') {
     const t = tempoOf(s), p = pulsesOf(t.time), ed = db.role === 'editor' && s && route.name !== 'partitura';
@@ -4361,6 +4397,178 @@ document.addEventListener('click', (e) => { const b = e.target.closest('[data-ro
   bar.innerHTML = ''; el.parentNode.insertBefore(bar, el);
   const tl = document.createElement('p'); tl.className = 'tipline rot-tip'; tl.setAttribute('aria-live', 'polite'); bar.after(tl);
 });
+
+/* ---------- Desenho dos acordes (cordas e teclado) ----------
+   Os desenhos seguem o acorde que está na tela (tom, capo e simplificar já aplicados).
+   Violão/guitarra: formas conhecidas primeiro; o resto é calculado (até 4 dedos, pestana conta como 1).
+   Ukulele, cavaquinho, bandolim e viola caipira (cebolão em Ré): calculados pela afinação. */
+const DIAG_INSTR = {
+  violao: { nome: 'Violão', cordas: [40, 45, 50, 55, 59, 64], baixo: true },
+  ukulele: { nome: 'Ukulele', cordas: [67, 60, 64, 69] },
+  cavaquinho: { nome: 'Cavaquinho', cordas: [62, 67, 71, 74] },
+  bandolim: { nome: 'Bandolim', cordas: [55, 62, 69, 76] },
+  viola: { nome: 'Viola caipira', cordas: [45, 50, 54, 57, 62], baixo: true, obs: 'cebolão em Ré' },
+  teclado: { nome: 'Teclado' }
+};
+const DIAG_DE = { violao: 'violao', guitarra: 'violao', ukulele: 'ukulele', cavaquinho: 'cavaquinho', bandolim: 'bandolim', 'viola-caipira': 'viola', piano: 'teclado', teclado: 'teclado', orgao: 'teclado', acordeom: 'teclado' };
+const GUIT_FORMAS = {   // casas da 6ª à 1ª corda (-1 = não toca)
+  'C': [-1, 3, 2, 0, 1, 0], 'C7': [-1, 3, 2, 3, 1, 0], 'Cmaj7': [-1, 3, 2, 0, 0, 0], 'Cadd9': [-1, 3, 2, 0, 3, 0], 'C/E': [0, 3, 2, 0, 1, 0], 'C/G': [3, 3, 2, 0, 1, 0], 'C/B': [-1, 2, 2, 0, 1, 0],
+  'D': [-1, -1, 0, 2, 3, 2], 'Dm': [-1, -1, 0, 2, 3, 1], 'D7': [-1, -1, 0, 2, 1, 2], 'Dm7': [-1, -1, 0, 2, 1, 1], 'Dsus4': [-1, -1, 0, 2, 3, 3], 'Dsus2': [-1, -1, 0, 2, 3, 0], 'Dmaj7': [-1, -1, 0, 2, 2, 2], 'D/F#': [2, -1, 0, 2, 3, 2], 'Dadd9': [-1, -1, 0, 2, 3, 0], 'D/A': [-1, 0, 0, 2, 3, 2],
+  'E': [0, 2, 2, 1, 0, 0], 'Em': [0, 2, 2, 0, 0, 0], 'E7': [0, 2, 0, 1, 0, 0], 'Em7': [0, 2, 2, 0, 3, 0], 'Esus4': [0, 2, 2, 2, 0, 0], 'E/G#': [4, -1, 2, 4, 5, 4],
+  'F': [1, 3, 3, 2, 1, 1], 'Fm': [1, 3, 3, 1, 1, 1], 'F7': [1, 3, 1, 2, 1, 1], 'Fmaj7': [-1, -1, 3, 2, 1, 0], 'F/A': [-1, 0, 3, 2, 1, 1], 'F/C': [-1, 3, 3, 2, 1, 1],
+  'G': [3, 2, 0, 0, 0, 3], 'G7': [3, 2, 0, 0, 0, 1], 'Gmaj7': [3, 2, 0, 0, 0, 2], 'G/B': [-1, 2, 0, 0, 0, 3], 'G/D': [-1, -1, 0, 0, 0, 3], 'Gsus4': [3, 3, 0, 0, 1, 3], 'Gadd9': [3, 0, 0, 2, 0, 3], 'Gm': [3, 5, 5, 3, 3, 3],
+  'A': [-1, 0, 2, 2, 2, 0], 'Am': [-1, 0, 2, 2, 1, 0], 'A7': [-1, 0, 2, 0, 2, 0], 'Am7': [-1, 0, 2, 0, 1, 0], 'Asus4': [-1, 0, 2, 2, 3, 0], 'Asus2': [-1, 0, 2, 2, 0, 0], 'Amaj7': [-1, 0, 2, 1, 2, 0], 'A/C#': [-1, 4, 2, 2, 2, 0], 'Am/G': [3, 0, 2, 2, 1, 0], 'Am/C': [-1, 3, 2, 2, 1, 0], 'A7sus4': [-1, 0, 2, 0, 3, 0], 'Aadd9': [-1, 0, 2, 4, 2, 0],
+  'B7': [-1, 2, 1, 2, 0, 2], 'Bm': [-1, 2, 4, 4, 3, 2], 'Bm7': [-1, 2, 0, 2, 0, 2], 'B': [-1, 2, 4, 4, 4, 2], 'Bb': [-1, 1, 3, 3, 3, 1], 'Bbmaj7': [-1, 1, 3, 2, 3, 1],
+  'C#m': [-1, 4, 6, 6, 5, 4], 'F#m': [2, 4, 4, 2, 2, 2], 'F#': [2, 4, 4, 3, 2, 2], 'F#m7': [2, 4, 2, 2, 2, 2], 'G#m': [4, 6, 6, 4, 4, 4], 'Eb': [-1, 6, 5, 3, 4, 3], 'Ab': [4, 6, 6, 5, 4, 4], 'Cm': [-1, 3, 5, 5, 4, 3], 'Bdim': [-1, 2, 3, 4, 3, -1], 'Edim': [0, 1, 2, 0, 2, 0]
+};
+/* Intervalos do acorde (semitons a partir da fundamental) — inclui a escrita brasileira: 7M, 7(9), 4, (9) */
+function chordTones(name) {
+  const p = parseChord(String(name).trim()); if (!p || !(p.root in IDX)) return null;
+  let q = p.quality.replace(/[()]/g, '').replace(/\s+/g, '');
+  const ints = new Set([0]); let req = [0];
+  const has = (re) => re.test(q);
+  if (q === '5') { ints.add(7); return { root: IDX[p.root], bass: p.bass && p.bass in IDX ? IDX[p.bass] : IDX[p.root], ints: [...ints], req: [0, 7] }; }
+  const halfdim = has(/ø|m7b5|m7-5/), dim = !halfdim && has(/^(dim|°|º)/), aug = has(/^(aug|\+)|#5|\+5/), minor = !dim && !halfdim && /^m(?!aj)/.test(q);
+  const raw = p.quality.replace(/\s+/g, '');
+  const sus4 = /sus(?!2)|\(4\)|^m?4|7\/?4(?!\d)/.test(raw), sus2 = /sus2|^2|\(2\)/.test(raw);
+  const third = sus4 ? 5 : sus2 ? 2 : (minor || dim || halfdim) ? 3 : 4;
+  ints.add(third); req.push(third);
+  const fifth = (dim || halfdim || has(/b5|-5/)) ? 6 : aug ? 8 : 7; ints.add(fifth); if (fifth !== 7) req.push(fifth);
+  const maj7 = has(/maj7|7M|M7|7\+|Δ/);
+  if (maj7) { ints.add(11); req.push(11); }
+  else if (dim && has(/7/)) { ints.add(9); req.push(9); }
+  else if (halfdim || has(/7/) || /^m?(11|13)/.test(q)) { ints.add(10); req.push(10); }
+  if (has(/(^|[^1])6/) && !has(/13|b6|#6/)) { ints.add(9); req.push(9); }
+  if (has(/b9|-9/)) { ints.add(1); req.push(1); } else if (has(/#9|\+9/)) { ints.add(3); req.push(3); } else if (has(/9/)) { ints.add(2); req.push(2); }
+  if (has(/#11|\+11/)) { ints.add(6); req.push(6); } else if (has(/11/)) { ints.add(5); req.push(5); }
+  if (has(/13/)) { ints.add(9); req.push(9); }
+  return { root: IDX[p.root], bass: p.bass && p.bass in IDX ? IDX[p.bass] : IDX[p.root], ints: [...ints], req: [...new Set(req)] };
+}
+const diagCache = new Map();
+function fretShape(name, inst) {
+  const key = inst + '|' + name; if (diagCache.has(key)) return diagCache.get(key);
+  let r = null;
+  if (inst === 'violao') { const f = GUIT_FORMAS[name.replace(/maj7|7M|M7/, 'maj7')]; if (f) r = { frets: f }; }
+  if (!r) r = findShape(name, DIAG_INSTR[inst]);
+  diagCache.set(key, r); return r;
+}
+function findShape(name, ins) {
+  const ct = chordTones(name); if (!ct || !ins || !ins.cordas) return null;
+  const S = ins.cordas, n = S.length, pcs = new Set(ct.ints.map(i => (ct.root + i) % 12)), need = ct.req.map(i => (ct.root + i) % 12);
+  let best = null, bestScore = Infinity;
+  for (let base = 0; base <= 9; base++) {
+    const lo = base === 0 ? 1 : base, hi = lo + 3;
+    const opts = S.map(open => { const o = []; if (pcs.has(open % 12)) o.push(0); for (let f = lo; f <= hi; f++) if (pcs.has((open + f) % 12)) o.push(f); if (ins.baixo) o.push(-1); return o; });
+    const cur = new Array(n);
+    const rec = (i) => {
+      if (i === n) { evalShape(); return; }
+      for (const f of opts[i]) {
+        if (f === -1 && i > 1 && cur.slice(0, i).some(x => x !== -1)) continue;   // só deixa de tocar as cordas graves
+        cur[i] = f; rec(i + 1);
+      }
+    };
+    const evalShape = () => {
+      const played = cur.map((f, i) => f >= 0 ? S[i] + f : null).filter(x => x != null);
+      if (played.length < Math.min(n, ins.baixo ? 4 : n)) return;
+      const got = new Set(played.map(m => m % 12));
+      if (!need.every(pc => got.has(pc))) return;
+      if (ins.baixo && Math.min(...played) % 12 !== ct.bass) return;
+      if (!ins.baixo && ct.bass !== ct.root && !got.has(ct.bass)) return;
+      const fr = cur.filter(f => f > 0); if (!fr.length && base > 0) return;
+      const mn = fr.length ? Math.min(...fr) : 0;
+      let fingers = fr.length, barre = 0;
+      if (fingers > 4) {
+        const first = cur.findIndex(f => f === mn);
+        if (cur.slice(first).every(f => f >= mn)) { fingers = 1 + cur.filter(f => f > mn).length; barre = mn; }
+      }
+      if (fingers > 4) return;
+      const span = fr.length ? Math.max(...fr) - mn : 0; if (span > 3) return;
+      const score = mn * 2.2 + (n - played.length) * 1.4 + fingers * 0.6 + (barre ? 1.5 : 0) + span * 0.5 - cur.filter(f => f === 0).length * 0.3;
+      if (score < bestScore) { bestScore = score; best = { frets: cur.slice(), barre }; }
+    };
+    rec(0);
+    if (best && base >= 2 && bestScore < base * 2) break;
+  }
+  return best;
+}
+function fretSvg(name, inst) {
+  const ins = DIAG_INSTR[inst], sh = fretShape(name, inst), n = ins.cordas.length;
+  const W = 18 + (n - 1) * 16 + 18, H = 120, x0 = 18, y0 = 28, dx = 16, dy = 20;
+  if (!sh) return `<svg viewBox="0 0 ${W} ${H}" class="dg-svg" aria-hidden="true"><text x="${W / 2}" y="64" text-anchor="middle" class="dg-none">?</text></svg>`;
+  const fr = sh.frets.filter(f => f > 0), mx = fr.length ? Math.max(...fr) : 0, mn = fr.length ? Math.min(...fr) : 0;
+  const start = mx <= 4 ? 1 : mn;
+  let g = '';
+  for (let i = 0; i < n; i++) g += `<line x1="${x0 + i * dx}" y1="${y0}" x2="${x0 + i * dx}" y2="${y0 + 4 * dy}" class="dg-str"/>`;
+  for (let j = 0; j <= 4; j++) g += `<line x1="${x0}" y1="${y0 + j * dy}" x2="${x0 + (n - 1) * dx}" y2="${y0 + j * dy}" class="dg-fret${j === 0 && start === 1 ? ' nut' : ''}"/>`;
+  if (start > 1) g += `<text x="${x0 - 6}" y="${y0 + dy * 0.68}" text-anchor="end" class="dg-pos">${start}</text>`;
+  if (sh.barre) { const idx = sh.frets.map((f, i) => f === sh.barre ? i : -1).filter(i => i >= 0); const a = Math.min(...idx), b = Math.max(...idx), y = y0 + (sh.barre - start + 0.5) * dy; g += `<rect x="${x0 + a * dx - 6}" y="${y - 6}" width="${(b - a) * dx + 12}" height="12" rx="6" class="dg-dot"/>`; }
+  const ct = chordTones(name);
+  sh.frets.forEach((f, i) => {
+    const x = x0 + i * dx;
+    if (f < 0) g += `<text x="${x}" y="${y0 - 8}" text-anchor="middle" class="dg-x">×</text>`;
+    else if (f === 0) g += `<circle cx="${x}" cy="${y0 - 12}" r="4.5" class="dg-open"/>`;
+    else if (f !== sh.barre || !sh.barre) { const isRoot = ct && (ins.cordas[i] + f) % 12 === ct.root; g += `<circle cx="${x}" cy="${y0 + (f - start + 0.5) * dy}" r="6.5" class="dg-dot${isRoot ? ' root' : ''}"/>`; }
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" class="dg-svg" aria-hidden="true">${g}</svg>`;
+}
+function keysSvg(name) {
+  const ct = chordTones(name); if (!ct) return '';
+  const bass = 48 + ct.bass, root = 60 + ct.root - (ct.root > 7 ? 12 : 0);
+  const on = new Map(); on.set(bass, 'b'); ct.ints.forEach(i => { const m = root + i; if (!on.has(m)) on.set(m, i === 0 ? 'r' : 't'); });
+  const lo = 48, hi = 48 + 36, WH = [0, 2, 4, 5, 7, 9, 11];
+  let whites = '', blacks = '', x = 0; const w = 9, h = 46;
+  const xs = {};
+  for (let m = lo; m < hi; m++) if (WH.includes(m % 12)) { xs[m] = x; whites += `<rect x="${x}" y="0" width="${w}" height="${h}" class="kb-w${on.has(m) ? ' on ' + on.get(m) : ''}"/>`; x += w; }
+  for (let m = lo; m < hi; m++) if (!WH.includes(m % 12)) { const bx = xs[m - 1] + w - 3; blacks += `<rect x="${bx}" y="0" width="6" height="29" class="kb-b${on.has(m) ? ' on ' + on.get(m) : ''}"/>`; }
+  return `<svg viewBox="-1 -1 ${x + 2} ${h + 2}" class="dg-svg kb" aria-hidden="true">${whites}${blacks}</svg>`;
+}
+function diagHtml(name, inst) {
+  const ct = chordTones(name), notas = ct ? [...new Set([ct.bass, ...ct.ints.map(i => (ct.root + i) % 12)])].map(pc => NOMES_PT[pc]).join(' · ') : '';
+  return `<button type="button" class="dg" data-dg-play="${esc(name)}" aria-label="${esc(name)}: tocar o acorde (${notas})"><b>${esc(name)}</b>${inst === 'teclado' ? keysSvg(name) : fretSvg(name, inst)}<small>${esc(notas)}</small></button>`;
+}
+function diagInst() { const v = cur.v && cur.v.dgInst; if (v && DIAG_INSTR[v]) return v; return DIAG_DE[(db.prefs || {}).instrumento] || 'violao'; }
+function playChordName(name, inst) {
+  const ct = chordTones(name); if (!ct) return;
+  const t0 = Som.now() + 0.03; Som.stopAll();
+  if (inst !== 'teclado') {
+    const sh = fretShape(name, inst); if (!sh) return;
+    DIAG_INSTR[inst].cordas.forEach((open, i) => { const f = sh.frets[i]; if (f >= 0) Som.note(open + f, t0 + i * 0.035, 1.8, 'piano', 0.7); });
+  } else {
+    Som.note(36 + ct.bass, t0, 2, 'piano', 0.6); const r = 60 + ct.root - (ct.root > 7 ? 12 : 0); ct.ints.forEach(i => Som.note(r + i, t0, 2, 'piano', 0.55));
+  }
+}
+/* Faixa com os acordes da música (na ordem em que aparecem), acima da cifra */
+function renderDiagBar() {
+  const bar = $('dg-bar'); if (!bar) return;
+  const on = route.name === 'cifra' && cur.v && cur.v.diag;
+  $('t-dg') && $('t-dg').setAttribute('aria-pressed', String(!!on));
+  bar.hidden = !on; if (!on) return;
+  const names = [...new Set([...$('sheet').querySelectorAll('.chord')].map(c => c.textContent.trim()).filter(t => chordTones(t)))];
+  const inst = diagInst();
+  bar.innerHTML = `<div class="dg-head"><span class="rot-lbl">Acordes</span><div class="ens-chips dg-inst" role="group" aria-label="Instrumento do desenho">${Object.entries(DIAG_INSTR).map(([k, v]) => `<button type="button" class="chip" data-dg-inst="${k}" aria-pressed="${k === inst}">${v.nome}</button>`).join('')}</div></div>
+    ${DIAG_INSTR[inst].obs ? `<p class="hint">Afinação: ${DIAG_INSTR[inst].obs}.</p>` : ''}
+    <div class="dg-row">${names.length ? names.map(n => diagHtml(n, inst)).join('') : '<p class="hint">Esta cifra não tem acordes.</p>'}</div>
+    <p class="hint">Toque no desenho para ouvir. Toque num acorde da cifra para ver só ele.</p>`;
+}
+(() => {
+  const anchor = $('t-fs') && $('t-fs').closest('.group'); if (!anchor) return;
+  const g = document.createElement('div'); g.className = 'group';
+  g.innerHTML = `<button type="button" class="gi" id="t-dg" aria-pressed="false" aria-label="Desenho dos acordes" data-tip="Desenho dos acordes|Mostra como fazer cada acorde no violão, ukulele, cavaquinho, bandolim, viola ou teclado. Segue o tom e o capo.">${ico('chord')}</button>`;
+  anchor.parentNode.insertBefore(g, anchor);
+  const bar = document.createElement('div'); bar.className = 'dg-bar'; bar.id = 'dg-bar'; bar.hidden = true;
+  $('sheet').parentNode.insertBefore(bar, $('sheet'));
+})();
+$('t-dg').addEventListener('click', () => { cur.v.diag = !cur.v.diag; if (cur.listBase) cur.listBase.diag = cur.v.diag; save(); renderDiagBar(); refitSoon(); });
+document.addEventListener('click', (e) => {
+  let b;
+  if ((b = e.target.closest('[data-dg-inst]'))) { cur.v.dgInst = b.dataset.dgInst; if (cur.listBase) cur.listBase.dgInst = cur.v.dgInst; save(); if (ens.kind === 'chord') renderEnsPop(); renderDiagBar(); return; }
+  if ((b = e.target.closest('[data-dg-play]'))) { playChordName(b.dataset.dgPlay, diagInst()); return; }
+  if (route.name === 'cifra' && !ink.on && (b = e.target.closest('#sheet .chord')) && chordTones(b.textContent.trim())) { ens.chordName = b.textContent.trim(); openEnsPop(b, 'chord'); }
+});
+function renderChordPop() {
+  const n = ens.chordName, inst = diagInst();
+  ensPop.innerHTML = `<div class="dg-pop">${diagHtml(n, inst)}</div><div class="ens-chips dg-inst" role="group" aria-label="Instrumento do desenho">${Object.entries(DIAG_INSTR).map(([k, v]) => `<button type="button" class="chip" data-dg-inst="${k}" aria-pressed="${k === inst}">${v.nome}</button>`).join('')}</div>`;
+}
 
 /* ---------- Devocional ----------
    Tela própria (1º item do menu) e também a abertura e o encerramento da lista do culto:
