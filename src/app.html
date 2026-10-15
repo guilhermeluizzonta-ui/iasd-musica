@@ -449,6 +449,25 @@ body.metro-flash1::before { box-shadow: inset 0 0 0 10px var(--gold); }
 @keyframes mcount { from { transform: translate(-50%, -50%) scale(1.35); opacity: .3; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { #metro-count.pop { animation: none; } }
 
+.rot-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 4px 0 2px; }
+.rot-bar[hidden] { display: none; }
+.rot-lbl { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
+.rot-lbl small { text-transform: none; letter-spacing: 0; color: var(--gold); font-weight: 600; }
+.rot-chips, .rot-draft { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.rot-draft { min-height: 48px; padding: 8px; border: 1px dashed var(--line); border-radius: 10px; gap: 6px; }
+.rot-chip { min-height: 38px; min-width: 40px; padding: 0 10px; border-radius: 999px; border: var(--bw) solid var(--line); background: var(--surface); color: var(--fg); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+.rot-chip.ch { border-color: var(--accent); color: var(--accent); }
+.rot-chip small { font-size: 11px; font-weight: 600; color: var(--muted); }
+.rot-chip.now { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.rot-chip.now small { color: var(--gold-ink); }
+.rot-sep { color: var(--muted); font-size: 13px; }
+.rot-add { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; min-height: 40px; }
+.rot-ed { width: 38px; height: 38px; }
+.rot-tip:empty { display: none; }
+.section.rot-hl { animation: rothl 1.6s ease-out; border-radius: 8px; }
+@keyframes rothl { from { background: color-mix(in srgb, var(--gold) 30%, transparent); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .section.rot-hl { animation: none; } }
+
 /* ---------- Devocional ---------- */
 #v-devocional { max-width: 640px; margin: 0 auto; padding-top: 8px; gap: 22px; }
 #dv-body { display: flex; flex-direction: column; gap: 22px; }
@@ -1962,6 +1981,7 @@ function renderViewer() {
   $('t-zval').setAttribute('aria-label', pct === 100 ? 'Texto em 100%' : `Texto em ${pct}%. Voltar para 100%`);
   if (cur.listBase) ['simplify', 'colsMode', 'cols', 'zoom', 'fit', 'capo'].forEach(k => { cur.listBase[k] = cur.v[k]; });   // capo é da música, vale também na lista   // tom do culto não muda o tom pessoal
   save();
+  renderRoteiro();
   drawCifraInk();
 }
 function setZoom(z) { cur.v.zoom = Math.round(Math.min(ZMAX, Math.max(ZMIN, z)) * 100) / 100; cur.v.colsMode = 'auto'; cur.v.fit = false; $('fit-status').hidden = true; renderViewer(); }
@@ -4133,7 +4153,7 @@ document.body.appendChild(ensPop);
 const metroCount = document.createElement('div'); metroCount.id = 'metro-count'; metroCount.hidden = true; metroCount.setAttribute('aria-hidden', 'true'); document.body.appendChild(metroCount);
 function openEnsPop(btn, kind) {
   if (!ensPop.hidden && ens.kind === kind) { closeEnsPop(); return; }
-  ens.kind = kind; ens.btn = btn; ensPop.hidden = false; renderEnsPop();
+  ens.rotDraft = null; ens.kind = kind; ens.btn = btn; ensPop.hidden = false; renderEnsPop();
   const r = btn.getBoundingClientRect();
   ensPop.style.top = (r.bottom + window.scrollY + 6) + 'px';
   ensPop.style.left = Math.max(8, Math.min(r.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - ensPop.offsetWidth - 8)) + 'px';
@@ -4143,6 +4163,7 @@ function closeEnsPop() { ensPop.hidden = true; ens.kind = null; document.querySe
 const chip = (attrs, label, on, tip) => `<button type="button" class="chip" ${attrs} aria-pressed="${!!on}"${tip ? ` data-tip="${tip}"` : ''}>${label}</button>`;
 function renderEnsPop() {
   if (ensPop.hidden) return;
+  if (ens.kind === 'rot') { renderRotPop(); return; }
   const s = ensSong(), mp = metroPrefs();
   if (ens.kind === 'metro') {
     const t = tempoOf(s), p = pulsesOf(t.time), ed = db.role === 'editor' && s && route.name !== 'partitura';
@@ -4232,6 +4253,114 @@ ICO.choir = '<circle cx="6" cy="8" r="2.5"/><circle cx="12" cy="6" r="2.5"/><cir
   anchor.parentNode.insertBefore(g, anchor);
 });
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-ens]'); if (b) openEnsPop(b, b.dataset.ens); });
+
+/* ---------- Roteiro do arranjo ----------
+   A ordem em que as partes são tocadas (a cifra escreve o refrão uma vez; o roteiro diz quantas vezes e quando).
+   Fica na cifra como {x_roteiro: Intro | 1ª Estrofe | Refrão | …} (diretiva x_ é aceita pelo ChordPro)
+   e pode ser trocado só numa lista de culto (item.rot). Tocar numa parte rola a cifra até ela. */
+const ROT_EXTRAS = ['Intro', 'Interlúdio', 'Solo', 'Instrumental', 'Modulação', 'Final'];
+function songParts(text) {
+  const out = [];
+  text.split('\n').forEach(l => {
+    const d = l.trim().match(/^\{\s*(start_of_verse|sov|start_of_chorus|soc|start_of_bridge|sob)\s*:?\s*(.*?)\s*\}$/i); if (!d) return;
+    const k = d[1].toLowerCase(), name = secLabel(d[2] || (/chorus|soc/.test(k) ? 'Refrão' : /bridge|sob/.test(k) ? 'Ponte' : 'Estrofe'));
+    if (!out.includes(name)) out.push(name);
+  });
+  return out;
+}
+function rotOfSong(s) {
+  const m = s && s.text.match(/^\s*\{\s*x_roteiro\s*:\s*(.*?)\s*\}\s*$/im);
+  return m ? m[1].split('|').map(x => x.trim()).filter(Boolean) : [];
+}
+function rotContext() {   // de onde vem o roteiro do que está aberto
+  const s = route.name === 'cifra' ? songById(cur.id) : route.name === 'letra' ? songById(lyr.id) : null;
+  const l = s && route.list ? listById(route.list) : null, it = l && l.items[route.idx] && l.items[route.idx].songId === s.id ? l.items[route.idx] : null;
+  return { s, l, it, rot: it && Array.isArray(it.rot) ? it.rot : rotOfSong(s), fromList: !!(it && Array.isArray(it.rot)) };
+}
+function rotShort(name) {
+  const t = String(name).trim();
+  let m = t.match(/^(\d+)ª\s*estrofe$/i); if (m) return 'E' + m[1];
+  if (/^estrofe$/i.test(t)) return 'E';
+  if (/^pr[eé][- ]?refr/i.test(t)) return 'PR';
+  if (/^(refr|coro)/i.test(t)) { m = t.match(/(\d+)/); return 'R' + (m ? m[1] : ''); }
+  if (/^ponte/i.test(t)) return 'P';
+  if (/^intro/i.test(t)) return 'Intro';
+  if (/^interl/i.test(t)) return 'Inter';
+  if (/^(final|fim|outro)/i.test(t)) return 'Fim';
+  if (/^modula/i.test(t)) return 'Mod';
+  if (/^instrumental/i.test(t)) return 'Instr';
+  return t.length > 7 ? t.slice(0, 6) + '.' : t;
+}
+/* junta repetições seguidas: R R → R ×2 */
+function rotGroups(rot) { const g = []; rot.forEach((x, i) => { const last = g[g.length - 1]; if (last && last.name === x) last.n++; else g.push({ name: x, n: 1, i }); }); return g; }
+function renderRoteiro() {
+  const bar = route.name === 'cifra' ? $('rot-bar') : route.name === 'letra' ? $('rot-bar-l') : null;
+  ['rot-bar', 'rot-bar-l'].forEach(id => { if ($(id) && $(id) !== bar) $(id).hidden = true; });
+  if (!bar) return;
+  const c = rotContext(), ed = db.role === 'editor';
+  if (!c.s || (!c.rot.length && !ed)) { bar.hidden = true; return; }
+  bar.hidden = false;
+  bar.innerHTML = c.rot.length
+    ? `<span class="rot-lbl">Roteiro${c.fromList ? ' <small>deste culto</small>' : ''}</span><div class="rot-chips">${rotGroups(c.rot).map(g => `<button type="button" class="rot-chip${/refr|coro/i.test(g.name) ? ' ch' : ''}" data-rot-go="${esc(g.name)}" aria-label="${esc(g.name)}${g.n > 1 ? `, ${g.n} vezes` : ''}. Ir para esta parte">${esc(rotShort(g.name))}${g.n > 1 ? `<small>×${g.n}</small>` : ''}</button>`).join('<span class="rot-sep" aria-hidden="true">›</span>')}</div>${ed ? `<button type="button" class="icon-btn rot-ed" data-ens="rot" aria-haspopup="dialog" aria-label="Editar roteiro" data-tip="Editar roteiro|Monte a ordem das partes: intro, estrofes, refrão quantas vezes, final.">${ico('edit', 18)}</button>` : ''}`
+    : `<button type="button" class="link rot-add" data-ens="rot" aria-haspopup="dialog" data-tip="Roteiro do arranjo|Monte a ordem em que as partes são tocadas (ex.: Intro › E1 › Refrão ×2 › Final). Aparece aqui em cima para todos.">${ico('listadd', 16)}Roteiro do arranjo</button>`;
+}
+function rotGoTo(name) {
+  const sheet = route.name === 'cifra' ? $('sheet') : $('lsheet'); if (!sheet) return;
+  const want = norm(name);
+  const el = [...sheet.querySelectorAll('.section-name')].find(x => norm(x.textContent.trim()) === want)
+    || [...sheet.querySelectorAll('.comment, .section-name')].find(x => norm(x.textContent).startsWith(norm(name).slice(0, 5)));
+  document.querySelectorAll('.rot-chip').forEach(b => b.classList.toggle('now', b.dataset.rotGo === name));
+  if (!el) { toast(`"${name}" não está escrita na cifra: é só a ordem.`); return; }
+  const sec = el.closest('.section') || el;
+  sec.classList.remove('rot-hl'); void sec.offsetWidth; sec.classList.add('rot-hl');
+  const top = sec.getBoundingClientRect().top + window.scrollY - reservedTop() - 70;
+  window.scrollTo({ top: Math.max(0, top), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
+function renderRotPop() {
+  const c = rotContext(); if (!c.s) { closeEnsPop(); return; }
+  if (!ens.rotDraft) { ens.rotDraft = c.rot.slice(); ens.rotWhere = c.it ? 'lista' : 'cifra'; }
+  const d = ens.rotDraft, parts = songParts(c.s.text), extras = ROT_EXTRAS.filter(x => !parts.some(p => norm(p) === norm(x)));
+  ensPop.innerHTML = `<div class="ens-head"><strong>Roteiro do arranjo</strong><span class="hint">${esc(c.s.title)}</span></div>
+    <div class="rot-draft" aria-label="Ordem das partes">${d.length ? d.map((x, i) => `<button type="button" class="rot-chip${/refr|coro/i.test(x) ? ' ch' : ''}" data-rot-del="${i}" aria-label="Tirar ${esc(x)} (posição ${i + 1})" data-tip="${esc(x)}|Toque para tirar esta parte do roteiro."><small>${i + 1}</small>${esc(rotShort(x))}</button>`).join('') : '<p class="hint">Toque nas partes abaixo na ordem em que são tocadas.</p>'}</div>
+    <div class="ens-sec">Partes da cifra</div>
+    <div class="ens-chips">${parts.length ? parts.map(p => `<button type="button" class="chip" data-rot-add="${esc(p)}">${esc(p)}</button>`).join('') : '<span class="hint">A cifra não tem partes marcadas (estrofe, refrão).</span>'}</div>
+    <div class="ens-sec">Outras</div>
+    <div class="ens-chips">${extras.map(p => `<button type="button" class="chip" data-rot-add="${esc(p)}">${esc(p)}</button>`).join('')}</div>
+    ${c.it ? `<div class="ens-sec">Guardar</div><div class="ens-chips">${chip('data-rot-where="lista"', 'Só neste culto', ens.rotWhere === 'lista', `Só neste culto|O roteiro vale só nesta lista (${esc(listTitle(c.l))}). A cifra continua com o dela.`)}${chip('data-rot-where="cifra"', 'Na cifra', ens.rotWhere === 'cifra', 'Na cifra|Vira o roteiro da música, para todas as listas.')}</div>` : ''}
+    <p class="tipline" aria-live="polite"></p>
+    <div class="ens-foot">
+      <button type="button" class="btn ib" data-rot-undo="1" ${d.length ? '' : 'disabled'} aria-label="Tirar a última" data-tip="Tirar a última|Desfaz a última parte colocada.">${ico('reset')}</button>
+      <button type="button" class="btn ib" data-rot-clear="1" ${d.length ? '' : 'disabled'} aria-label="Limpar roteiro" data-tip="Limpar|Apaga a ordem toda (ao guardar, a música fica sem roteiro${c.it && ens.rotWhere === 'lista' ? ' neste culto' : ''}).">${ico('trash')}</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn ib primary" data-rot-save="1" aria-label="Guardar roteiro" data-tip="Guardar|Mostra o roteiro em cima da cifra e da letra.">${ico('check')}</button>
+    </div>`;
+}
+ensPop.addEventListener('click', (e) => {
+  if (ens.kind !== 'rot') return;
+  const t = e.target, c = rotContext(); let b;
+  if ((b = t.closest('[data-rot-add]'))) { ens.rotDraft.push(b.dataset.rotAdd); renderRotPop(); return; }
+  if ((b = t.closest('[data-rot-del]'))) { ens.rotDraft.splice(Number(b.dataset.rotDel), 1); renderRotPop(); return; }
+  if (t.closest('[data-rot-undo]')) { ens.rotDraft.pop(); renderRotPop(); return; }
+  if (t.closest('[data-rot-clear]')) { ens.rotDraft = []; renderRotPop(); return; }
+  if ((b = t.closest('[data-rot-where]'))) { ens.rotWhere = b.dataset.rotWhere; renderRotPop(); return; }
+  if (t.closest('[data-rot-save]') && c.s) {
+    const d = ens.rotDraft.slice();
+    if (c.it && ens.rotWhere === 'lista') { c.it.rot = d; touchList(c.l); }
+    else {
+      if (c.it) delete c.it.rot;
+      c.s.text = d.length ? setHeadDirectives(c.s.text, { x_roteiro: d.join(' | ') }) : c.s.text.split('\n').filter(l => !/^\s*\{\s*x_roteiro\s*:/i.test(l)).join('\n');
+      c.s.updated = Date.now(); save();
+    }
+    closeEnsPop(); renderRoteiro(); toast(d.length ? 'Roteiro guardado.' : 'Roteiro apagado.');
+  }
+});
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-rot-go]'); if (b) rotGoTo(b.dataset.rotGo); });
+[['sheet', 'rot-bar'], ['lsheet', 'rot-bar-l']].forEach(([sh, id]) => {
+  const el = $(sh); if (!el) return;
+  const bar = document.createElement('div'); bar.className = 'rot-bar'; bar.id = id; bar.hidden = true; bar.dataset.tipscope = '';
+  bar.innerHTML = ''; el.parentNode.insertBefore(bar, el);
+  const tl = document.createElement('p'); tl.className = 'tipline rot-tip'; tl.setAttribute('aria-live', 'polite'); bar.after(tl);
+});
 
 /* ---------- Devocional ----------
    Tela própria (1º item do menu) e também a abertura e o encerramento da lista do culto:
@@ -4426,6 +4555,7 @@ function renderLetra() {
   document.querySelectorAll('[data-lcols]').forEach(b => b.setAttribute('aria-pressed', String(manual && Number(b.dataset.lcols) === lyr.v.cols)));
   if (lyr.base) ['zoom', 'cols', 'colsMode'].forEach(k => { lyr.base[k] = lyr.v[k]; });   // o tom do culto não muda o tom pessoal
   save();
+  renderRoteiro();
 }
 function setLyrZoom(z) { lyr.v.zoom = Math.round(Math.min(ZMAX, Math.max(ZMIN, z)) * 100) / 100; lyr.v.colsMode = 'auto'; renderLetra(); }
 $('lv-down').addEventListener('click', () => { lyr.v.shift = (lyr.v.shift + 11) % 12; renderLetra(); });
