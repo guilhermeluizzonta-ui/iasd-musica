@@ -399,6 +399,8 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
 .ink-bar .sep { width: 1px; align-self: stretch; background: var(--line); margin: 6px 2px; flex: none; }
 .ink-bar .ink-done { background: var(--accent); color: var(--accent-ink, #FFFFFF); padding: 0 16px; }
 .ink-bar .ink-done:hover { background: var(--accent); filter: brightness(1.08); }
+/* Celular estreito: a barra não cabia numa linha e o Concluir ficava fora da tela; quebra em duas linhas */
+@media (max-width: 560px) { .ink-bar { flex-wrap: wrap; justify-content: center; width: max-content; } .ink-bar .sep { display: none; } }
 .ink-text { position: fixed; left: 50%; transform: translateX(-50%); top: calc(76px + env(safe-area-inset-top, 0px)); z-index: 56; width: min(440px, calc(100vw - 24px)); display: flex; gap: 8px; align-items: center; padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
 .ink-text .input { flex: 1; min-width: 0; }
 .pdf-pages { align-items: flex-start; }
@@ -648,6 +650,37 @@ html[data-style="retro"] .lsheet .lline { font-family: var(--mono); }
 .badge-ed { font-size: 12px; font-weight: 600; color: #8A6400; border: 1px solid #8A6400; border-radius: 999px; padding: 2px 10px; flex: none; white-space: nowrap; }
 html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gold); border-color: var(--gold); }
 @media (max-width: 480px) { .badge-ed { display: none; } }
+/* ---------- Tour do app (primeiro acesso e Menu › Tour do app) ---------- */
+.tour { position: fixed; inset: 0; z-index: 2000; pointer-events: none; }
+.tour[hidden] { display: none; }
+.tour-block { position: fixed; pointer-events: auto; background: transparent; touch-action: none; }
+.tour-dim { position: fixed; inset: 0; background: rgba(0, 0, 0, .58); }
+.tour-hole { position: fixed; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .58); outline: 3px solid var(--gold); outline-offset: 2px;
+  transition: left .28s ease, top .28s ease, width .28s ease, height .28s ease; }
+.tour-hole.wait { animation: tourPulse 1.4s ease-in-out infinite; }
+@keyframes tourPulse { 0%, 100% { outline-color: var(--gold); outline-offset: 2px; } 50% { outline-color: rgba(255, 203, 8, .35); outline-offset: 7px; } }
+.tour-card { position: fixed; pointer-events: auto; width: min(400px, calc(100vw - 32px)); background: var(--surface); color: var(--fg);
+  border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 40px rgba(0, 0, 0, .35); padding: 16px 18px 14px;
+  transition: left .28s ease, top .28s ease; }
+.tour-card.center { left: 50% !important; top: 50% !important; transform: translate(-50%, -50%); width: min(460px, calc(100vw - 32px)); }
+.tour-prog { height: 4px; border-radius: 2px; background: var(--surface-2, var(--line)); overflow: hidden; margin-bottom: 10px; }
+.tour-prog i { display: block; height: 100%; background: var(--accent); transition: width .3s ease; }
+.tour-count { font-size: 12px; color: var(--muted); margin: 0 0 4px; letter-spacing: .02em; }
+.tour-card h2 { font-size: 19px; margin: 0 0 6px; line-height: 1.25; }
+.tour-card p.tour-text { margin: 0; font-size: 15.5px; line-height: 1.5; }
+.tour-card .tour-do { display: flex; gap: 8px; align-items: center; margin: 10px 0 0; padding: 8px 10px; border-radius: 10px;
+  background: rgba(255, 203, 8, .16); font-weight: 600; font-size: 14.5px; }
+.tour-card .tour-do svg { flex: none; color: var(--chord, #8A6400); }
+.tour-foot { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.tour-foot .spacer { flex: 1; }
+.tour-foot .btn { min-height: 40px; }
+.tour-skip { background: none; border: 0; color: var(--muted); font: inherit; font-size: 14px; text-decoration: underline; padding: 6px 4px; cursor: pointer; }
+@media (max-width: 560px) {
+  .tour-card:not(.center) { left: 12px !important; right: 12px; width: auto; }
+  .tour-card h2 { font-size: 17px; }
+  .tour-card p.tour-text { font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) { .tour-hole, .tour-card { transition: none; } .tour-hole.wait { animation: none; } }
 </style>
 
 <!-- ================= LOGIN ================= -->
@@ -731,6 +764,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
     <button type="button" class="nav-item" data-nav="favoritas"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"></path></svg>Favoritas</button>
     <button type="button" class="nav-item" data-nav="lixeira" id="nav-trash" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"></path></svg>Lixeira<span class="soon" id="nav-trash-n">0</span></button>
     <button type="button" class="nav-item" data-nav="config"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>Configurações</button>
+    <button type="button" class="nav-item" id="nav-tour"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M15.5 8.5l-2 5-5 2 2-5z"></path></svg>Tour do app</button>
     <div class="drawer-foot">
       <span class="label" style="padding:0 8px">Perfil (simulação)</span>
       <div class="chips" role="group" aria-label="Perfil" style="padding:0 8px">
@@ -1197,6 +1231,24 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
   <button type="submit" class="btn primary">Pôr</button>
   <button type="button" class="btn" id="ink-text-no">Cancelar</button>
 </form>
+<div class="tour" id="tour" hidden>
+  <div class="tour-dim" id="tour-dim"></div>
+  <div class="tour-hole" id="tour-hole" hidden></div>
+  <div class="tour-block"></div><div class="tour-block"></div><div class="tour-block"></div><div class="tour-block"></div><div class="tour-block"></div>
+  <div class="tour-card" id="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-text">
+    <div class="tour-prog" aria-hidden="true"><i id="tour-bar"></i></div>
+    <p class="tour-count" id="tour-count" aria-live="polite"></p>
+    <h2 id="tour-title"></h2>
+    <p class="tour-text" id="tour-text"></p>
+    <p class="tour-do" id="tour-do" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10m0-1.5a1.5 1.5 0 0 1 3 0V11m0-1a1.5 1.5 0 0 1 3 0v4.5a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.6-2.2L4.2 14.6a1.5 1.5 0 0 1 2.3-1.9L9 15"/></svg><span id="tour-do-t"></span></p>
+    <div class="tour-foot">
+      <button type="button" class="tour-skip" id="tour-skip">Sair do tour</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn" id="tour-prev">Voltar</button>
+      <button type="button" class="btn primary" id="tour-next">Próximo</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script>
@@ -2396,7 +2448,7 @@ function fillWho() {
   $('who-sub').textContent = [u.instrument, u.group].filter(Boolean).join(' · ') || (u.email || '');
   $('who-initial').textContent = (u.name || u.email || '?').trim().charAt(0).toUpperCase();
 }
-function enterApp() { show('app'); applyRole(); fillWho(); updTrashNav(); go('inicio'); }
+function enterApp() { show('app'); applyRole(); fillWho(); updTrashNav(); go('inicio'); if (!db.tourDone) setTimeout(() => { if (!tour.on && !$('app').hidden) tourStart(true); }, 450); }
 let loginRole = 'editor';
 document.addEventListener('click', (e) => {
   const t = e.target.closest('[data-pass]'); if (!t) return;
@@ -5087,6 +5139,7 @@ $('sf-form').addEventListener('submit', (e) => {
   if (!App) return;
   const P = { App };
   App.addListener('backButton', () => {
+    if (tour.on) { if (tour.i > 0) $('tour-prev').click(); else if (!tour.mandatory) tourEnd(false); return; }
     if (!$('drawer').hidden) { closeDrawer(); return; }
     if (!$('ink-text').hidden) { $('ink-text').hidden = true; return; }
     if (ink.on) { inkStop(); return; }
@@ -5102,6 +5155,206 @@ $('sf-form').addEventListener('submit', (e) => {
     P.App.exitApp();
   });
 })();
+
+/* ---------- Tour do app ----------
+   Primeiro acesso: começa sozinho depois de entrar e só libera o app no fim (db.tourDone).
+   Depois: Menu › Tour do app (aí dá para sair a qualquer hora).
+   Cada passo: destaca um elemento (alvo) e explica. Passos "toque" esperam a pessoa tocar no destaque;
+   passos "livre" deixam mexer no destaque (ex.: desenhar) e seguem pelo Próximo.
+   Usa uma cifra e uma lista de exemplo (ids tour-*), retiradas no fim. */
+const TOUR_IDS = { ag: 'tour-ag', hh: 'tour-hh', lista: 'tour-lista' };
+const tour = { on: false, i: 0, mandatory: false, raf: 0, el: null, waitFor: null, steps: [] };
+const tVis = (e) => !!e && e.getClientRects().length > 0 && !e.closest('[hidden]');
+/* o primeiro elemento VISÍVEL que bate com o seletor (a mesma música pode estar numa lista escondida) */
+const tq = (sel) => { if (typeof sel === 'function') { const e = sel(); return tVis(e) ? e : null; } return [...document.querySelectorAll(sel)].find(tVis) || null; };
+const tGroup = (sel) => () => { const e = document.querySelector(sel); return e ? e.closest('.group') || e : null; };
+function tourEnsureDemo() {
+  const now = Date.now();
+  const add = (id, seed, artist) => {
+    if (songById(id)) return;
+    db.songs.push({ id, title: seed.title, artist, text: seed.text, source: '', archived: false, created: now, updated: now, tour: true });
+  };
+  add(TOUR_IDS.ag, SEED[0], 'John Newton (1779) · exemplo do tour');
+  add(TOUR_IDS.hh, SEED[1], 'Reginald Heber (1826) · exemplo do tour');
+  if (!Array.isArray(db.lists)) db.lists = [];
+  if (!listById(TOUR_IDS.lista)) db.lists.push({ id: TOUR_IDS.lista, title: 'Culto de exemplo', date: nextSaturday(), time: '09:00', leader: '', note: 'Lista de exemplo do tour', tour: true,
+    devo: { on: false }, created: now, updated: now, items: [
+      { id: 'tour-i1', songId: TOUR_IDS.hh, shift: 0, note: 'Abertura, todos em pé' },
+      { id: 'tour-i2', songId: TOUR_IDS.ag, shift: 2, note: 'Repetir a 1ª estrofe no final' }] });
+  save();
+}
+function tourCleanDemo() {
+  const ids = [TOUR_IDS.ag, TOUR_IDS.hh];
+  db.songs = db.songs.filter(s => !ids.includes(s.id));
+  db.lists = (db.lists || []).filter(l => l.id !== TOUR_IDS.lista);
+  if (Array.isArray(db.favs)) db.favs = db.favs.filter(id => !ids.includes(id));
+  if (Array.isArray(db.lfavs)) db.lfavs = db.lfavs.filter(id => !ids.includes(id));
+  if (db.view) ids.forEach(id => { delete db.view[id]; });
+  let mudou = false; ids.forEach(id => { if (notes['c:' + id]) { delete notes['c:' + id]; mudou = true; } });
+  if (mudou) saveNotes();
+  save();
+}
+const goCifraDemo = () => { if (!(route.name === 'cifra' && route.id === TOUR_IDS.ag)) go('cifra', { id: TOUR_IDS.ag, back: { name: 'cifras' } }); if (ink.on) inkStop(); };
+const TOUR_STEPS = [
+  { title: 'Bem-vindo ao Ministério da Música', text: 'Em uns 3 minutos você conhece o app: ler cifra, letra e partitura, anotar e seguir a lista do culto. Quando um botão estiver destacado em amarelo, é só tocar nele.',
+    prep: () => { closeDrawer(); go('inicio'); } },
+  { el: '#w-verse', title: 'Início', text: 'Toda vez que você abre o app, aparece aqui o versículo do dia.', prep: () => { closeDrawer(); if (route.name !== 'inicio') go('inicio'); } },
+  { el: '#w-next', title: 'Próximo culto', text: 'A lista do próximo culto aparece logo abaixo, com as músicas. Embaixo ficam as cifras que você abriu por último.', prep: () => { closeDrawer(); if (route.name !== 'inicio') go('inicio'); } },
+  { el: '#menu-btn', title: 'Menu', text: 'Todas as áreas do app ficam no menu.', act: 'Toque no menu', wait: 'click', prep: () => { closeDrawer(); if (route.name !== 'inicio') go('inicio'); } },
+  { el: '#drawer', title: 'Tudo começa por aqui', text: 'Devocional, Cifras, Partituras, Letras, Listas de culto, Favoritas e Configurações. Vamos começar pelo básico: ler uma cifra.', prep: () => { if (route.name !== 'inicio') go('inicio'); openDrawer(); } },
+  { el: '.nav-item[data-nav="cifras"]', title: 'Cifras', text: 'Aqui fica o repertório de cifras.', act: 'Toque em Cifras', wait: 'click', prep: () => { if (route.name !== 'inicio') go('inicio'); openDrawer(); } },
+  { el: '#list-q', title: 'Buscar', text: 'Procure pelo título, pelo artista ou por um trecho da letra. Vamos buscar a música de exemplo.',
+    prep: () => { closeDrawer(); if (route.name !== 'cifras') go('cifras'); tourType('#list-q', 'grace'); } },
+  { el: '[data-open="tour-ag"]', title: 'Abrir uma cifra', text: 'Esta é a música de exemplo do tour.', act: 'Toque em Amazing Grace', wait: 'click',
+    prep: () => { closeDrawer(); if (route.name !== 'cifras') go('cifras'); const q = $('list-q'); if (q.value !== 'grace') { q.value = 'grace'; q.dispatchEvent(new Event('input')); } } },
+  { el: '#t-up', title: 'Mudar o tom', text: 'Mudou o tom na hora? Todos os acordes acompanham. Só muda na sua tela; o tom do culto fica na lista.', act: 'Toque em + para subir meio tom', wait: 'click', prep: goCifraDemo },
+  { el: '#t-key', title: 'Escolher o tom', text: 'Tocando no tom, abre a grade para escolher direto. Dá até para guardar o tom de cada cantor.', prep: goCifraDemo },
+  { el: tGroup('#t-inst'), title: 'Instrumento', text: 'Diga em que você toca esta música. No violão aparecem o capotraste e o desenho dos acordes.', prep: goCifraDemo },
+  { el: tGroup('#t-simp'), title: 'Simplificar', text: 'Troca acordes difíceis por versões simples: C#m7 vira C#m. Toque de novo para voltar.', prep: goCifraDemo },
+  { el: tGroup('#t-cauto'), title: 'Colunas', text: 'Divide a música em colunas para caber na tela da estante. No Auto, o app escolhe.', prep: goCifraDemo },
+  { el: tGroup('#t-zin'), title: 'Tamanho do texto', text: 'Aumente ou diminua a letra. Também dá para abrir e fechar dois dedos na tela (pinça).', prep: goCifraDemo },
+  { el: '#t-fs', title: 'Tela cheia', text: 'Mostra só a música, sem os botões. Um toque na tela traz os controles de volta.', prep: goCifraDemo },
+  { el: '#t-ink', title: 'Anotar', text: 'Marque respiração, dinâmica ou entrada por cima da cifra, sem estragar o original.', act: 'Toque no lápis', wait: 'click', prep: goCifraDemo },
+  { el: '#sheet', title: 'Desenhe com o dedo', text: 'Experimente: faça um risco na música. Dois dedos rolam e dão zoom. Com a S Pen, dá para deixar só a caneta desenhar.', free: true,
+    prep: () => { goCifraDemo(); inkStart(); } },
+  { el: '#ink-bar', title: 'Ferramentas', text: 'Cores, marca-texto, texto, borracha, desfazer e apagar tudo. As anotações ficam só no seu aparelho.', prep: () => { goCifraDemo(); inkStart(); } },
+  { el: '#ink-done', title: 'Concluir', text: 'As anotações ficam guardadas e aparecem sempre que você abrir a música.', act: 'Toque em Concluir', wait: 'click', prep: () => { goCifraDemo(); inkStart(); } },
+  { el: '#viewer-fav', title: 'Favoritar', text: 'A estrela guarda a música em Favoritas, para achar rápido.', prep: goCifraDemo },
+  { el: '#viewer-lyr', title: 'Letra', text: 'Para o louvor e o coral: a mesma música só com a letra, sem acordes.', act: 'Toque em Letra', wait: 'click', prep: goCifraDemo },
+  { el: '#lsheet', title: 'A letra', text: 'A letra sai da própria cifra: corrigiu a cifra, a letra acompanha. Tom, colunas e tamanho também mudam aqui.',
+    prep: () => { if (!(route.name === 'letra' && route.id === TOUR_IDS.ag)) go('letra', { id: TOUR_IDS.ag, back: { name: 'letras' } }); } },
+  { el: '#pdf-list > :first-child', title: 'Partituras', text: 'O acervo vem do Google Drive do ministério (Adoradores). Toque numa partitura para baixar: depois ela abre sem internet, com zoom e anotações.',
+    prep: () => { closeFab(); if (route.name !== 'partituras') go('partituras', { folder: null }); } },
+  { el: '#fab', title: 'Suas partituras', text: 'No + você importa PDFs do aparelho e cria pastas. Quem é editor também escreve partitura à mão com a S Pen (Criar partitura).',
+    prep: () => { closeFab(); if (route.name !== 'partituras') go('partituras', { folder: null }); } },
+  { el: '[data-list-open="tour-lista"]', title: 'Listas de culto', text: 'A lista do culto fica no app, para todos verem a mesma coisa.', act: 'Toque no Culto de exemplo', wait: 'click',
+    prep: () => { closeFab(); if (route.name !== 'listas') go('listas'); } },
+  { el: '#li-items', title: 'A lista', text: 'Ordem das músicas, o tom do culto de cada uma e uma observação (ex.: repetir a estrofe).',
+    prep: () => { if (!(route.name === 'lista' && route.id === TOUR_IDS.lista)) go('lista', { id: TOUR_IDS.lista, back: { name: 'listas' } }); } },
+  { el: () => { const e = document.querySelector('[data-li-as]'); return e && e.closest('.group'); }, title: 'Abrir em', text: 'Cada um escolhe como ver: cifra, partitura ou letra. Quem é do louvor ou do coral já abre na letra.',
+    prep: () => { if (!(route.name === 'lista' && route.id === TOUR_IDS.lista)) go('lista', { id: TOUR_IDS.lista, back: { name: 'listas' } }); } },
+  { el: '[data-li-start]', title: 'Modo culto', text: 'No culto, comece por aqui.', act: 'Toque em Começar', wait: 'click',
+    prep: () => { if (!(route.name === 'lista' && route.id === TOUR_IDS.lista)) go('lista', { id: TOUR_IDS.lista, back: { name: 'listas' } }); } },
+  { el: '#ln-next', title: 'Próxima música', text: 'Cada música abre já no tom do culto. É só avançar.', act: 'Toque para ir à próxima', wait: 'click',
+    prep: () => { if (!route.list) tourCulto(0); } },
+  { el: '#list-nav', title: 'Durante o culto', text: 'Volte, avance ou toque no meio para voltar à lista. Pedal Bluetooth de virar página também funciona.',
+    prep: () => { if (!route.list) tourCulto(1); } },
+  { el: '#mode-btn', title: 'Claro ou escuro', text: 'Troque o tema em um toque. Estilo, cor e a folha da partitura ficam em Configurações, no menu.',
+    prep: () => { closeDrawer(); go('inicio'); } },
+  { title: 'Pronto!', text: 'Agora é com você. Para ver o tour de novo: Menu › Tour do app. A cifra e a lista de exemplo do tour serão retiradas.', last: true,
+    prep: () => { closeDrawer(); if (route.name !== 'inicio') go('inicio'); } }
+];
+function tourCulto(idx) {
+  const l = listById(TOUR_IDS.lista); if (!l) return;
+  openListItem(l, idx);
+}
+function tourType(sel, txt) {
+  const q = document.querySelector(sel); if (!q || q.value === txt) return;
+  q.value = ''; q.dispatchEvent(new Event('input'));
+  let k = 0; const t = setInterval(() => { if (!tour.on || k >= txt.length) { clearInterval(t); return; } q.value += txt[k++]; q.dispatchEvent(new Event('input')); }, 120);
+}
+function tourStart(mandatory) {
+  tourEnsureDemo();
+  tour.on = true; tour.mandatory = !!mandatory; tour.steps = TOUR_STEPS;
+  $('tour').hidden = false; $('tour-skip').hidden = tour.mandatory;
+  document.body.classList.add('touring');
+  tourShow(0, 1);
+  cancelAnimationFrame(tour.raf); const loop = () => { if (!tour.on) return; tourPlace(); tour.raf = requestAnimationFrame(loop); }; loop();
+}
+function tourEnd(done) {
+  tour.on = false; cancelAnimationFrame(tour.raf); tour.el = null; tour.waitFor = null;
+  $('tour').hidden = true; document.body.classList.remove('touring');
+  if (ink.on) inkStop(); closeDrawer(); closeFab();
+  tourCleanDemo();
+  if (done || !tour.mandatory) { db.tourDone = Date.now(); save(); }
+  go('inicio');
+  if (done) toast('Tour concluído. Bom uso!');
+}
+/* Mostra o passo i; dir = 1 (avançando) ou -1 (voltando): passos sem alvo visível são pulados nesse sentido */
+function tourShow(i, dir, tries, tok) {
+  const S = tour.steps;
+  if (!tries) tok = tour.tok = (tour.tok || 0) + 1;   // uma chamada nova cancela esperas antigas
+  else if (tok !== tour.tok) return;
+  tour.pending = true;
+  while (i >= 0 && i < S.length) {
+    const s = S[i];
+    if (!tries) { try { s.prep && s.prep(); } catch (e) {} }
+    if (!s.el || tq(s.el)) break;
+    // o alvo pode demorar um pouco (busca, troca de tela): espera até ~1,2 s antes de pular o passo
+    if ((tries || 0) < 10) { const k = (tries || 0) + 1; setTimeout(() => { if (tour.on) tourShow(i, dir, k, tok); }, 120); return; }
+    i += dir || 1; tries = 0;
+  }
+  tour.pending = false;
+  if (i < 0) i = 0;
+  if (i >= S.length) { tourEnd(true); return; }
+  tour.i = i; const s = S[i];
+  tour.el = s.el ? tq(s.el) : null;
+  tour.waitFor = s.wait ? tour.el : null;
+  if (tour.el) {
+    const r = tour.el.getBoundingClientRect();
+    const forav = r.top < 60 || r.bottom > innerHeight - 40, forah = r.left < 0 || r.right > innerWidth;
+    if (forav || forah) tour.el.scrollIntoView({ block: forav ? (r.height > innerHeight * 0.6 ? 'start' : 'center') : 'nearest', inline: forah ? 'center' : 'nearest' });
+  }
+  const n = S.length;
+  $('tour-bar').style.width = Math.round((i + 1) / n * 100) + '%';
+  $('tour-count').textContent = `${i + 1} de ${n}`;
+  $('tour-title').textContent = s.title; $('tour-text').textContent = s.text;
+  $('tour-do').hidden = !s.act; if (s.act) $('tour-do-t').textContent = s.act;
+  $('tour-prev').hidden = i === 0;
+  $('tour-next').hidden = !!s.wait;
+  $('tour-next').textContent = s.last ? 'Começar a usar' : i === 0 ? 'Começar o tour' : 'Próximo';
+  $('tour-card').classList.toggle('center', !tour.el);
+  $('tour-hole').classList.toggle('wait', !!s.wait);
+  tourPlace();
+  setTimeout(() => { if (tour.on && !s.wait) $('tour-next').focus({ preventScroll: true }); }, 60);
+}
+/* Posiciona destaque, bloqueios e balão (roda a cada quadro: acompanha rolagem e mudanças de layout) */
+function tourPlace() {
+  const s = tour.steps[tour.i]; if (!s) return;
+  if (s.el && (!tour.el || !tour.el.isConnected || !tour.el.getClientRects().length)) { const e = tq(s.el); if (e) { tour.el = e; if (s.wait) tour.waitFor = e; } }
+  const hole = $('tour-hole'), dim = $('tour-dim'), card = $('tour-card'), B = tour.blocks || (tour.blocks = [...document.querySelectorAll('#tour .tour-block')]);
+  const W = innerWidth, H = innerHeight;
+  if (!tour.el) {
+    hole.hidden = true; dim.hidden = false;
+    B[0].style.cssText = 'left:0;top:0;width:100vw;height:100vh'; B.slice(1).forEach(b => b.style.cssText = 'display:none');
+    return;
+  }
+  const r = tour.el.getBoundingClientRect(), pad = 6;
+  const x = Math.max(4, r.left - pad), y = Math.max(4, r.top - pad), x2 = Math.min(W - 4, r.right + pad), y2 = Math.min(H - 4, r.bottom + pad);
+  hole.hidden = false; dim.hidden = true;
+  Object.assign(hole.style, { left: x + 'px', top: y + 'px', width: Math.max(0, x2 - x) + 'px', height: Math.max(0, y2 - y) + 'px' });
+  const open = s.wait || s.free;   // o destaque aceita toques?
+  B[0].style.cssText = `left:0;top:0;width:100vw;height:${y}px`;
+  B[1].style.cssText = `left:0;top:${y2}px;width:100vw;height:${Math.max(0, H - y2)}px`;
+  B[2].style.cssText = `left:0;top:${y}px;width:${x}px;height:${y2 - y}px`;
+  B[3].style.cssText = `left:${x2}px;top:${y}px;width:${Math.max(0, W - x2)}px;height:${y2 - y}px`;
+  B[4].style.cssText = open ? 'display:none' : `left:${x}px;top:${y}px;width:${x2 - x}px;height:${y2 - y}px`;
+  // balão: embaixo ou em cima do destaque; se não couber, encosta na borda mais longe dele
+  const cw = card.offsetWidth, ch = card.offsetHeight, m = 14;
+  const clampX = v => Math.min(Math.max(m, v), W - cw - m), clampY = v => Math.min(Math.max(m, v), H - ch - m);
+  let left = clampX((x + x2) / 2 - cw / 2), top;
+  if (H - y2 >= ch + m * 2) top = y2 + m;                                               // embaixo
+  else if (y >= ch + m * 2) top = y - ch - m;                                           // em cima
+  else if (W - x2 >= cw + m * 2) { left = x2 + m; top = clampY((y + y2) / 2 - ch / 2); }  // à direita
+  else if (x >= cw + m * 2) { left = x - cw - m; top = clampY((y + y2) / 2 - ch / 2); }   // à esquerda
+  else top = (y + y2) / 2 > H / 2 ? m : H - ch - m;                                     // encosta na borda mais longe
+  card.style.left = left + 'px'; card.style.top = Math.max(m, top) + 'px';
+}
+$('tour-next').addEventListener('click', () => { if (tour.pending) return; const s = tour.steps[tour.i]; if (s && s.last) { tourEnd(true); return; } tourShow(tour.i + 1, 1); });
+$('tour-prev').addEventListener('click', () => { if (!tour.pending) tourShow(tour.i - 1, -1); });
+$('tour-skip').addEventListener('click', () => tourEnd(false));
+/* Passo "toque": quando a pessoa toca no destaque, o app faz a ação e o tour segue */
+document.addEventListener('click', (e) => {
+  if (!tour.on || !tour.waitFor) return;
+  if (!tour.waitFor.contains(e.target)) return;
+  const i = tour.i; tour.waitFor = null; tour.pending = true;
+  setTimeout(() => { if (tour.on && tour.i === i) tourShow(i + 1, 1); }, 380);
+}, true);
+document.addEventListener('keydown', (e) => {
+  if (!tour.on) return;
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (!tour.mandatory) tourEnd(false); else if (tour.i > 0) tourShow(tour.i - 1, -1); }
+}, true);
+$('nav-tour').addEventListener('click', () => { closeDrawer(); tourStart(false); });
 
 /* ---------- Início ---------- */
 load();

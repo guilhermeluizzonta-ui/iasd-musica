@@ -7,6 +7,13 @@ Papéis: **Editor** (cadastra e organiza) e **Músico** (usa). O que vale só pa
 - Entrar / Criar conta (local, sem servidor). No cadastro: "Você louva com" (Banda, Orquestra, Coral, Louvor) e instrumento ou voz. Modo de teste.
 - Início: logo da IASD, "Jaraguá do Sul - Central", data, saudação, versículo do dia, visualizadas recentemente, próximo culto.
 
+## Tour do app
+- **Primeiro acesso:** logo depois de entrar, o tour começa sozinho e o app só fica liberado no fim (32 passos, uns 3 minutos). Sem "Sair" nessa primeira vez; o botão voltar do Android volta um passo.
+- **Menu › Tour do app:** para rever quando quiser, aí com "Sair do tour".
+- Cada passo destaca um botão e explica para que serve. Nos passos com a mãozinha, o tour espera a pessoa tocar no destaque (abrir o menu, entrar em Cifras, subir o tom, anotar, abrir a letra, começar o modo culto).
+- Ordem: Início e menu → cifra (tom, instrumento, simplificar, colunas, tamanho, tela cheia, anotar, favoritar) → letra → partituras → lista de culto e modo culto → claro/escuro.
+- Usa uma cifra e uma lista de exemplo (ids `tour-*`), retiradas no fim junto com as anotações feitas nelas.
+
 ## Cifras
 - Repertório com busca (título e artista), painéis de favoritas e recentes, lixeira (apagar volta pela lixeira).
 - Cifra aberta: tom − / tom / + e grade para escolher o tom (só muda na tela de quem usa); **capotraste** (sem capo, 1ª a 9ª casa, com "formas de G" e formas fáceis) para quem toca violão, guitarra, ukulele, cavaquinho, viola caipira ou bandolim; simplificar acordes; colunas Auto/1–4; tamanho do texto; ajustar à tela; tela cheia com tela acesa; pinça para zoom; anotar à mão (cores, marca-texto, texto, borracha); favoritar; adicionar à lista (Editor); compartilhar em ChordPro; abrir partitura e letra ligadas.

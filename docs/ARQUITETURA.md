@@ -41,6 +41,7 @@ Navegação interna por `go(nome, params)`; cada tela é uma `<section class="vi
 | `localStorage['repertorio.notes.v1']` | Anotações à mão (cifra e partitura). |
 | `localStorage['pauta-mao-livre.v2']` | Partituras escritas na pauta, desenhos ensinados, preferências da Biblioteca. |
 | `IndexedDB 'repertorio-pdf'` | Os arquivos PDF baixados ou importados. |
+| `db.tourDone` | Data em que a pessoa terminou o tour (sem ela, o tour começa sozinho ao entrar). |
 | Outras chaves pequenas | Dicas já vistas, "só caneta", pedido de abertura da pauta e volta para a pasta. |
 
 - **Gravação:** `save()` agrupa as mudanças e grava o banco ~0,3 s depois; ao sair ou minimizar grava na hora (`saveNow()`).
@@ -69,6 +70,7 @@ node testar13.js ../../www   # app ↔ pauta
 node testar14.js ../../www   # modo e folha
 node testar15.js ../../www   # capotraste e instrumento
 ```
+Tour do app (Playwright; servidor em `www/` na porta 8765): `cd testes/tour && node testar-tour.js tablet editor` (também `celular`, `musico`).
 Falhas conhecidas e esperadas: 1 em `testar4.js` e 1 em `testar11.js` (expectativas antigas dos próprios testes).
 
 ## Publicar uma versão
