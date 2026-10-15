@@ -404,6 +404,51 @@ html.is-light .btn.primary, html.is-light .chip[aria-pressed="true"], html.is-li
 #ink-warn .link { margin-left: 6px; }
 #t-ink, #pv-ink { display: flex; align-items: center; gap: 6px; }
 
+/* ---------- Ensaio: metrônomo e nota de referência ---------- */
+.ens-pop { position: absolute; z-index: 50; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--ctl, var(--line)); border-radius: 14px; box-shadow: 0 14px 36px rgba(0,0,0,.45); width: min(400px, calc(100vw - 16px)); padding: 14px; gap: 12px; max-height: min(80vh, 640px); overflow-y: auto; }
+.ens-pop[hidden] { display: none; }
+.ens-pop .btn, .ens-pop .chip { min-height: 44px; font-size: 15px; padding: 0 12px; border-radius: var(--r); justify-content: center; text-align: center; }
+.ens-head { display: flex; flex-direction: column; gap: 2px; }
+.ens-head strong { font-size: 17px; }
+.ens-bpm { display: flex; align-items: center; gap: 6px; }
+.ens-bpm .btn { min-width: 48px; font-variant-numeric: tabular-nums; }
+.ens-val { flex: 1; display: flex; flex-direction: column; align-items: center; line-height: 1; }
+.ens-val b { font-size: 34px; font-variant-numeric: tabular-nums; }
+.ens-val small { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-top: 4px; }
+.ens-range { width: 100%; accent-color: var(--accent); height: 28px; }
+.ens-row { display: flex; gap: 8px; }
+.ens-row .btn { flex: 1; }
+.ens-sec { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-top: 2px; }
+.ens-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ens-chips .chip[aria-pressed="true"] { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); }
+.ens-dots { display: flex; justify-content: center; gap: 10px; min-height: 22px; align-items: center; }
+.metro-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); }
+.metro-dot.one { width: 18px; height: 18px; }
+.metro-dot.on { background: var(--accent); border-color: var(--accent); }
+.metro-dot.one.on { background: var(--gold); border-color: var(--gold); }
+.ens-foot { display: flex; gap: 8px; align-items: center; }
+.ens-foot .spacer { flex: 1; }
+.ens-foot .btn.primary { min-width: 96px; }
+.ens-foot .btn:disabled { opacity: .4; cursor: default; }
+.ens-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.ens-grid .btn { flex-direction: column; gap: 4px; min-height: 64px; font-size: 14px; }
+.ens-satb { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.ens-satb .btn { flex-direction: column; gap: 2px; min-height: 72px; padding: 4px; line-height: 1.15; }
+.ens-satb b { font-size: 20px; }
+.ens-satb span { font-size: 12px; }
+.ens-satb small { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ens-pop .tipline { margin: 0; }
+.ens-pop .tipline:empty { display: none; }
+[data-ens="metro"] { position: relative; }
+.group button[data-ens="metro"].running { background: var(--gold); color: var(--gold-ink); }
+[data-ens="metro"].running[data-beat]::after { content: attr(data-beat); position: absolute; right: 4px; top: 2px; font-size: 10px; font-weight: 700; }
+body.metro-flash::before, body.metro-flash1::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 90; box-shadow: inset 0 0 0 6px var(--accent); }
+body.metro-flash1::before { box-shadow: inset 0 0 0 10px var(--gold); }
+#metro-count { position: fixed; left: 50%; top: 42%; transform: translate(-50%, -50%); z-index: 200; pointer-events: none; font-size: 140px; font-weight: 800; color: var(--gold); text-shadow: 0 4px 24px rgba(0,0,0,.45); font-variant-numeric: tabular-nums; }
+#metro-count.pop { animation: mcount .45s ease-out; }
+@keyframes mcount { from { transform: translate(-50%, -50%) scale(1.35); opacity: .3; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { #metro-count.pop { animation: none; } }
+
 /* ---------- Devocional ---------- */
 #v-devocional { max-width: 640px; margin: 0 auto; padding-top: 8px; gap: 22px; }
 #dv-body { display: flex; flex-direction: column; gap: 22px; }
@@ -1434,6 +1479,7 @@ let route = { name: 'inicio' }, lastTop = 'inicio';
 function show(id) { ['v-login', 'v-signup'].forEach(x => $(x).hidden = x !== id); $('app').hidden = id !== 'app'; }
 let pdfFolder = null;   // pasta aberta em Partituras (null = início)
 function go(name, params = {}) {
+  ensOnGo();
   if (ink.on) inkStop();
   closeListPop(); liNoteFor = null;
   closeKeypick(); closeKeyset(); if (document.body.classList.contains('focus')) exitFocus();
@@ -3868,6 +3914,324 @@ function renderNextList() {
     <strong>${esc(listTitle(l))}</strong><span class="hint">${esc([l.date ? dateLabel(l.date, true) : '', l.time].filter(Boolean).join(' · ') || 'sem data')}</span>
     ${names.length ? `<span class="next-songs">${esc(names.join(' · '))}${l.items.length > 4 ? ` · +${l.items.length - 4}` : ''}</span>` : '<span class="hint">Sem músicas ainda.</span>'}</button>`;
 }
+
+/* ---------- Som: motor de áudio do app (metrônomo, nota de referência, partitura tocando) ----------
+   Tudo gerado no próprio aparelho (Web Audio), sem arquivos de som: funciona sem internet e não pesa no APK.
+   Timbres sintetizados (aproximações): piano, órgão, cordas, flauta, metais, voz ("ah"). */
+const Som = (() => {
+  let ac = null, master = null;
+  const ctx = () => {
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+      ac = new AC(); master = ac.createGain(); master.gain.value = 0.8;
+      const comp = ac.createDynamicsCompressor(); master.connect(comp); comp.connect(ac.destination);
+    }
+    if (ac.state === 'suspended') ac.resume();
+    return ac;
+  };
+  const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  const TIMBRES = {
+    piano: { nome: 'Piano' }, orgao: { nome: 'Órgão' }, cordas: { nome: 'Cordas' },
+    flauta: { nome: 'Flauta' }, metais: { nome: 'Metais' }, voz: { nome: 'Voz (ah)' }
+  };
+  const live = new Set();
+  function env(g, t, a, peak, d, sus, rel, end) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + a);
+    if (d) g.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak * sus), t + a + d);
+    g.gain.setValueAtTime(Math.max(0.0001, d ? peak * sus : peak), end);
+    g.gain.exponentialRampToValueAtTime(0.0001, end + rel);
+  }
+  function osc(type, f, t, stop, dest, detune) {
+    const o = ac.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); if (detune) o.detune.value = detune;
+    o.connect(dest); o.start(t); o.stop(stop); live.add(o); o.onended = () => live.delete(o); return o;
+  }
+  /* toca uma nota MIDI no tempo t (segundos do relógio do áudio), duração dur */
+  function note(m, t, dur, timbre = 'piano', vel = 0.8, dest) {
+    if (!ctx()) return; t = Math.max(t, ac.currentTime); dur = Math.max(0.05, dur);
+    const f = hz(m), g = ac.createGain(), out = dest || master, v = 0.28 * vel;
+    g.connect(out);
+    const end = t + dur;
+    if (timbre === 'piano') {
+      // decai sozinho como corda percutida; mais grave = dura mais
+      const decay = Math.min(dur, 0.6 + 2.5 * Math.pow(0.5, (m - 48) / 12));
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.005);
+      g.gain.exponentialRampToValueAtTime(v * 0.35, t + 0.15); g.gain.exponentialRampToValueAtTime(Math.max(0.0001, v * 0.08), t + Math.max(0.2, decay));
+      g.gain.setValueAtTime(Math.max(0.0001, v * 0.08), end); g.gain.exponentialRampToValueAtTime(0.0001, end + 0.25);
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(Math.min(9000, f * 8), t); lp.frequency.exponentialRampToValueAtTime(Math.min(4000, f * 3), t + 0.4); lp.connect(g);
+      osc('triangle', f, t, end + 0.3, lp); const h = ac.createGain(); h.gain.value = 0.25; h.connect(lp); osc('sine', f * 2, t, end + 0.3, h); const h3 = ac.createGain(); h3.gain.value = 0.08; h3.connect(lp); osc('sawtooth', f, t, end + 0.3, h3, 4);
+    } else if (timbre === 'orgao') {
+      env(g, t, 0.02, v * 0.6, 0, 1, 0.08, end);
+      [[1, 1], [2, .5], [3, .25], [4, .2], [0.5, .3]].forEach(([k, a]) => { const h = ac.createGain(); h.gain.value = a; h.connect(g); osc('sine', f * k, t, end + 0.1, h); });
+    } else if (timbre === 'cordas') {
+      env(g, t, 0.12, v * 0.55, 0, 1, 0.3, end);
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.min(5000, f * 5); lp.connect(g);
+      const o1 = osc('sawtooth', f, t, end + 0.35, lp, -6), o2 = osc('sawtooth', f, t, end + 0.35, lp, 6);
+      const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 5.5; lg.gain.value = f * 0.004; lfo.connect(lg); lg.connect(o1.frequency); lg.connect(o2.frequency);
+      live.add(lfo); lfo.start(t + 0.2); lfo.stop(end + 0.35);
+    } else if (timbre === 'flauta') {
+      env(g, t, 0.05, v * 0.8, 0, 1, 0.12, end);
+      const o = osc('sine', f, t, end + 0.15, g); const h = ac.createGain(); h.gain.value = 0.12; h.connect(g); osc('sine', f * 2, t, end + 0.15, h);
+      const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 5; lg.gain.value = f * 0.006; lfo.connect(lg); lg.connect(o.frequency); live.add(lfo); lfo.start(t + 0.15); lfo.stop(end + 0.15);
+      const n = ac.createBufferSource(), b = ac.createBuffer(1, ac.sampleRate * 0.08, ac.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * 2; const ng = ac.createGain(); ng.gain.value = 0.05; n.buffer = b; n.connect(bp); bp.connect(ng); ng.connect(g); n.start(t);
+    } else if (timbre === 'metais') {
+      env(g, t, 0.04, v * 0.55, 0.15, 0.7, 0.12, end);
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 2; lp.frequency.setValueAtTime(f * 1.5, t); lp.frequency.exponentialRampToValueAtTime(Math.min(6000, f * 6), t + 0.08); lp.frequency.exponentialRampToValueAtTime(Math.min(4000, f * 4), t + 0.3); lp.connect(g);
+      osc('sawtooth', f, t, end + 0.15, lp);
+    } else { // voz "ah": serra passando por formantes da vogal a
+      env(g, t, 0.09, v * 1.4, 0, 1, 0.2, end);
+      const src = ac.createGain(); src.gain.value = 1;
+      const o = osc('sawtooth', f, t, end + 0.25, src);
+      const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 5.2; lg.gain.value = f * 0.008; lfo.connect(lg); lg.connect(o.frequency); live.add(lfo); lfo.start(t + 0.25); lfo.stop(end + 0.25);
+      [[800, .9, 8], [1150, .5, 9], [2900, .15, 10]].forEach(([fr, a, q]) => { const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = q; const ga = ac.createGain(); ga.gain.value = a * 3; src.connect(bp); bp.connect(ga); ga.connect(g); });
+    }
+  }
+  /* clique do metrônomo: forte (tempo 1), médio (subgrupo) ou fraco */
+  function click(t, nivel = 0) {
+    if (!ctx()) return; t = Math.max(t, ac.currentTime);
+    const g = ac.createGain(); g.connect(master);
+    const f = nivel === 2 ? 1760 : nivel === 1 ? 1320 : 990, v = nivel === 2 ? 0.9 : nivel === 1 ? 0.6 : 0.45;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+    osc('square', f, t, t + 0.06, g); osc('sine', f / 2, t, t + 0.06, g);
+  }
+  function stopAll() { live.forEach(o => { try { o.stop(); } catch (e) {} }); live.clear(); }
+  return { ctx, note, click, stopAll, hz, TIMBRES, now: () => (ctx() ? ac.currentTime : 0) };
+})();
+
+/* ---------- Ensaio: metrônomo e nota de referência ----------
+   Andamento e compasso ficam na própria cifra ({tempo: 72} {time: 4/4}, padrão do ChordPro) — o Editor guarda.
+   Quem só usa pode mudar o andamento para estudar (fica só no aparelho, por música). */
+const COMPASSOS = ['2/4', '3/4', '4/4', '6/8', '12/8'];
+const ens = { run: false, timer: null, next: 0, beat: 0, pulses: [], countLeft: 0, songId: null, tapT: [], pop: null, kind: null };
+const metroPrefs = () => (db.metro = Object.assign({ count: true, sound: true, flash: true, timbre: 'piano' }, db.metro || {}));
+function songTempo(s) {
+  const out = { bpm: 0, time: '' };
+  if (!s) return out;
+  s.text.split('\n').forEach(l => {
+    const d = l.trim().match(/^\{\s*(tempo|time)\s*:\s*(.*?)\s*\}$/i); if (!d) return;
+    if (d[1].toLowerCase() === 'tempo') out.bpm = Math.round(parseFloat(d[2])) || 0; else out.time = d[2];
+  });
+  return out;
+}
+/* Música do que está aberto: cifra, letra ou a partitura (pela cifra ligada) */
+function ensSong() {
+  if (route.name === 'cifra') return songById(cur.id);
+  if (route.name === 'letra') return songById(lyr.id);
+  if (route.name === 'partitura') { const sc = scoreById(pv.id); return scoreSong(sc); }
+  return null;
+}
+function ensKey() {
+  const s = ensSong(); if (!s) return null;
+  if (route.name === 'cifra') return songKeyInfo(s, cur.v.shift);
+  if (route.name === 'letra') return songKeyInfo(s, lyr.v.shift);
+  const l = route.list ? listById(route.list) : null, it = l && l.items[route.idx];
+  return songKeyInfo(s, it && it.songId === s.id ? it.shift || 0 : 0);
+}
+/* Grava {tempo:} e {time:} logo depois das diretivas do cabeçalho (título, artista, tom) */
+function setHeadDirectives(text, vals) {
+  const names = Object.keys(vals), re = new RegExp(`^\\s*\\{\\s*(${names.join('|')})\\s*:.*\\}\\s*$`, 'i');
+  const lines = text.split('\n').filter(l => !re.test(l));
+  const head = /^\s*\{\s*(title|t|artist|subtitle|st|key|k|meta|capo)\s*:.*\}\s*$/i;
+  let at = 0; while (at < lines.length && head.test(lines[at])) at++;
+  lines.splice(at, 0, ...names.filter(n => vals[n]).map(n => `{${n}: ${vals[n]}}`));
+  return lines.join('\n');
+}
+const tempoKey = (s) => s ? s.id : '_livre';
+function tempoOf(s) {
+  const base = songTempo(s), mine = db.tempos && db.tempos[tempoKey(s)];
+  return { bpm: (mine && mine.bpm) || base.bpm || 80, time: (mine && mine.time) || base.time || '4/4', saved: base, mine: !!mine };
+}
+function setMyTempo(s, patch) {
+  if (!db.tempos || typeof db.tempos !== 'object') db.tempos = {};
+  const t = tempoOf(s); db.tempos[tempoKey(s)] = Object.assign({ bpm: t.bpm, time: t.time }, patch); save();
+}
+/* Pulsos de um compasso: x/8 composto conta em grupos de 3 (o BPM é da semínima pontuada) */
+function pulsesOf(time) {
+  const [n, d] = String(time).split('/').map(Number);
+  if (!n || !d) return { beats: 4, sub: 1 };
+  if (d === 8 && n % 3 === 0 && n > 3) return { beats: n / 3, sub: 3 };
+  return { beats: n, sub: 1 };
+}
+function metroStart() {
+  const s = ensSong(), t = tempoOf(s), p = pulsesOf(t.time), mp = metroPrefs();
+  if (!Som.ctx()) { toast('Este aparelho não consegue tocar som aqui.'); return; }
+  ens.run = true; ens.songId = s ? s.id : null; ens.beat = 0; ens.sub = 0; ens.next = Som.now() + 0.12;
+  ens.countLeft = mp.count ? p.beats * p.sub : 0;
+  ens.timer = setInterval(metroTick, 25); metroTick();
+  ensSync();
+}
+function metroStop() {
+  if (!ens.run) return;
+  ens.run = false; clearInterval(ens.timer); ens.timer = null;
+  document.body.classList.remove('metro-flash', 'metro-flash1'); const c = $('metro-count'); if (c) c.hidden = true;
+  ensSync();
+}
+function metroTick() {
+  const s = ens.songId ? songById(ens.songId) : null, t = tempoOf(s), p = pulsesOf(t.time), mp = metroPrefs();
+  const step = 60 / t.bpm / p.sub;
+  while (ens.next < Som.now() + 0.12) {
+    const first = ens.sub === 0, nivel = first && ens.beat === 0 ? 2 : first ? 1 : 0;
+    const counting = ens.countLeft > 0;
+    if (mp.sound || counting) Som.click(ens.next, nivel);
+    const when = (ens.next - Som.now()) * 1000, b = ens.beat, cnt = counting && first;
+    setTimeout(() => metroVisual(b, nivel, cnt), Math.max(0, when));
+    if (counting) ens.countLeft--;
+    ens.next += step; ens.sub++;
+    if (ens.sub >= p.sub) { ens.sub = 0; ens.beat = (ens.beat + 1) % p.beats; }
+  }
+}
+function metroVisual(beat, nivel, counting) {
+  if (!ens.run) return;
+  const mp = metroPrefs();
+  document.querySelectorAll('.metro-dot').forEach((d, i) => d.classList.toggle('on', i === beat));
+  const c = $('metro-count');
+  if (counting) { c.hidden = false; c.textContent = beat + 1; c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); }
+  else if (!c.hidden) c.hidden = true;
+  if (mp.flash && nivel > 0) {
+    const cls = nivel === 2 ? 'metro-flash1' : 'metro-flash';
+    document.body.classList.add(cls); setTimeout(() => document.body.classList.remove(cls), 110);
+  }
+  document.querySelectorAll('[data-ens="metro"]').forEach(b => { b.dataset.beat = beat + 1; });
+}
+function tapTempo() {
+  const now = performance.now(); ens.tapT = ens.tapT.filter(x => now - x < 2500); ens.tapT.push(now);
+  if (ens.tapT.length < 2) { toast('Continue batendo no ritmo da música…'); return; }
+  const gaps = ens.tapT.slice(1).map((x, i) => x - ens.tapT[i]);
+  const bpm = Math.round(60000 / (gaps.reduce((a, b) => a + b, 0) / gaps.length));
+  if (bpm >= 30 && bpm <= 260) { setMyTempo(ensSong(), { bpm }); renderEnsPop(); }
+}
+/* Nota de referência: tônica, acorde, escala e as 4 vozes do coral no tom em que a música está */
+const NOMES_PT = ['Dó', 'Dó♯', 'Ré', 'Mi♭', 'Mi', 'Fá', 'Fá♯', 'Sol', 'Lá♭', 'Lá', 'Si♭', 'Si'];
+const NAIPES = [['S', 'Soprano', 67, 79], ['C', 'Contralto', 57, 72], ['T', 'Tenor', 52, 67], ['B', 'Baixo', 40, 55]];
+function refChord(ki) {   // tônica, terça, quinta a partir do Dó central
+  const root = 60 + ki.cur.idx - (ki.cur.idx > 6 ? 12 : 0), third = ki.cur.minor ? 3 : 4;
+  return [root, root + third, root + 7];
+}
+function inRange(pc, lo, hi) { for (let m = lo; m <= hi; m++) if (((m % 12) + 12) % 12 === pc) return m; return lo; }
+/* S: tônica em cima · C: terça · T: quinta · B: tônica embaixo (acorde da tônica em 4 vozes) */
+function satbOf(ki) {
+  const r = ki.cur.idx, third = (r + (ki.cur.minor ? 3 : 4)) % 12, fifth = (r + 7) % 12;
+  const pick = (pc, lo, hi, mid) => { let best = null; for (let m = lo; m <= hi; m++) if (m % 12 === pc && (best == null || Math.abs(m - mid) < Math.abs(best - mid))) best = m; return best == null ? lo : best; };
+  return { S: pick(r, 67, 79, 72), C: pick(third, 57, 72, 64), T: pick(fifth, 52, 67, 58), B: pick(r, 40, 55, 47) };
+}
+const midiName = (m) => NOMES_PT[m % 12] + (Math.floor(m / 12) - 1);
+function playRef(kind, v) {
+  const ki = ensKey(); if (!ki) { toast('Esta música não tem tom definido.'); return; }
+  const tb = metroPrefs().timbre, t0 = Som.now() + 0.03, ch = refChord(ki);
+  Som.stopAll();
+  if (kind === 'tonica') Som.note(ch[0], t0, 2.2, tb);
+  else if (kind === 'acorde') { ch.forEach((m, i) => Som.note(m, t0 + i * 0.35, 0.4, tb, 0.7)); ch.forEach(m => Som.note(m, t0 + 1.15, 2.2, tb, 0.6)); Som.note(ch[0] - 12, t0 + 1.15, 2.2, tb, 0.5); }
+  else if (kind === 'escala') { const st = ki.cur.minor ? [0, 2, 3, 5, 7, 8, 10, 12] : [0, 2, 4, 5, 7, 9, 11, 12]; st.forEach((x, i) => Som.note(ch[0] + x, t0 + i * 0.32, 0.34, tb, 0.7)); }
+  else if (kind === 'naipe') Som.note(satbOf(ki)[v], t0, 2.4, tb === 'piano' ? 'voz' : tb);
+  else if (kind === 'coral') { const s = satbOf(ki); ['B', 'T', 'C', 'S'].forEach((k, i) => Som.note(s[k], t0 + i * 0.45, 3.2 - i * 0.45, tb === 'piano' ? 'voz' : tb, 0.6)); }
+}
+/* Painel flutuante (metrônomo ou referência) */
+const ensPop = document.createElement('div');
+ensPop.className = 'ens-pop'; ensPop.hidden = true; ensPop.setAttribute('role', 'dialog'); ensPop.dataset.tipscope = '';
+document.body.appendChild(ensPop);
+const metroCount = document.createElement('div'); metroCount.id = 'metro-count'; metroCount.hidden = true; metroCount.setAttribute('aria-hidden', 'true'); document.body.appendChild(metroCount);
+function openEnsPop(btn, kind) {
+  if (!ensPop.hidden && ens.kind === kind) { closeEnsPop(); return; }
+  ens.kind = kind; ens.btn = btn; ensPop.hidden = false; renderEnsPop();
+  const r = btn.getBoundingClientRect();
+  ensPop.style.top = (r.bottom + window.scrollY + 6) + 'px';
+  ensPop.style.left = Math.max(8, Math.min(r.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - ensPop.offsetWidth - 8)) + 'px';
+  document.querySelectorAll('[data-ens]').forEach(b => b.setAttribute('aria-expanded', String(b === btn)));
+}
+function closeEnsPop() { ensPop.hidden = true; ens.kind = null; document.querySelectorAll('[data-ens]').forEach(b => b.setAttribute('aria-expanded', 'false')); }
+const chip = (attrs, label, on, tip) => `<button type="button" class="chip" ${attrs} aria-pressed="${!!on}"${tip ? ` data-tip="${tip}"` : ''}>${label}</button>`;
+function renderEnsPop() {
+  if (ensPop.hidden) return;
+  const s = ensSong(), mp = metroPrefs();
+  if (ens.kind === 'metro') {
+    const t = tempoOf(s), p = pulsesOf(t.time), ed = db.role === 'editor' && s && route.name !== 'partitura';
+    const diff = s && (t.bpm !== (t.saved.bpm || 80) || t.time !== (t.saved.time || '4/4'));
+    ensPop.innerHTML = `<div class="ens-head"><strong>Metrônomo</strong>${s ? `<span class="hint">${esc(s.title)}</span>` : ''}</div>
+      <div class="ens-bpm">
+        <button type="button" class="btn ib" data-m="-5" aria-label="Mais devagar (−5)" data-tip="−5|Mais devagar.">−5</button>
+        <button type="button" class="btn ib" data-m="-1" aria-label="Mais devagar (−1)" data-tip="−1|Um pouco mais devagar.">−</button>
+        <output class="ens-val"><b>${t.bpm}</b><small>BPM</small></output>
+        <button type="button" class="btn ib" data-m="1" aria-label="Mais rápido (+1)" data-tip="+1|Um pouco mais rápido.">+</button>
+        <button type="button" class="btn ib" data-m="5" aria-label="Mais rápido (+5)" data-tip="+5|Mais rápido.">+5</button>
+      </div>
+      <input type="range" class="ens-range" min="30" max="240" value="${t.bpm}" aria-label="Andamento em batidas por minuto">
+      <div class="ens-row"><button type="button" class="btn" data-m-tap="1" data-tip="Bater o ritmo|Toque várias vezes no ritmo da música: o app descobre o andamento.">${ico('tap', 18)}Bater o ritmo</button></div>
+      <div class="ens-sec">Compasso</div>
+      <div class="ens-chips">${COMPASSOS.map(c => chip(`data-m-time="${c}"`, c, c === t.time)).join('')}</div>
+      <div class="ens-dots" aria-hidden="true">${Array.from({ length: p.beats }, (_, i) => `<span class="metro-dot${i === 0 ? ' one' : ''}"></span>`).join('')}</div>
+      <div class="ens-chips">
+        ${chip('data-m-opt="count"', 'Contar antes', mp.count, 'Contar antes|Um compasso de contagem (1, 2, 3, 4) na tela e no som antes de começar.')}
+        ${chip('data-m-opt="sound"', 'Som', mp.sound, 'Som|Desligado, o metrônomo só pisca (bom no culto).')}
+        ${chip('data-m-opt="flash"', 'Piscar', mp.flash, 'Piscar|A borda da tela pisca no tempo; mais forte no 1.')}
+      </div>
+      <p class="tipline" aria-live="polite"></p>
+      <div class="ens-foot">
+        ${ed ? `<button type="button" class="btn ib" data-m-save="1" ${diff ? '' : 'disabled'} aria-label="Guardar na cifra" data-tip="Guardar na cifra|Grava este andamento e compasso na cifra, para todos que receberem a música.">${ico('check')}</button>` : ''}
+        ${s && t.mine && diff ? `<button type="button" class="btn ib" data-m-reset="1" aria-label="Voltar ao andamento da cifra" data-tip="Voltar ao da cifra|Esquece o seu andamento e usa o que está na cifra (${t.saved.bpm || 80} BPM).">${ico('reset')}</button>` : ''}
+        <span class="spacer"></span>
+        <button type="button" class="btn ib primary" data-m-play="1" aria-pressed="${ens.run}" aria-label="${ens.run ? 'Parar' : 'Tocar'}" data-tip="${ens.run ? 'Parar|Para o metrônomo.' : 'Tocar|Começa o metrônomo. Ao trocar de música ele para.'}">${ico(ens.run ? 'stop' : 'play')}</button>
+      </div>
+      ${s && !t.saved.bpm ? '<p class="hint">Esta cifra ainda não tem andamento: 80 BPM é só um ponto de partida.</p>' : ''}`;
+  } else {
+    const ki = ensKey(), sat = ki ? satbOf(ki) : null;
+    ensPop.innerHTML = `<div class="ens-head"><strong>Nota de referência</strong>${ki ? `<span class="hint">Tom: <b>${esc(ki.cur.label)}</b> · ${NOMES_PT[ki.cur.idx]} ${ki.cur.minor ? 'menor' : 'maior'}</span>` : ''}</div>
+      ${ki ? `<div class="ens-grid">
+        <button type="button" class="btn" data-r="tonica" data-tip="Tônica|A nota do tom, para todos acharem o começo.">${ico('note', 18)}Tônica</button>
+        <button type="button" class="btn" data-r="acorde" data-tip="Acorde|As notas do acorde uma a uma e depois juntas.">${ico('chordnotes', 18)}Acorde</button>
+        <button type="button" class="btn" data-r="escala" data-tip="Escala|Sobe a escala do tom (aquecimento).">${ico('scale', 18)}Escala</button>
+      </div>
+      <div class="ens-sec">Coral · a nota de cada naipe no acorde do tom</div>
+      <div class="ens-satb">${NAIPES.map(([k, nome]) => `<button type="button" class="btn" data-r="naipe" data-v="${k}" data-tip="${nome}|Toca ${midiName(sat[k])}, a nota do ${nome.toLowerCase()} no acorde do tom."><b>${k}</b><span>${nome}</span><small>${midiName(sat[k])}</small></button>`).join('')}</div>
+      <div class="ens-row"><button type="button" class="btn" data-r="coral" data-tip="As 4 vozes|Entra uma voz por vez, do baixo ao soprano, e ficam juntas.">${ico('choir', 18)}As 4 vozes juntas</button></div>` : '<p class="hint">Esta música não tem tom definido. Defina o tom na cifra para tocar a referência.</p>'}
+      <div class="ens-sec">Som</div>
+      <div class="ens-chips">${Object.entries(Som.TIMBRES).map(([k, v]) => chip(`data-r-timbre="${k}"`, v.nome, mp.timbre === k)).join('')}</div>
+      <p class="tipline" aria-live="polite"></p>
+      <p class="hint">Para o coral, com o som Piano as vozes tocam como "ah".</p>`;
+  }
+}
+ensPop.addEventListener('click', (e) => {
+  const t = e.target, s = ensSong(), mp = metroPrefs(); let b;
+  if ((b = t.closest('[data-m]'))) { const v = tempoOf(s).bpm + Number(b.dataset.m); setMyTempo(s, { bpm: Math.max(30, Math.min(240, v)) }); renderEnsPop(); return; }
+  if (t.closest('[data-m-tap]')) { tapTempo(); return; }
+  if ((b = t.closest('[data-m-time]'))) { setMyTempo(s, { time: b.dataset.mTime }); renderEnsPop(); return; }
+  if ((b = t.closest('[data-m-opt]'))) { mp[b.dataset.mOpt] = !mp[b.dataset.mOpt]; save(); renderEnsPop(); return; }
+  if (t.closest('[data-m-play]')) { ens.run ? metroStop() : metroStart(); return; }
+  if (t.closest('[data-m-reset]')) { if (db.tempos) delete db.tempos[tempoKey(s)]; save(); renderEnsPop(); return; }
+  if (t.closest('[data-m-save]') && s) {
+    const tp = tempoOf(s);
+    s.text = setHeadDirectives(s.text, { tempo: String(tp.bpm), time: tp.time });
+    s.updated = Date.now(); if (db.tempos) delete db.tempos[s.id]; save(); renderEnsPop(); toast(`Andamento guardado na cifra: ${tp.bpm} BPM, ${tp.time}.`); return;
+  }
+  if ((b = t.closest('[data-r]'))) { playRef(b.dataset.r, b.dataset.v); return; }
+  if ((b = t.closest('[data-r-timbre]'))) { mp.timbre = b.dataset.rTimbre; save(); renderEnsPop(); playRef('tonica'); }
+});
+ensPop.addEventListener('input', (e) => { if (e.target.classList.contains('ens-range')) { setMyTempo(ensSong(), { bpm: Number(e.target.value) }); const o = ensPop.querySelector('.ens-val b'); if (o) o.textContent = e.target.value; } });
+ensPop.addEventListener('change', (e) => { if (e.target.classList.contains('ens-range')) renderEnsPop(); });
+document.addEventListener('pointerdown', (e) => { if (!ensPop.hidden && !ensPop.contains(e.target) && !e.target.closest('[data-ens]')) closeEnsPop(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ensPop.hidden) { closeEnsPop(); if (ens.btn) ens.btn.focus(); } });
+function ensSync() {
+  document.querySelectorAll('[data-ens="metro"]').forEach(b => { b.classList.toggle('running', ens.run); if (!ens.run) delete b.dataset.beat; });
+  renderEnsPop();
+}
+/* Ao trocar de tela ou de música: fecha o painel e para o metrônomo */
+function ensOnGo() { closeEnsPop(); metroStop(); Som.stopAll && Som.stopAll(); }
+/* Botões nas barras da cifra, da letra e da partitura */
+ICO.metro = '<path d="M8.5 3h7l3.5 18H5z"/><path d="M12 15l5-9"/><path d="M7.5 15h9"/>';
+ICO.fork = '<path d="M9 3v7a3 3 0 0 0 6 0V3"/><path d="M12 13v8"/>';
+ICO.stop = '<rect x="6" y="6" width="12" height="12" rx="1.5"/>';
+ICO.tap = '<path d="M9 11V5a2 2 0 0 1 4 0v5"/><path d="M13 10a2 2 0 0 1 4 0v4a6 6 0 0 1-6 6h-.5a6 6 0 0 1-4.6-2.2L4 15.5a1.8 1.8 0 0 1 2.7-2.3L9 15"/>';
+ICO.note = '<circle cx="8" cy="18" r="3"/><path d="M11 18V4l8 3"/>';
+ICO.chordnotes = '<circle cx="7" cy="18" r="2.5"/><circle cx="7" cy="11" r="2.5"/><circle cx="7" cy="4.5" r="2" /><path d="M14 6h7M14 12h7M14 18h7"/>';
+ICO.scale = '<path d="M3 20h4v-4h4v-4h4V8h4V4"/>';
+ICO.choir = '<circle cx="6" cy="8" r="2.5"/><circle cx="12" cy="6" r="2.5"/><circle cx="18" cy="8" r="2.5"/><path d="M2 20c0-3 2-5 4-5s4 2 4 5M8 18c0-3 2-6 4-6s4 3 4 6M14 20c0-3 2-5 4-5s4 2 4 5"/>';
+[['t-fs', 'cifra'], ['lv-fs', 'letra'], ['pv-fs', 'partitura']].forEach(([fs, onde]) => {
+  const anchor = $(fs) && $(fs).closest('.group'); if (!anchor) return;
+  const g = document.createElement('div'); g.className = 'group ens-g'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', 'Ensaio');
+  g.innerHTML = `<button type="button" class="gi" data-ens="metro" aria-haspopup="dialog" aria-expanded="false" aria-label="Metrônomo" data-tip="Metrônomo|Andamento, compasso e contagem antes de começar. Pode só piscar, sem som.">${ico('metro')}</button><button type="button" class="gi" data-ens="ref" aria-haspopup="dialog" aria-expanded="false" aria-label="Nota de referência" data-tip="Nota de referência|Toca a tônica, o acorde e a nota de cada naipe no tom da música.">${ico('fork')}</button>`;
+  anchor.parentNode.insertBefore(g, anchor);
+});
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-ens]'); if (b) openEnsPop(b, b.dataset.ens); });
 
 /* ---------- Devocional ----------
    Tela própria (1º item do menu) e também a abertura e o encerramento da lista do culto:
