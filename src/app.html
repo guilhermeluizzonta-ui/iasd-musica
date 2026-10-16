@@ -571,9 +571,10 @@ body.metro-flash1::before { box-shadow: inset 0 0 0 10px var(--gold); }
 .sl-th > .sl { position: absolute; left: 0; top: 0; transform: scale(var(--k, .2)); transform-origin: 0 0; }
 .sl { width: 960px; height: 540px; overflow: hidden; line-height: 1.2; }
 .sl-box { position: absolute; left: 60px; right: 60px; top: 60px; bottom: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-.sl-a { font-size: 26px; font-weight: 400; margin-top: 10px; }
+.sl-a { position: absolute; left: 60px; right: 60px; top: 360px; text-align: center; font-size: 26px; font-weight: 400; }
+.sl-tbox { position: absolute; left: 60px; right: 60px; top: 90px; height: 220px; display: flex; align-items: flex-end; justify-content: center; text-align: center; }
+.sl-sim .sl-th > .sl { filter: contrast(.5) brightness(1.3) saturate(.55); }
 .sl-p { position: absolute; left: 36px; top: 16px; font-size: 16px; font-weight: 400; }
-.sl-band { position: absolute; left: 0; right: 0; bottom: 0; height: 10px; }
 .sl-models { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 6px 0 4px; }
 .sl-model { display: flex; flex-direction: column; gap: 6px; padding: 6px; border-radius: 10px; border: 2px solid transparent; background: none; color: var(--fg); font: inherit; cursor: pointer; text-align: center; }
 .sl-model[aria-checked="true"] { border-color: var(--accent); background: var(--surface); }
@@ -4087,6 +4088,7 @@ window.addEventListener('scroll', () => {
   document.body.classList.toggle('bars-hidden', dy > 0 && y > 140 && !busy);
 }, { passive: true });
 const ICO = {"score": "<path d=\"M2 4h14M2 8h11M2 12h9M2 16h7M2 20h6\"/><path d=\"M13.5 19.5l-1 3 3-1 7.2-7.2a1.4 1.4 0 0 0-2-2z\"/>", "lyrics": "<path d=\"M4 6h16M4 10h16M4 14h10M4 18h7\"/><path d=\"M18 14v6\"/><circle cx=\"16.5\" cy=\"20\" r=\"1.5\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>", "listadd": "<path d=\"M4 6h11M4 12h11M4 18h7\"/><path d=\"M18 14v6M15 17h6\"/>", "clef": "<path d=\"M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9\"/><path d=\"M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5\"/><circle cx=\"10.2\" cy=\"21.2\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/>", "chord": "<path d=\"M4 5H20\" stroke-width=\"2.6\"/><path d=\"M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5\" stroke-width=\"1.3\"/><path d=\"M4 10.5H20M4 16H20M4 21.5H20\" stroke-width=\"1.3\"/><circle cx=\"4\" cy=\"18.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9.33\" cy=\"13.25\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"7.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/>", "edit": "<path d=\"M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6\"/><path d=\"M18.4 3.6a2 2 0 0 1 2.9 2.9L12.5 15.3 9 16l.7-3.5z\"/>", "pen": "<path d=\"M4 20h4L19 9l-4-4L4 16v4z\"/><path d=\"M14 6l4 4\"/>", "wand": "<path d=\"M4 20 15 9\"/><path d=\"M14 4v2M14 10v2M18 8h2M10 8h2M16.8 5.2l1.4-1.4M16.8 10.8l1.4 1.4M11.2 5.2 9.8 3.8\"/>", "fit": "<path d=\"M12 3v6M9 6l3 3 3-3M12 21v-6M9 18l3-3 3 3\"/><path d=\"M4 12h16\"/>", "full": "<path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/>", "unfull": "<path d=\"M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5\"/>", "play": "<path d=\"M7 4.5v15l12.5-7.5z\" fill=\"currentColor\"/>", "musicadd": "<path d=\"M9 18V5l8-2v6\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><path d=\"M19 14v6M16 17h6\"/>", "check": "<path d=\"M4.5 12.5l5 5L19.5 7\"/>", "x": "<path d=\"M6 6l12 12M18 6 6 18\"/>", "trash": "<path d=\"M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3\"/>", "paste": "<rect x=\"8\" y=\"2.5\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2\"/><path d=\"M9 12h6M9 16h4\"/>", "import": "<path d=\"M12 3v11M7.5 9.5 12 14l4.5-4.5\"/><path d=\"M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3\"/>", "eraser": "<path d=\"M8 20h12\"/><path d=\"M4.6 15.4l9.2-9.2a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8z\"/><path d=\"M9 11l5 5\"/>", "search": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M20 20l-3.5-3.5\"/>", "reset": "<path d=\"M4 12a8 8 0 1 0 2.3-5.6\"/><path d=\"M4 4v4h4\"/>", "more": "<circle cx=\"12\" cy=\"5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"};
+ICO.sun = '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>';
 ICO.slides = '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v4M8 20h8"/><path d="M7 8.5h10M8.5 11.5h7"/>';
 ICO.slpart = '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 12h8M8 15h5"/>';
 ICO.sltitle = '<path d="M6 5h12M12 5v14M9 19h6"/>';
@@ -5299,15 +5301,18 @@ $('sf-form').addEventListener('submit', (e) => {
 const PPTX_URL = 'https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js';
 const PPTX_MIME = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
 const SL_W = 960, SL_H = 540;   // pontos: 13,333 × 7,5 polegadas (16:9 do PowerPoint)
+/* Modelos pensados para projetor fraco (fim da vida útil) e janela clara de manhã: o preto do projetor vira cinza e as
+   cores desbotam. Por isso: fundo MUITO escuro (ou muito claro) onde fica a letra, letra branca (ou quase preta) e em negrito;
+   cor e enfeite só nas bordas. "Simular projetor fraco" mostra na prévia como fica. */
 const SL_TPL = [
-  { id: 'classico', name: 'Clássico', tip: 'Fundo preto e letra branca: o mais legível, combina com qualquer culto.', base: '#000000', text: '#FFFFFF', title: '#FFFFFF', sub: '#B8B8B8', font: 'Arial', wf: 1, bold: true },
-  { id: 'noite', name: 'Noite', tip: 'Azul-noite com o título em dourado. Bom para salão com pouca luz.', base: '#0A1730', grad: ['radial', '#1C3A6E', '#050B18'], text: '#FFFFFF', title: '#F2C14E', sub: '#C9D3E6', font: 'Calibri', wf: 0.9, bold: true, shadow: true },
-  { id: 'igreja', name: 'Igreja', tip: 'Verde e amarelo, as cores da IASD, sem logo (a logo depende da autorização da Associação).', base: '#004D33', grad: ['linear', '#00774D', '#003322'], band: '#FFCB08', text: '#FFFFFF', title: '#FFCB08', sub: '#D7F0E3', font: 'Arial', wf: 1, bold: true, shadow: true },
-  { id: 'claro', name: 'Claro', tip: 'Fundo creme e letra escura, com serifa. Para salão bem iluminado ou culto de dia.', base: '#F7F2E8', grad: ['radial', '#FFFDF8', '#EADFCB'], text: '#1F1A14', title: '#00754A', sub: '#6B5E4B', font: 'Georgia', wf: 1.1, bold: true, serif: true },
-  { id: 'aurora', name: 'Aurora', tip: 'Roxo para azul-petróleo, suave. Para culto jovem e momentos de adoração.', base: '#22305E', grad: ['diagonal', '#3A1C6E', '#0D5E6E'], text: '#FFFFFF', title: '#FFFFFF', sub: '#D9D2F0', font: 'Trebuchet MS', wf: 1, bold: true, shadow: true }
+  { id: 'classico', name: 'Clássico', tip: 'Preto puro e letra branca: o que mais resiste a projetor fraco e sala clara. Filete dourado só no título.', base: '#000000', text: '#FFFFFF', title: '#FFFFFF', sub: '#C8C8C8', orn: '#C9A24A', font: 'Arial', wf: 1, bold: true },
+  { id: 'manha', name: 'Manhã', tip: 'Papel claro com moldura dourada fina e letra quase preta, com serifa. Para o culto da manhã, com a luz da janela.', base: '#FAF6EC', text: '#141210', title: '#00543A', sub: '#5A4A30', orn: '#A8843E', font: 'Georgia', wf: 1.1, bold: true, serif: true },
+  { id: 'noite', name: 'Noite', tip: 'Azul quase preto com estrelas discretas nas bordas e título dourado. O meio fica escuro para a letra branca aparecer.', base: '#04091A', text: '#FFFFFF', title: '#F5C542', sub: '#C9D3E6', orn: '#F5C542', font: 'Calibri', wf: 0.9, bold: true, shadow: true },
+  { id: 'igreja', name: 'Igreja', tip: 'Verde bem escuro com raios de luz suaves, filete e faixa amarela (as cores da IASD, sem logo).', base: '#00241A', text: '#FFFFFF', title: '#FFCB08', sub: '#D7F0E3', orn: '#FFCB08', font: 'Arial', wf: 1, bold: true, shadow: true },
+  { id: 'aurora', name: 'Aurora', tip: 'Fundo escuro com faixas de luz roxa e azul-petróleo nas bordas. Para culto jovem; o centro fica escuro.', base: '#0B0716', text: '#FFFFFF', title: '#FFFFFF', sub: '#DCD3F2', orn: '#8FD9DF', font: 'Trebuchet MS', wf: 1, bold: true, shadow: true }
 ];
 const SL_DEF = { tpl: 'classico', lines: 4, title: true, blank: true, part: false, caps: false };
-const slTpl = (id) => SL_TPL.find(t => t.id === id) || SL_TPL[0];
+const slTpl = (id) => SL_TPL.find(t => t.id === (id === 'claro' ? 'manha' : id)) || SL_TPL[0];
 const hex = (c) => String(c).replace('#', '').toUpperCase();
 const sl = { id: null, o: null, b: null, big: -1 };
 function slOptsFor(l) { return Object.assign({}, SL_DEF, db.slidePrefs || {}, (l && l.slides) || {}); }
@@ -5369,14 +5374,31 @@ function slNote(x, nx) {
 
 /* tamanho da letra: a linha mais larga cabe na largura e todas as linhas na altura (em pontos, iguais no app e no PowerPoint) */
 let slCtx;
-function slMeasure(t, bold) {
-  if (slCtx === undefined) { try { const c = document.createElement('canvas'); slCtx = (c.getContext && c.getContext('2d')) || null; } catch (e) { slCtx = null; } }
-  if (slCtx) { slCtx.font = `${bold ? 700 : 400} 100px Arial, "Liberation Sans", Roboto, sans-serif`; const w = slCtx.measureText(t).width; if (w) return w; }
-  return String(t).length * (bold ? 58 : 54);
+const SL_ALT = { 'Arial': 'Liberation Sans', 'Calibri': 'Carlito', 'Georgia': 'Gelasio', 'Trebuchet MS': '' };   // fontes com as mesmas medidas
+const slFontOk = {};
+function slCanvas() { if (slCtx === undefined) { try { const c = document.createElement('canvas'); slCtx = (c.getContext && c.getContext('2d')) || null; } catch (e) { slCtx = null; } } return slCtx; }
+/* a fonte do modelo existe neste aparelho? (compara com a monoespaçada: se a largura muda, a fonte existe) */
+function slHasFont(name) {
+  if (!name) return false;
+  if (name in slFontOk) return slFontOk[name];
+  const c = slCanvas(); if (!c) return (slFontOk[name] = false);
+  c.font = '100px monospace'; const a = c.measureText('mmmwwwiiilllQ').width;
+  c.font = `100px "${name}", monospace`; const b = c.measureText('mmmwwwiiilllQ').width;
+  return (slFontOk[name] = Math.abs(a - b) > 0.5);
+}
+/* largura em pontos para letra de 100 pt: com a própria fonte quando existe; senão, Arial × fator do modelo */
+function slMeasure(t, tpl) {
+  const c = slCanvas(), w = tpl.bold ? 700 : 400;
+  if (c) {
+    const own = slHasFont(tpl.font) ? tpl.font : slHasFont(SL_ALT[tpl.font]) ? SL_ALT[tpl.font] : null;
+    c.font = own ? `${w} 100px "${own}"` : `${w} 100px Arial, "Liberation Sans", Roboto, sans-serif`;
+    const v = c.measureText(t).width; if (v) return v * (own ? 1 : tpl.wf);
+  }
+  return String(t).length * (tpl.bold ? 58 : 54) * tpl.wf;
 }
 function slFit(lines, tpl, kind) {
-  const boxW = 840, boxH = kind === 'title' ? 250 : 420, maxPt = kind === 'title' ? 72 : lines.length <= 2 ? 66 : 60;
-  const widest = Math.max(1, ...lines.map(t => slMeasure(slCap(t), tpl.bold))) * tpl.wf * 1.07 / 100;
+  const boxW = 840, boxH = kind === 'title' ? 210 : 420, maxPt = kind === 'title' ? 72 : lines.length <= 2 ? 66 : 60;
+  const widest = Math.max(1, ...lines.map(t => slMeasure(slCap(t), tpl))) * 1.08 / 100;
   const pt = Math.min(maxPt, boxW / widest, boxH / (lines.length * 1.2));
   return Math.max(28, Math.floor(pt / 2) * 2);
 }
@@ -5390,33 +5412,84 @@ function slLayout(slides, tpl) {
     if (min >= med * 0.8) a.forEach(x => { x.pt = min; });
   });
 }
-/* fundo em degradê: desenhado uma vez (imagem JPEG com um grão leve, para não formar faixas no projetor) */
+/* Fundos desenhados uma vez por modelo (letra e título), em JPEG com um grão leve para não formar faixas no projetor.
+   O mesmo desenho vai na prévia e no PowerPoint. O título tem um filete com losango embaixo do nome. */
 const slBgCache = {};
-function slBg(tpl) {
-  if (!tpl.grad) return null;
-  if (tpl.id in slBgCache) return slBgCache[tpl.id];
+let slSeed = 1; const slRnd = () => (slSeed = (slSeed * 16807) % 2147483647) / 2147483647;
+const SL_DECO = {
+  classico() {},
+  manha(g, W, H, k, t) {
+    const r = g.createRadialGradient(W / 2, H * 0.45, 40, W / 2, H / 2, W * 0.7); r.addColorStop(0, '#FFFDF7'); r.addColorStop(1, '#EDE3CC');
+    g.fillStyle = r; g.fillRect(0, 0, W, H);
+    g.strokeStyle = t.orn; g.lineWidth = 2.4 * k; g.strokeRect(20 * k, 20 * k, W - 40 * k, H - 40 * k);
+    g.lineWidth = 0.9 * k; g.strokeRect(28 * k, 28 * k, W - 56 * k, H - 56 * k);
+    g.fillStyle = t.orn; [[28, 28], [932, 28], [28, 512], [932, 512]].forEach(([x, y]) => { g.save(); g.translate(x * k, y * k); g.rotate(Math.PI / 4); g.fillRect(-4 * k, -4 * k, 8 * k, 8 * k); g.restore(); });
+  },
+  noite(g, W, H, k) {
+    const r = g.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, W * 0.66); r.addColorStop(0, '#060D22'); r.addColorStop(1, '#010309');
+    g.fillStyle = r; g.fillRect(0, 0, W, H);
+    const gl = g.createRadialGradient(W / 2, -H * 0.25, 10, W / 2, -H * 0.25, W * 0.6); gl.addColorStop(0, 'rgba(60,110,200,.35)'); gl.addColorStop(1, 'rgba(60,110,200,0)');
+    g.fillStyle = gl; g.fillRect(0, 0, W, H);
+    slSeed = 7;
+    for (let i = 0; i < 170; i++) {
+      const x = slRnd() * W, y = slRnd() * H, dx = (x - W / 2) / (W * 0.37), dy = (y - H / 2) / (H * 0.36);
+      const rr = (0.5 + slRnd() * 1.4) * k, a = 0.25 + slRnd() * 0.6;
+      if (dx * dx + dy * dy < 1) continue;   // nada de estrela atrás da letra
+      g.fillStyle = slRnd() < 0.2 ? `rgba(255,226,160,${a})` : `rgba(255,255,255,${a})`; g.beginPath(); g.arc(x, y, rr, 0, Math.PI * 2); g.fill();
+    }
+  },
+  igreja(g, W, H, k, t) {
+    const l = g.createLinearGradient(0, 0, 0, H); l.addColorStop(0, '#003524'); l.addColorStop(1, '#00150E');
+    g.fillStyle = l; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(0,166,81,.075)';
+    for (let i = -3; i <= 3; i++) { const a = i * 0.19; g.beginPath(); g.moveTo(W / 2, -H * 0.35); g.lineTo(W / 2 + Math.tan(a - 0.045) * H * 1.6, H * 1.25); g.lineTo(W / 2 + Math.tan(a + 0.045) * H * 1.6, H * 1.25); g.closePath(); g.fill(); }
+    const d = g.createRadialGradient(W / 2, H / 2, 20, W / 2, H / 2, W * 0.45); d.addColorStop(0, 'rgba(0,14,9,.55)'); d.addColorStop(1, 'rgba(0,14,9,0)');
+    g.fillStyle = d; g.fillRect(0, 0, W, H);
+    g.fillStyle = t.orn; g.fillRect(0, H - 10 * k, W, 10 * k); g.fillRect(W / 2 - 70 * k, 24 * k, 140 * k, 2.4 * k);
+  },
+  aurora(g, W, H, k) {
+    g.fillStyle = '#0B0716'; g.fillRect(0, 0, W, H);
+    g.save(); g.filter = `blur(${Math.round(34 * k)}px)`;
+    [[H * 0.92, H * 0.62, H * 1.02, 'rgba(110,52,190,.75)', 'rgba(14,150,160,.7)'], [H * 0.06, H * 0.3, -H * 0.02, 'rgba(14,150,160,.55)', 'rgba(110,52,190,.5)']].forEach(([y0, yc, y1, c1, c2]) => {
+      const gr = g.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, c1); gr.addColorStop(1, c2);
+      g.strokeStyle = gr; g.lineWidth = 95 * k; g.beginPath(); g.moveTo(-0.1 * W, y0); g.bezierCurveTo(W * 0.3, yc, W * 0.7, y1, W * 1.1, (y0 + yc) / 2); g.stroke();
+    });
+    g.restore();
+    const d = g.createRadialGradient(W / 2, H / 2, 20, W / 2, H / 2, W * 0.42); d.addColorStop(0, 'rgba(11,7,22,.85)'); d.addColorStop(1, 'rgba(11,7,22,0)');
+    g.fillStyle = d; g.fillRect(0, 0, W, H);
+  }
+};
+function slOrnament(g, cx, cy, k, color) {
+  g.strokeStyle = color; g.fillStyle = color; g.lineWidth = 1.6 * k;
+  g.beginPath(); g.moveTo(cx - 150 * k, cy); g.lineTo(cx - 14 * k, cy); g.moveTo(cx + 14 * k, cy); g.lineTo(cx + 150 * k, cy); g.stroke();
+  g.save(); g.translate(cx, cy); g.rotate(Math.PI / 4); g.fillRect(-5 * k, -5 * k, 10 * k, 10 * k); g.restore();
+}
+const SL_ORN_Y = 336;   // pontos: altura do filete do título
+function slBg(tpl, kind) {
+  const key = tpl.id + (kind === 'title' ? ':t' : ':l');
+  if (key in slBgCache) return slBgCache[key];
   let url = null;
-  try {
-    const W = 1600, H = 900, c = document.createElement('canvas'); c.width = W; c.height = H;
-    const g = c.getContext('2d'), [kind, a, b] = tpl.grad;
-    const gr = kind === 'radial' ? g.createRadialGradient(W / 2, H * 0.42, 40, W / 2, H / 2, W * 0.62) : kind === 'linear' ? g.createLinearGradient(0, 0, 0, H) : g.createLinearGradient(0, 0, W, H);
-    gr.addColorStop(0, a); gr.addColorStop(1, b); g.fillStyle = gr; g.fillRect(0, 0, W, H);
-    const im = g.getImageData(0, 0, W, H), d = im.data;
-    for (let i = 0; i < d.length; i += 4) { const n = (Math.random() - 0.5) * 5; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+  if (!(tpl.id === 'classico' && kind !== 'title')) try {
+    const W = 1600, H = 900, k = W / SL_W, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d'); g.fillStyle = tpl.base; g.fillRect(0, 0, W, H);
+    (SL_DECO[tpl.id] || SL_DECO.classico)(g, W, H, k, tpl);
+    if (kind === 'title') slOrnament(g, W / 2, SL_ORN_Y * k, k, tpl.orn);
+    const im = g.getImageData(0, 0, W, H), d = im.data, amp = tpl.id === 'manha' ? 7 : 4;
+    for (let i = 0; i < d.length; i += 4) { const n = (Math.random() - 0.5) * amp; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
     g.putImageData(im, 0, 0);
     url = c.toDataURL('image/jpeg', 0.9);
     if (!/^data:image\/jpeg/.test(url)) url = null;
   } catch (e) { url = null; }
-  return (slBgCache[tpl.id] = url);
+  return (slBgCache[key] = url);
 }
 function slHtml(x, tpl, o) {
-  const bg = slBg(tpl);
-  const ff = `'${tpl.font}', ${tpl.serif ? 'Georgia, Merriweather, serif' : 'Arial, "Noto Sans", sans-serif'}`;
+  const bg = slBg(tpl, x.kind);
+  const ff = `'${tpl.font}', ${tpl.serif ? "Georgia, Merriweather, serif" : "Arial, 'Noto Sans', sans-serif"}`;   // só aspas simples: vai dentro de style="…"
   const sh = tpl.shadow ? 'text-shadow:0 2px 4px rgba(0,0,0,.45);' : '';
   let inner = '';
-  if (x.kind === 'title') inner = `<div class="sl-box"><div style="font-size:${x.pt}px;color:${tpl.title}">${esc(slCap(x.song))}</div>${x.artist ? `<div class="sl-a" style="color:${tpl.sub}">${esc(x.artist)}</div>` : ''}</div>`;
+  if (x.kind === 'title') inner = `<div class="sl-tbox"><div style="font-size:${x.pt}px;color:${tpl.title}">${esc(slCap(x.song))}</div></div>${x.artist ? `<div class="sl-a" style="color:${tpl.sub}">${esc(x.artist)}</div>` : ''}`;
   else if (x.kind === 'lyrics') inner = `${o.part && x.part ? `<div class="sl-p" style="color:${tpl.sub}">${esc(x.part)}</div>` : ''}<div class="sl-box"><div style="font-size:${x.pt}px">${x.lines.map(t => esc(slCap(t))).join('<br>')}</div></div>`;
-  return `<div class="sl" style="background:${bg ? `url(${bg}) center/cover no-repeat, ` : ''}${tpl.base};color:${tpl.text};font-family:${ff};font-weight:${tpl.bold ? 700 : 400};${sh}">${tpl.band ? `<i class="sl-band" style="background:${tpl.band}"></i>` : ''}${inner}</div>`;
+  return `<div class="sl" style="background:${bg ? `url(${bg}) center/cover no-repeat, ` : ''}${tpl.base};color:${tpl.text};font-family:${ff};font-weight:${tpl.bold ? 700 : 400};${sh}">${inner}</div>`;
 }
 const slThumb = (x, tpl, o) => `<span class="sl-th">${slHtml(x, tpl, o)}</span>`;
 function slScale(root) { (root || document).querySelectorAll('.sl-th').forEach(th => { const w = th.clientWidth; if (w) th.style.setProperty('--k', String(w / SL_W)); }); }
@@ -5449,7 +5522,9 @@ function renderSlides() {
       `<button type="button" class="gi" data-sl-t="title" ${P(0, o.title)} aria-label="Slide com o título" data-tip="Título|Um slide com o nome da música antes da letra (fica na tela durante a introdução).">${ico('sltitle')}</button>` +
       `<button type="button" class="gi" data-sl-t="blank" ${P(0, o.blank)} aria-label="Tela vazia entre as músicas" data-tip="Tela vazia|Um slide só com o fundo no começo e entre as músicas.">${ico('slblank')}</button>` +
       `<button type="button" class="gi" data-sl-t="part" ${P(0, o.part)} aria-label="Nome da parte no canto" data-tip="Nome da parte|Mostra pequeno no canto: Refrão, 2ª Estrofe… (ajuda quem canta junto).">${ico('tag')}</button>` +
-      `<button type="button" class="gi" data-sl-t="caps" ${P(0, o.caps)} aria-label="Letra em maiúsculas" data-tip="Maiúsculas|Toda a letra em MAIÚSCULAS, como em muitos telões.">AA</button></div>`;
+      `<button type="button" class="gi" data-sl-t="caps" ${P(0, o.caps)} aria-label="Letra em maiúsculas" data-tip="Maiúsculas|Toda a letra em MAIÚSCULAS, como em muitos telões.">AA</button></div>` +
+    `<div class="group" role="group" aria-label="Prévia"><button type="button" class="gi" data-sl-sim="1" ${P(0, sl.sim)} aria-label="Simular projetor fraco" data-tip="Simular projetor fraco|Mostra na prévia como fica com o projetor no fim da vida e a luz da janela: o preto vira cinza e as cores desbotam. Não muda o arquivo.">${ico('sun')}</button></div>`;
+  $('v-slides').classList.toggle('sl-sim', !!sl.sim);
   $('sl-warn').innerHTML = b.warn.length ? `<p class="sl-warn">${ico('lyrics', 16)}<span>${b.warn.length === 1 ? 'Sem letra (a cifra só tem acordes)' : 'Sem letra (as cifras só têm acordes)'}: <b>${b.warn.map(esc).join(', ')}</b>.${o.title ? ' Entra só o título.' : ' Fica fora dos slides.'}</span></p>` : '';
   let h = '', lastSong = -1;
   b.slides.forEach((x, i) => {
@@ -5493,21 +5568,21 @@ function loadPptx() {
 }
 /* monta o PowerPoint (separado de salvar, para os testes conferirem o arquivo) */
 async function slMakePptx() {
-  const l = listById(sl.id), P = await loadPptx(), tpl = slTpl(sl.o.tpl), o = sl.o, bg = slBg(tpl);
+  const l = listById(sl.id), P = await loadPptx(), tpl = slTpl(sl.o.tpl), o = sl.o, bg = slBg(tpl, 'lyrics');
   const pptx = new P();
   pptx.layout = 'LAYOUT_WIDE'; pptx.title = listTitle(l); pptx.author = 'Ministério da Música'; pptx.subject = 'Slides do culto';
-  pptx.defineSlideMaster({ title: 'IASD', background: bg ? { data: bg.replace(/^data:/, '') } : { color: hex(tpl.base) },
-    objects: tpl.band ? [{ rect: { x: 0, y: 7.36, w: 13.333, h: 0.14, fill: { color: hex(tpl.band) }, line: { color: hex(tpl.band), width: 0 } } }] : [] });
+  const bgT = slBg(tpl, 'title');
+  pptx.defineSlideMaster({ title: 'IASD', background: bg ? { data: bg.replace(/^data:/, '') } : { color: hex(tpl.base) } });
+  pptx.defineSlideMaster({ title: 'IASD_T', background: bgT ? { data: bgT.replace(/^data:/, '') } : { color: hex(tpl.base) } });
   const IN = (pt) => +(pt / 72).toFixed(3);
   const base = { fontFace: tpl.font, bold: !!tpl.bold, color: hex(tpl.text), align: 'center', valign: 'middle', margin: 0, lineSpacingMultiple: 1.2, fit: 'shrink' };
   if (tpl.shadow) base.shadow = { type: 'outer', color: '000000', opacity: 0.45, blur: 4, offset: 2, angle: 90 };
   const box = { x: IN(60), y: IN(60), w: IN(840), h: IN(420) };
   sl.b.slides.forEach(x => {
-    const s = pptx.addSlide({ masterName: 'IASD' });
+    const s = pptx.addSlide({ masterName: x.kind === 'title' ? 'IASD_T' : 'IASD' });
     if (x.kind === 'title') {
-      const runs = [{ text: slCap(x.song), options: { fontSize: x.pt, color: hex(tpl.title), breakLine: !!x.artist } }];
-      if (x.artist) runs.push({ text: x.artist, options: { fontSize: 26, color: hex(tpl.sub), bold: false } });
-      s.addText(runs, Object.assign({}, base, box));
+      s.addText(slCap(x.song), Object.assign({}, base, { x: IN(60), y: IN(90), w: IN(840), h: IN(220), valign: 'bottom', fontSize: x.pt, color: hex(tpl.title) }));
+      if (x.artist) s.addText(x.artist, Object.assign({}, base, { x: IN(60), y: IN(SL_ORN_Y + 24), w: IN(840), h: IN(44), valign: 'top', fontSize: 26, color: hex(tpl.sub), bold: false }));
     } else if (x.kind === 'lyrics') {
       if (o.part && x.part) s.addText(x.part, { x: IN(36), y: IN(16), w: IN(520), h: IN(30), fontFace: tpl.font, fontSize: 16, color: hex(tpl.sub), align: 'left', valign: 'top', margin: 0 });
       s.addText(x.lines.map((t, i) => ({ text: slCap(t), options: { breakLine: i < x.lines.length - 1 } })), Object.assign({}, base, box, { fontSize: x.pt }));
@@ -5554,6 +5629,7 @@ $('v-slides').addEventListener('click', (e) => {
   if ((b = t.closest('[data-sl-tpl]'))) { slSet('tpl', b.dataset.slTpl); return; }
   if ((b = t.closest('[data-sl-lines]'))) { slSet('lines', Number(b.dataset.slLines)); return; }
   if ((b = t.closest('[data-sl-t]'))) { slSet(b.dataset.slT, !sl.o[b.dataset.slT]); return; }
+  if (t.closest('[data-sl-sim]')) { sl.sim = !sl.sim; renderSlides(); return; }
   if ((b = t.closest('[data-sl-big]'))) { slBigShow(Number(b.dataset.slBig)); return; }
   if (t.closest('#sl-go')) slExport();
 });
