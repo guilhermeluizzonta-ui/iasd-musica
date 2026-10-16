@@ -463,6 +463,9 @@ body.metro-flash1::before { box-shadow: inset 0 0 0 10px var(--gold); }
 .rot-draft { min-height: 48px; padding: 8px; border: 1px dashed var(--line); border-radius: 10px; gap: 6px; }
 .rot-chip { min-height: 38px; min-width: 40px; padding: 0 10px; border-radius: 999px; border: var(--bw) solid var(--line); background: var(--surface); color: var(--fg); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
 .rot-chip.ch { border-color: var(--accent); color: var(--accent); }
+.rot-ord[aria-pressed="true"] { color: var(--accent); }
+.section-name .rep { margin-left: 8px; padding: 0 7px; border-radius: 999px; border: var(--bw) solid currentColor; font-size: .82em; font-weight: 800; }
+.section.inst .comment { font-style: italic; opacity: .8; }
 .rot-chip small { font-size: 11px; font-weight: 600; color: var(--muted); }
 .rot-chip.now { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
 .rot-chip.now small { color: var(--gold-ink); }
@@ -563,6 +566,36 @@ body.metro-flash1::before { box-shadow: inset 0 0 0 10px var(--gold); }
 .datetag.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 .li-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0 6px; }
 .li-actions .spacer { flex: 1; }
+/* Slides */
+.sl-th { position: relative; display: block; width: 100%; padding-top: 56.25%; overflow: hidden; border-radius: 6px; background: #000; box-shadow: 0 0 0 1px var(--line); }
+.sl-th > .sl { position: absolute; left: 0; top: 0; transform: scale(var(--k, .2)); transform-origin: 0 0; }
+.sl { width: 960px; height: 540px; overflow: hidden; line-height: 1.2; }
+.sl-box { position: absolute; left: 60px; right: 60px; top: 60px; bottom: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.sl-a { position: absolute; left: 60px; right: 60px; top: 360px; text-align: center; font-size: 26px; font-weight: 400; }
+.sl-tbox { position: absolute; left: 60px; right: 60px; top: 90px; height: 220px; display: flex; align-items: flex-end; justify-content: center; text-align: center; }
+.sl-sim .sl-th > .sl { filter: contrast(.5) brightness(1.3) saturate(.55); }
+.sl-p { position: absolute; left: 36px; top: 16px; font-size: 16px; font-weight: 400; }
+.sl-models { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 6px 0 4px; }
+.sl-model { display: flex; flex-direction: column; gap: 6px; padding: 6px; border-radius: 10px; border: 2px solid transparent; background: none; color: var(--fg); font: inherit; cursor: pointer; text-align: center; }
+.sl-model[aria-checked="true"] { border-color: var(--accent); background: var(--surface); }
+.sl-mname { font-size: 13px; font-weight: 600; }
+.sl-warn { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; color: var(--muted); margin: 6px 0; }
+.sl-warn svg { flex: none; margin-top: 2px; }
+.sl-prev { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px 10px; margin: 10px 0 90px; }
+.sl-song { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 12px 0 0; font-size: 16px; }
+.sl-song small { font-size: 12px; font-weight: 600; color: var(--accent); }
+.sl-cell { display: flex; flex-direction: column; gap: 4px; padding: 0; border: 0; background: none; color: var(--fg); font: inherit; text-align: left; cursor: pointer; }
+.sl-cap { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sl-cap b { color: var(--fg); }
+.sl-foot { position: sticky; bottom: 0; display: flex; align-items: center; gap: 10px; justify-content: flex-end; padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--bg); border-top: var(--bw) solid var(--line); }
+.sl-foot .tipline { flex: 1; margin: 0; }
+.sl-big { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.82); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.sl-big[hidden] { display: none; }
+.sl-big-in { width: min(100%, 1100px); display: flex; flex-direction: column; gap: 10px; }
+.sl-big-note { margin: 0; color: #fff; font-size: 14px; white-space: pre-line; opacity: .9; }
+.sl-big-bar { display: flex; align-items: center; gap: 10px; color: #fff; }
+.sl-big-bar .spacer { flex: 1; }
+@media (max-width: 600px) { .sl-models { grid-template-columns: repeat(3, minmax(0, 1fr)); } .sl-prev { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .li-note { margin: 6px 0 0; white-space: pre-wrap; font-size: 14px; }
 .li-item { display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
 .li-n { width: 26px; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 600; flex: none; }
@@ -1048,6 +1081,26 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
       <p class="tipline" aria-live="polite"></p>
       <div id="li-items"></div>
     </section>
+    <!-- Slides da lista (PowerPoint) -->
+    <section class="view" id="v-slides" data-tipscope hidden>
+      <p class="hint" id="sl-meta"></p>
+      <span class="sec-title">Modelo</span>
+      <div class="sl-models" id="sl-models" role="radiogroup" aria-label="Modelo dos slides"></div>
+      <div class="li-actions sl-opts" id="sl-opts"></div>
+      <div id="sl-warn"></div>
+      <div class="sl-prev" id="sl-prev"></div>
+      <div class="sl-foot">
+        <p class="tipline" aria-live="polite"></p>
+        <button type="button" class="btn ib primary" id="sl-go" aria-label="Gerar o PowerPoint" data-tip="Gerar .pptx|Cria o arquivo para abrir no PowerPoint do computador da projeção. No tablet, abre a janela de enviar (Drive, WhatsApp, e-mail)."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11M7.5 9.5 12 14l4.5-4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></button>
+      </div>
+      <div class="sl-big" id="sl-big" role="dialog" aria-label="Slide em tamanho grande" hidden>
+        <div class="sl-big-in">
+          <span class="sl-th" id="sl-big-th"></span>
+          <p class="sl-big-note" id="sl-big-note"></p>
+          <div class="sl-big-bar"><button type="button" class="btn ib" id="sl-big-prev" aria-label="Slide anterior">‹</button><span id="sl-big-n"></span><button type="button" class="btn ib" id="sl-big-next" aria-label="Próximo slide">›</button><span class="spacer"></span><button type="button" class="btn ib" id="sl-big-x" aria-label="Fechar">✕</button></div>
+        </div>
+      </div>
+    </section>
     <!-- Nova lista / editar / clonar -->
     <section class="view" id="v-listaform" hidden>
       <form class="box" id="lf-form" autocomplete="off" data-tipscope>
@@ -1530,8 +1583,9 @@ function renderSheet(el, text, v, mode) {
   if (meta.title) html += `<h2 class="title">${esc(meta.title)}</h2>`;
   html += `<p class="meta">${esc(meta.artist)}${meta.artist && keyHtml ? ' · ' : ''}${keyHtml}${keyHtml ? capoHtml : capoHtml.replace(/^ · /, '')}</p>`;
   html += `<div class="body cols-${v.cols}">`;
-  let open = false; const problems = [];
-  const openSec = (cls, name) => { if (open) html += '</div>'; html += `<div class="section ${cls}">` + (name ? `<div class="section-name">${esc(secLabel(name))}</div>` : ''); open = true; };
+  let open = false, rotI = null; const problems = [];
+  const rotAttr = () => { const a = rotI == null ? '' : ` data-rot="${rotI}"`; rotI = null; return a; };
+  const openSec = (cls, name) => { if (open) html += '</div>'; html += `<div class="section ${cls}"${rotAttr()}>` + (name ? secNameHtml(name) : ''); open = true; };
   const closeSec = () => { if (open) { html += '</div>'; open = false; } };
   text.split('\n').forEach((raw, n) => {
     const line = raw.replace(/\s+$/, '');
@@ -1542,8 +1596,9 @@ function renderSheet(el, text, v, mode) {
       else if (k === 'start_of_chorus' || k === 'soc') openSec('chorus', val || 'Refrão');
       else if (k === 'start_of_bridge' || k === 'sob') openSec('verse', val || 'Ponte');
       else if (/^end_of_|^eo[vcb]$/.test(k)) closeSec();
+      else if (k === 'x_rot') rotI = val;
       else if (k === 'comment' || k === 'c' || k === 'ci') {
-        html += `<p class="comment">${esc(val).replace(/\[([^\]]+)\]/g, (_, ch) => `<span class="chord">${esc(renderChord(ch, useFlats, v))}</span>`)}</p>`;
+        html += `<p class="comment"${rotAttr()}>${esc(vezTxt(val)).replace(/\[([^\]]+)\]/g, (_, ch) => `<span class="chord">${esc(renderChord(ch, useFlats, v))}</span>`)}</p>`;
       }
       return;
     }
@@ -1713,6 +1768,7 @@ function go(name, params = {}) {
   if (name === 'lista') renderListDetail(params.id);
   if (name === 'listaform') openListForm(params);
   if (name === 'listapick') openPick(params.id);
+  if (name === 'slides') openSlides(params.id);
   updListNav();
   document.body.classList.remove('bars-hidden'); lastScrollY = 0;
   window.scrollTo(0, 0);
@@ -2134,7 +2190,7 @@ function capoAtual() { return usaCapo() ? (cur.v.capo || 0) : 0; }
 function renderViewer() {
   const s = songById(cur.id); if (!s) return;
   const capo = capoAtual();
-  const r = renderSheet($('sheet'), s.text, Object.assign({}, cur.v, { capoTela: capo }), 'viewer');
+  const r = renderSheet($('sheet'), shownText(s, cur.v), Object.assign({}, cur.v, { capoTela: capo }), 'viewer');
   $('t-capo-g').hidden = !usaCapo();
   const ia = INSTR[instAtual()];
   $('t-inst').textContent = ia ? ia.nome : 'Instrumento';
@@ -2160,7 +2216,7 @@ function renderViewer() {
   $('t-zval').textContent = pct === 100 ? '100%' : '↺ ' + pct + '%';
   $('t-zval').disabled = pct === 100;
   $('t-zval').setAttribute('aria-label', pct === 100 ? 'Texto em 100%' : `Texto em ${pct}%. Voltar para 100%`);
-  if (cur.listBase) ['simplify', 'colsMode', 'cols', 'zoom', 'fit', 'capo', 'inst', 'dgInst'].forEach(k => { cur.listBase[k] = cur.v[k]; });   // capo é da música, vale também na lista   // tom do culto não muda o tom pessoal
+  if (cur.listBase) ['simplify', 'colsMode', 'cols', 'zoom', 'fit', 'capo', 'inst', 'dgInst', 'escrita'].forEach(k => { cur.listBase[k] = cur.v[k]; });   // capo é da música, vale também na lista   // tom do culto não muda o tom pessoal
   save();
   renderRoteiro();
   renderDiagBar();
@@ -3424,11 +3480,13 @@ let ink = { on: false, tool: 'pen', color: '#E53935', undo: [], live: null, pan:
 try { ink.penOnly = localStorage.getItem('repertorio.penOnly') === '1'; ink.penSeen = ink.penOnly; } catch (e) {}
 let inkGeo = new Map();
 const r1 = (v) => Math.round(v * 10) / 10;
+/* na ordem do roteiro os pedaços da cifra mudam de lugar: as anotações dessa vista ficam separadas das da cifra como está escrita */
+function cifraInkKey() { const s = songById(cur.id); return 'c:' + cur.id + (s && shownText(s, cur.v) !== s.text ? '|rot' : ''); }
 function textHash(t) { let h = 5381; for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
 function inkDoc(create) {
   if (route.name === 'cifra' && cur.id) {
-    const k = 'c:' + cur.id;
-    if (!notes[k] && create) { const s = songById(cur.id); notes[k] = { h: textHash(s ? s.text : ''), s: [] }; }
+    const k = cifraInkKey();
+    if (!notes[k] && create) { const s = songById(cur.id); notes[k] = { h: textHash(shownText(s, cur.v)), s: [] }; }
     return notes[k] || null;
   }
   if (route.name === 'partitura' && pv.id) {
@@ -3469,8 +3527,8 @@ function drawCifraInk() {
   svg.setAttribute('width', 0); svg.setAttribute('height', 0); svg.innerHTML = '';
   svg.setAttribute('width', sheet.scrollWidth); svg.setAttribute('height', sheet.scrollHeight);
   inkGeo = new Map();
-  const doc = notes['c:' + cur.id];
-  $('ink-warn').hidden = !(doc && doc.s.length && s && doc.h !== textHash(s.text));
+  const doc = notes[cifraInkKey()];
+  $('ink-warn').hidden = !(doc && doc.s.length && s && doc.h !== textHash(shownText(s, cur.v)));
   if (!doc || !doc.s.length) return;
   const o = sheetOrigin(sheet), z = cur.v.zoom;
   const pos = cifraAnchors(sheet).map(a => { const r = a.getBoundingClientRect(); return { x: r.left - o.x, y: r.top - o.y }; });
@@ -3493,7 +3551,7 @@ function drawPdfInk() {
   });
 }
 function inkRedraw() { if (route.name === 'cifra') drawCifraInk(); else if (route.name === 'partitura') drawPdfInk(); }
-$('ink-warn-ok').addEventListener('click', () => { const d = inkDoc(false), s = songById(cur.id); if (d && s) { d.h = textHash(s.text); saveNotes(); } $('ink-warn').hidden = true; });
+$('ink-warn-ok').addEventListener('click', () => { const d = inkDoc(false), s = songById(cur.id); if (d && s) { d.h = textHash(shownText(s, cur.v)); saveNotes(); } $('ink-warn').hidden = true; });
 
 /* Ligar / desligar o modo anotar */
 const inkArea = () => route.name === 'cifra' ? $('sheet') : route.name === 'partitura' ? $('pv-pages') : null;
@@ -3801,6 +3859,7 @@ function renderListDetail(id) {
   const B = (attrs, icon, label, tip, cls = 'btn ib') => `<button type="button" class="${cls}" ${attrs} aria-label="${label}" data-tip="${tip}">${ico(icon)}</button>`;
   $('li-actions').innerHTML = B(`data-li-start="1" ${l.items.length ? '' : 'disabled'}`, 'play', 'Começar', (devoOn(l) ? 'Começar|Abre a meditação e a oração; depois as músicas no tom do culto e, no fim, a oração final. A barra de baixo passa para a próxima.' : 'Começar|Abre a primeira música no tom do culto. A barra de baixo passa para a próxima.'), 'btn ib primary') +
     `<div class="group" role="group" aria-label="Abrir as músicas em"><button type="button" class="gi" data-li-as="cifra" aria-pressed="${open === 'cifra'}" aria-label="Abrir em cifra" data-tip="Abrir em cifra|No modo culto, as músicas abrem na cifra.">${ico('chord')}</button><button type="button" class="gi" data-li-as="partitura" aria-pressed="${open === 'partitura'}" aria-label="Abrir em partitura" data-tip="Abrir em partitura|No modo culto, abrem na partitura (quando a música tiver uma).">${ico('clef')}</button><button type="button" class="gi" data-li-as="letra" aria-pressed="${open === 'letra'}" aria-label="Abrir em letra" data-tip="Abrir em letra|No modo culto, abrem só com a letra e o tom (louvor e coral).">${ico('lyrics')}</button></div>` +
+    B(`data-li-slides="1" ${l.items.length ? '' : 'disabled'}`, 'slides', 'Slides', 'Slides|Gera o PowerPoint com as letras desta lista, na ordem do roteiro, para o computador da projeção.') +
     (ed ? '<span class="spacer"></span>' + B('data-li-add="1"', 'musicadd', 'Adicionar músicas', 'Adicionar músicas|Escolha as músicas na ordem do culto.') +
       B('data-li-edit="1"', 'edit', 'Editar dados da lista', 'Editar dados|Nome, data, horário, responsável e observações.') +
       B(`data-list-more="${esc(l.id)}" aria-haspopup="menu"`, 'more', 'Mais opções da lista', 'Mais opções|Clonar para outro culto ou excluir a lista.', 'btn ib') : '');
@@ -4063,6 +4122,7 @@ document.addEventListener('click', (e) => {
     const i = l.items.findIndex(it => { const s = songById(it.songId); return s && !s.archived; }); if (i >= 0) openListItem(l, i); return;
   }
   if ((b = t.closest('[data-li-as]'))) { db.listOpen = b.dataset.liAs; save(); renderListDetail(l.id); if (db.listOpen === 'partitura' && !l.items.some(it => scoresForSong(it.songId).length)) toast('Nenhuma música desta lista tem partitura ligada: elas abrem na cifra.'); return; }
+  if ((b = t.closest('[data-li-slides]'))) { go('slides', { id: l.id, back: { name: 'lista', params: { id: l.id, back: { name: 'listas' } } } }); return; }
   if ((b = t.closest('[data-li-add]'))) { go('listapick', { id: l.id, back: { name: 'lista', params: { id: l.id, back: { name: 'listas' } } } }); return; }
   if ((b = t.closest('[data-li-edit]'))) { go('listaform', { id: l.id, back: { name: 'lista', params: { id: l.id, back: { name: 'listas' } } } }); return; }
   if ((b = t.closest('[data-li-open]'))) { openListItem(l, Number(b.dataset.liOpen)); return; }
@@ -4103,6 +4163,13 @@ window.addEventListener('scroll', () => {
   document.body.classList.toggle('bars-hidden', dy > 0 && y > 140 && !busy);
 }, { passive: true });
 const ICO = {"score": "<path d=\"M2 4h14M2 8h11M2 12h9M2 16h7M2 20h6\"/><path d=\"M13.5 19.5l-1 3 3-1 7.2-7.2a1.4 1.4 0 0 0-2-2z\"/>", "lyrics": "<path d=\"M4 6h16M4 10h16M4 14h10M4 18h7\"/><path d=\"M18 14v6\"/><circle cx=\"16.5\" cy=\"20\" r=\"1.5\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>", "listadd": "<path d=\"M4 6h11M4 12h11M4 18h7\"/><path d=\"M18 14v6M15 17h6\"/>", "clef": "<path d=\"M12.8 19.6 L10.9 4.9c-.25-1.9.85-3.1 1.95-2.8 1.35.35 1.3 2.6-.25 4.5-1.9 2.3-5.1 4-5.1 7.5 0 2.7 2.2 4.6 4.8 4.6 2.4 0 4.1-1.7 4.1-3.8 0-2-1.6-3.4-3.4-3.4-1.9 0-3 1.4-2.8 2.9\"/><path d=\"M12.8 19.6c.25 1.6-.8 2.6-2.1 2.5\"/><circle cx=\"10.2\" cy=\"21.2\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/>", "chord": "<path d=\"M4 5H20\" stroke-width=\"2.6\"/><path d=\"M4 5V21.5M9.33 5V21.5M14.67 5V21.5M20 5V21.5\" stroke-width=\"1.3\"/><path d=\"M4 10.5H20M4 16H20M4 21.5H20\" stroke-width=\"1.3\"/><circle cx=\"4\" cy=\"18.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9.33\" cy=\"13.25\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"7.75\" r=\"2.3\" fill=\"currentColor\" stroke=\"none\"/>", "edit": "<path d=\"M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6\"/><path d=\"M18.4 3.6a2 2 0 0 1 2.9 2.9L12.5 15.3 9 16l.7-3.5z\"/>", "pen": "<path d=\"M4 20h4L19 9l-4-4L4 16v4z\"/><path d=\"M14 6l4 4\"/>", "wand": "<path d=\"M4 20 15 9\"/><path d=\"M14 4v2M14 10v2M18 8h2M10 8h2M16.8 5.2l1.4-1.4M16.8 10.8l1.4 1.4M11.2 5.2 9.8 3.8\"/>", "fit": "<path d=\"M12 3v6M9 6l3 3 3-3M12 21v-6M9 18l3-3 3 3\"/><path d=\"M4 12h16\"/>", "full": "<path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/>", "unfull": "<path d=\"M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5\"/>", "play": "<path d=\"M7 4.5v15l12.5-7.5z\" fill=\"currentColor\"/>", "musicadd": "<path d=\"M9 18V5l8-2v6\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><path d=\"M19 14v6M16 17h6\"/>", "check": "<path d=\"M4.5 12.5l5 5L19.5 7\"/>", "x": "<path d=\"M6 6l12 12M18 6 6 18\"/>", "trash": "<path d=\"M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3\"/>", "paste": "<rect x=\"8\" y=\"2.5\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2\"/><path d=\"M9 12h6M9 16h4\"/>", "import": "<path d=\"M12 3v11M7.5 9.5 12 14l4.5-4.5\"/><path d=\"M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3\"/>", "eraser": "<path d=\"M8 20h12\"/><path d=\"M4.6 15.4l9.2-9.2a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8z\"/><path d=\"M9 11l5 5\"/>", "search": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M20 20l-3.5-3.5\"/>", "reset": "<path d=\"M4 12a8 8 0 1 0 2.3-5.6\"/><path d=\"M4 4v4h4\"/>", "more": "<circle cx=\"12\" cy=\"5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"};
+ICO.sun = '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>';
+ICO.slides = '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v4M8 20h8"/><path d="M7 8.5h10M8.5 11.5h7"/>';
+ICO.slpart = '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 12h8M8 15h5"/>';
+ICO.sltitle = '<path d="M6 5h12M12 5v14M9 19h6"/>';
+ICO.slblank = '<rect x="3" y="5" width="18" height="13" rx="1.5" stroke-dasharray="3 2.5"/>';
+ICO.tag = '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>';
+ICO.order = '<path d="M7 4v16M4 7l3-3 3 3"/><path d="M17 20V4M14 17l3 3 3-3"/>';
 ICO.pray = '<path d="M12 3.5c-.9 1.3-1.3 2.9-1.3 4.6v5l-3.2 3.1a2 2 0 0 0-.6 1.4V21"/><path d="M12 3.5c.9 1.3 1.3 2.9 1.3 4.6v5l3.2 3.1a2 2 0 0 1 .6 1.4V21"/><path d="M12 8.5V21"/>';
 const ico = (n, size = 22) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[n] || ''}</svg>`;
 function setFsBtn(b, on) {
@@ -4505,6 +4572,85 @@ function rotShort(name) {
 }
 /* junta repetições seguidas: R R → R ×2 */
 function rotGroups(rot) { const g = []; rot.forEach((x, i) => { const last = g[g.length - 1]; if (last && last.name === x) last.n++; else g.push({ name: x, n: 1, i }); }); return g; }
+/* ---------- Ordem do roteiro ----------
+   Com roteiro, a cifra e a letra aparecem NA ORDEM DO ROTEIRO (começar pelo refrão, repetir, pular partes);
+   repetições seguidas aparecem uma vez com "×N". Os slides usam a mesma busca de partes, mas repetem de verdade.
+   "Como está escrita" (v.escrita) mostra o texto original. Partes do roteiro que não estão escritas (Solo, Final…)
+   viram uma marca no lugar. A partitura vai seguir a mesma lógica depois. */
+/* nome de parte "puro" num comentário ({c: Refrão}, {c: Intro: [G] [D]}); "Refrão 2x" é observação, não parte */
+const PART_LABEL = /^((\d{1,2}\s*[ªaº°o.]?\s*)?(estrofe|verso|parte)(\s*\d{1,2})?|(primeir|segund|terceir|quart|quint|sext|s[eé]tim|oitav|non|d[eé]cim)[ao]\s+(parte|estrofe)|refr[aã]o(\s*\d{1,2})?|coro|pr[eé][- ]?refr[aã]o|ponte|tag|coda)[\s:.-]*$/i;
+/* Divide a cifra em partes. Uma parte vai do nome (ou {start_of_…}) até o próximo nome: os parágrafos sem nome que vêm
+   depois de uma linha em branco continuam na mesma parte (é assim que as cifras importadas chegam). */
+function rotBlocks(text) {
+  const head = [], items = []; let curB = null, last = null;
+  const loose = (raw) => { const lo = items[items.length - 1]; if (lo && lo.loose) lo.lines.push(raw); else items.push({ loose: true, lines: [raw] }); };
+  const add = (raw) => { if (last) last.lines.push(raw); else if (raw.trim()) loose(raw); };
+  text.split('\n').forEach(raw => {
+    const t = raw.trim(), d = t.match(/^\{\s*([a-z_]+)\s*:?\s*(.*?)\s*\}$/i);
+    if (d) {
+      const k = d[1].toLowerCase();
+      if (/^(start_of_(verse|chorus|bridge)|sov|soc|sob)$/.test(k)) {
+        curB = { label: secLabel(d[2] || (/chorus|soc/.test(k) ? 'Refrão' : /bridge|sob/.test(k) ? 'Ponte' : 'Estrofe')), lines: [raw] };
+        items.push(curB); last = curB; return;
+      }
+      if (/^(end_of_|eo[vcb]$)/.test(k)) { if (curB) { curB.lines.push(raw); curB = null; } return; }
+      if (k === 'c' || k === 'comment' || k === 'ci') {
+        if (curB) { curB.lines.push(raw); return; }
+        const lab = d[2].replace(/\[[^\]]*\]/g, ' ').split(/[:(]/)[0].replace(/\s+/g, ' ').trim();
+        const inst = !!lab && LABEL_ONLY.test(lab);
+        if (inst || (lab && PART_LABEL.test(lab))) {
+          const b = { label: secLabel(lab.replace(/[\s:.-]+$/, '')), lines: [raw], cmt: true, inst };
+          items.push(b); if (!inst) last = b;   // depois de Solo/Intro, o parágrafo sem nome volta para a parte de letra anterior
+          return;
+        }
+        add(raw); return;   // observação ("Refrão 2x") ou acordes soltos: ficam onde estão
+      }
+      if (curB) { curB.lines.push(raw); return; }
+      head.push(raw); return;   // título, artista, tom, roteiro…
+    }
+    if (curB) { curB.lines.push(raw); return; }
+    if (!t) { if (last) last.lines.push(raw); return; }
+    add(raw);
+  });
+  items.forEach(b => { while (b.lines.length > 1 && !b.lines[b.lines.length - 1].trim()) b.lines.pop(); });
+  return { head, items };
+}
+/* acha a parte do roteiro no texto: primeiro as partes marcadas (estrofe, refrão), depois os comentários (Intro: …) */
+function rotFind(items, name) {
+  const n = norm(name);
+  return items.find(b => !b.cmt && !b.loose && norm(b.label) === n) || items.find(b => b.cmt && norm(b.label) === n) || null;
+}
+/* Reescreve a cifra na ordem do roteiro. Parte com letra repetida aparece de novo, por extenso, marcada "2ª vez";
+   parte só instrumental repetida em seguida aparece uma vez com ×N. */
+function arrangeText(text, rot) {
+  if (!rot || !rot.length) return text;
+  const { head, items } = rotBlocks(text), out = head.slice(), vez = {};
+  const loose = items.filter(b => b.loose);   // letra antes de qualquer parte: fica em cima
+  if (loose.length) { out.push(''); loose.forEach(b => out.push(...b.lines)); }
+  rotGroups(rot).forEach((g, k) => {
+    const b = rotFind(items, g.name), x = g.n > 1 ? ' ×' + g.n : '';
+    out.push('', `{x_rot: ${k}}`);
+    if (!b) { out.push(`{c: ${g.name}${x}}`); return; }
+    if (b.inst) { out.push(x ? b.lines[0].replace(/\s*\}\s*$/, x + '}') : b.lines[0], ...b.lines.slice(1)); return; }
+    for (let r = 0; r < g.n; r++) {
+      const nv = vez[b.label] = (vez[b.label] || 0) + 1;
+      if (r) out.push('');
+      const first = b.cmt ? (nv > 1 ? b.lines[0].replace(/\s*\}\s*$/, ` #${nv}}`) : b.lines[0])
+        : b.lines[0].replace(/^(\s*\{\s*[a-z_]+)\s*:?\s*(.*?)\s*\}\s*$/i, (m0, a) => `${a}: ${b.label}${nv > 1 ? ' #' + nv : ''}}`);
+      out.push(first, ...b.lines.slice(1));
+    }
+  });
+  return out.join('\n');
+}
+/* texto que aparece na tela (cifra ou letra): na ordem do roteiro, a não ser que a pessoa peça "como está escrita" */
+function shownText(s, v) {
+  if (!s) return '';
+  const c = rotContext();
+  return c.s === s && c.rot.length && !(v && v.escrita) ? arrangeText(s.text, c.rot) : s.text;
+}
+const secRep = (name) => { const t = String(name); let m = t.match(/^(.*?)\s*#(\d+)$/); if (m) return { name: m[1], vez: Number(m[2]), n: 1 }; m = t.match(/^(.*?)\s*×(\d+)$/); return m ? { name: m[1], n: Number(m[2]), vez: 1 } : { name: t, n: 1, vez: 1 }; };
+const secNameHtml = (name) => { const r = secRep(name); return `<div class="section-name">${esc(secLabel(r.name))}${r.n > 1 ? `<span class="rep" aria-label="${r.n} vezes">×${r.n}</span>` : ''}${r.vez > 1 ? `<span class="rep">${r.vez}ª vez</span>` : ''}</div>`; };
+const vezTxt = (t) => String(t).replace(/\s*#(\d+)\s*$/, ' ($1ª vez)');
 function renderRoteiro() {
   const bar = route.name === 'cifra' ? $('rot-bar') : route.name === 'letra' ? $('rot-bar-l') : null;
   ['rot-bar', 'rot-bar-l'].forEach(id => { if ($(id) && $(id) !== bar) $(id).hidden = true; });
@@ -4513,17 +4659,22 @@ function renderRoteiro() {
   if (!c.s || (!c.rot.length && !ed)) { bar.hidden = true; return; }
   bar.hidden = false;
   bar.innerHTML = c.rot.length
-    ? `<span class="rot-lbl">Roteiro${c.fromList ? ' <small>deste culto</small>' : ''}</span><div class="rot-chips">${rotGroups(c.rot).map(g => `<button type="button" class="rot-chip${/refr|coro/i.test(g.name) ? ' ch' : ''}" data-rot-go="${esc(g.name)}" aria-label="${esc(g.name)}${g.n > 1 ? `, ${g.n} vezes` : ''}. Ir para esta parte">${esc(rotShort(g.name))}${g.n > 1 ? `<small>×${g.n}</small>` : ''}</button>`).join('<span class="rot-sep" aria-hidden="true">›</span>')}</div>${ed ? `<button type="button" class="icon-btn rot-ed" data-ens="rot" aria-haspopup="dialog" aria-label="Editar roteiro" data-tip="Editar roteiro|Monte a ordem das partes: intro, estrofes, refrão quantas vezes, final.">${ico('edit', 18)}</button>` : ''}`
+    ? `<span class="rot-lbl">Roteiro${c.fromList ? ' <small>deste culto</small>' : ''}</span><div class="rot-chips">${rotGroups(c.rot).map((g, k) => Object.assign(g, { k })).map(g => `<button type="button" class="rot-chip${/refr|coro/i.test(g.name) ? ' ch' : ''}" data-rot-go="${esc(g.name)}" data-rot-i="${g.k}" aria-label="${esc(g.name)}${g.n > 1 ? `, ${g.n} vezes` : ''}. Ir para esta parte">${esc(rotShort(g.name))}${g.n > 1 ? `<small>×${g.n}</small>` : ''}</button>`).join('<span class="rot-sep" aria-hidden="true">›</span>')}</div>${rotOrderBtn()}${ed ? `<button type="button" class="icon-btn rot-ed" data-ens="rot" aria-haspopup="dialog" aria-label="Editar roteiro" data-tip="Editar roteiro|Monte a ordem das partes: intro, estrofes, refrão quantas vezes, final.">${ico('edit', 18)}</button>` : ''}`
     : `<button type="button" class="link rot-add" data-ens="rot" aria-haspopup="dialog" data-tip="Roteiro do arranjo|Monte a ordem em que as partes são tocadas (ex.: Intro › E1 › Refrão ×2 › Final). Aparece aqui em cima para todos.">${ico('listadd', 16)}Roteiro do arranjo</button>`;
 }
-function rotGoTo(name) {
+function rotView() { return route.name === 'cifra' ? cur.v : route.name === 'letra' ? lyr.v : null; }
+function rotOrderBtn() {
+  const v = rotView(), on = !(v && v.escrita);
+  return `<button type="button" class="icon-btn rot-ord" data-rot-ord="1" aria-pressed="${on}" aria-label="${on ? 'Na ordem do roteiro' : 'Como está escrita'}" data-tip="${on ? 'Na ordem do roteiro|A música aparece na ordem do roteiro (repetições marcadas com ×). Toque para ver como está escrita.' : 'Como está escrita|A música aparece como foi escrita. Toque para voltar à ordem do roteiro.'}">${ico('order', 18)}</button>`;
+}
+function rotGoTo(name, idx) {
   const sheet = route.name === 'cifra' ? $('sheet') : $('lsheet'); if (!sheet) return;
   const want = norm(name);
-  const el = [...sheet.querySelectorAll('.section-name')].find(x => norm(x.textContent.trim()) === want)
+  const el = (idx != null && sheet.querySelector(`[data-rot="${idx}"]`)) || [...sheet.querySelectorAll('.section-name')].find(x => norm(x.textContent.trim()) === want)
     || [...sheet.querySelectorAll('.comment, .section-name')].find(x => norm(x.textContent).startsWith(norm(name).slice(0, 5)));
-  document.querySelectorAll('.rot-chip').forEach(b => b.classList.toggle('now', b.dataset.rotGo === name));
+  document.querySelectorAll('.rot-chip').forEach(b => b.classList.toggle('now', idx != null ? b.dataset.rotI === String(idx) : b.dataset.rotGo === name));
   if (!el) { toast(`"${name}" não está escrita na cifra: é só a ordem.`); return; }
-  const sec = el.closest('.section') || el;
+  const sec = el.closest('.section') || el.closest('.comment') || el;
   sec.classList.remove('rot-hl'); void sec.offsetWidth; sec.classList.add('rot-hl');
   const top = sec.getBoundingClientRect().top + window.scrollY - reservedTop() - 70;
   window.scrollTo({ top: Math.max(0, top), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
@@ -4563,10 +4714,16 @@ ensPop.addEventListener('click', (e) => {
       c.s.text = d.length ? setHeadDirectives(c.s.text, { x_roteiro: d.join(' | ') }) : c.s.text.split('\n').filter(l => !/^\s*\{\s*x_roteiro\s*:/i.test(l)).join('\n');
       c.s.updated = Date.now(); save();
     }
-    closeEnsPop(); renderRoteiro(); toast(d.length ? 'Roteiro guardado.' : 'Roteiro apagado.');
+    closeEnsPop(); rerenderRot(); toast(d.length ? 'Roteiro guardado. A música aparece nessa ordem (e os slides também).' : 'Roteiro apagado.');
   }
 });
-document.addEventListener('click', (e) => { const b = e.target.closest('[data-rot-go]'); if (b) rotGoTo(b.dataset.rotGo); });
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-rot-go]'); if (b) { rotGoTo(b.dataset.rotGo, b.dataset.rotI != null ? Number(b.dataset.rotI) : null); return; }
+  const o = e.target.closest('[data-rot-ord]'); const v = o && rotView();
+  if (v) { v.escrita = !v.escrita; rerenderRot(); showTip($$rotOrd()); }
+});
+function rerenderRot() { if (route.name === 'cifra') renderViewer(); else if (route.name === 'letra') renderLetra(); }
+const $$rotOrd = () => document.querySelector(`#${route.name === 'cifra' ? 'rot-bar' : 'rot-bar-l'} [data-rot-ord]`);
 [['sheet', 'rot-bar'], ['lsheet', 'rot-bar-l']].forEach(([sh, id]) => {
   const el = $(sh); if (!el) return;
   const bar = document.createElement('div'); bar.className = 'rot-bar'; bar.id = id; bar.hidden = true; bar.dataset.tipscope = '';
@@ -4926,8 +5083,8 @@ function lviewFor(id) { if (!db.lview || typeof db.lview !== 'object') db.lview 
 const LABEL_ONLY = /^(intro(du[cç][aã]o)?|solo|interl[uú]dio|final|ponte instrumental|instrumental|riff|base|outro|passagem)\b[\s:.-]*$/i;
 /* Lê a cifra (ChordPro) e devolve as partes só com a letra */
 function lyricsOf(text) {
-  const parts = []; let cur = null, has = false;
-  const open = (cls, name) => { cur = { cls, name, lines: [] }; parts.push(cur); };
+  const parts = []; let cur = null, has = false, rotI = null;
+  const open = (cls, name) => { cur = { cls, name, lines: [], rot: rotI }; rotI = null; parts.push(cur); };
   text.split('\n').forEach(raw => {
     const line = raw.replace(/\s+$/, '');
     const d = line.trim().match(/^\{\s*([a-z_]+)\s*:?\s*(.*?)\s*\}$/i);
@@ -4937,9 +5094,12 @@ function lyricsOf(text) {
       else if (k === 'start_of_chorus' || k === 'soc') open('chorus', val || 'Refrão');
       else if (k === 'start_of_bridge' || k === 'sob') open('verse', val || 'Ponte');
       else if (/^end_of_|^eo[vcb]$/.test(k)) cur = null;
+      else if (k === 'x_rot') { rotI = val; cur = null; }
       else if (k === 'comment' || k === 'c' || k === 'ci') {
-        const t = val.replace(/\[[^\]]*\]/g, ' ').replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
-        if (t && !LABEL_ONLY.test(t)) { if (!cur) open('', ''); cur.lines.push({ note: t }); }
+        const t = vezTxt(val).replace(/\[[^\]]*\]/g, ' ').replace(/\s+/g, ' ').trim();
+        const inst = rotI != null && t && LABEL_ONLY.test(t.replace(/\s*×\d+$/, ''));   // no roteiro: Solo, Intro… aparecem como marca
+        if (inst) { open('inst', ''); cur.lines.push({ note: t.replace(/[\s:.-]+(?=\s*×\d+$|$)/, '') }); cur = null; }
+        else if (t && !LABEL_ONLY.test(t)) { if (!cur) open('', ''); cur.lines.push({ note: t }); }
       }
       return;
     }
@@ -4952,13 +5112,13 @@ function lyricsOf(text) {
   return { parts: parts.filter(p => p.lines.some(l => l.text || l.note)), has };
 }
 function renderLyricSheet(el, s, v, meta) {
-  const ly = lyricsOf(s.text), ki = songKeyInfo(s, v.shift);
+  const ly = lyricsOf(shownText(s, v)), ki = songKeyInfo(s, v.shift);
   let h = `<h2 class="title">${esc(s.title)}</h2><p class="meta">${esc(s.artist || '')}${s.artist && ki ? ' · ' : ''}${ki ? `Tom: <b class="lkey">${esc(ki.cur.label)}</b>${v.shift ? ` · original ${esc(ki.orig.label)}` : ''}${ki.sug ? ' (sugerido)' : ''}` : ''}${meta ? ' · ' + esc(meta) : ''}</p>`;
   if (!ly.has) h += `<div class="empty"><p>Esta música ainda não tem letra: a cifra tem só os acordes.${db.role === 'editor' ? ' Coloque a letra pelo editor da cifra.' : ''}</p></div>`;
   else {
     h += `<div class="body lyr cols-${v.cols}">`;
     ly.parts.forEach(p => {
-      h += `<div class="section ${p.cls}">${p.name ? `<div class="section-name">${esc(secLabel(p.name))}</div>` : ''}`;
+      h += `<div class="section ${p.cls}"${p.rot != null ? ` data-rot="${esc(p.rot)}"` : ''}>${p.name ? secNameHtml(p.name) : ''}`;
       p.lines.forEach(l => { h += l.blank ? '<div class="lblank"></div>' : l.note ? `<p class="comment">${esc(l.note)}</p>` : `<p class="lline">${esc(l.text)}</p>`; });
       h += '</div>';
     });
@@ -5027,7 +5187,7 @@ function renderLetra() {
   const manual = lyr.v.colsMode === 'manual';
   $('lv-cauto').setAttribute('aria-pressed', String(!manual)); $('lv-cauto').textContent = manual ? 'Auto' : `Auto · ${lyr.v.cols}`;
   document.querySelectorAll('[data-lcols]').forEach(b => b.setAttribute('aria-pressed', String(manual && Number(b.dataset.lcols) === lyr.v.cols)));
-  if (lyr.base) ['zoom', 'cols', 'colsMode'].forEach(k => { lyr.base[k] = lyr.v[k]; });   // o tom do culto não muda o tom pessoal
+  if (lyr.base) ['zoom', 'cols', 'colsMode', 'escrita'].forEach(k => { lyr.base[k] = lyr.v[k]; });   // o tom do culto não muda o tom pessoal
   save();
   renderRoteiro();
 }
@@ -5208,6 +5368,359 @@ $('sf-form').addEventListener('submit', (e) => {
   openPauta({ nova: req });
 });
 
+/* ---------- Slides da lista (PowerPoint) ----------
+   A lista de culto vira um .pptx para o computador da projeção: a letra sai da cifra, na ORDEM DO ROTEIRO
+   (o refrão repetido gera os slides de novo; Solo/Interlúdio no meio viram tela vazia), até 4 linhas por slide.
+   5 modelos, só com fontes que o Windows/PowerPoint já tem. Sem logos (dependem da autorização da Associação).
+   Notas do apresentador: o que é o slide e o que vem depois. Gerado no aparelho com PptxGenJS (vai dentro do APK). */
+const PPTX_URL = 'https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js';
+const PPTX_MIME = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+const SL_W = 960, SL_H = 540;   // pontos: 13,333 × 7,5 polegadas (16:9 do PowerPoint)
+/* Modelos pensados para projetor fraco (fim da vida útil) e janela clara de manhã: o preto do projetor vira cinza e as
+   cores desbotam. Por isso: fundo MUITO escuro (ou muito claro) onde fica a letra, letra branca (ou quase preta) e em negrito;
+   cor e enfeite só nas bordas. "Simular projetor fraco" mostra na prévia como fica. */
+const SL_TPL = [
+  { id: 'classico', name: 'Clássico', tip: 'Preto puro e letra branca: o que mais resiste a projetor fraco e sala clara. Filete dourado só no título.', base: '#000000', text: '#FFFFFF', title: '#FFFFFF', sub: '#C8C8C8', orn: '#C9A24A', font: 'Arial', wf: 1, bold: true },
+  { id: 'manha', name: 'Manhã', tip: 'Papel claro com moldura dourada fina e letra quase preta, com serifa. Para o culto da manhã, com a luz da janela.', base: '#FAF6EC', text: '#141210', title: '#00543A', sub: '#5A4A30', orn: '#A8843E', font: 'Georgia', wf: 1.1, bold: true, serif: true },
+  { id: 'noite', name: 'Noite', tip: 'Azul quase preto com estrelas discretas nas bordas e título dourado. O meio fica escuro para a letra branca aparecer.', base: '#04091A', text: '#FFFFFF', title: '#F5C542', sub: '#C9D3E6', orn: '#F5C542', font: 'Calibri', wf: 0.9, bold: true, shadow: true },
+  { id: 'igreja', name: 'Igreja', tip: 'Verde bem escuro com raios de luz suaves, filete e faixa amarela (as cores da IASD, sem logo).', base: '#00241A', text: '#FFFFFF', title: '#FFCB08', sub: '#D7F0E3', orn: '#FFCB08', font: 'Arial', wf: 1, bold: true, shadow: true },
+  { id: 'aurora', name: 'Aurora', tip: 'Fundo escuro com faixas de luz roxa e azul-petróleo nas bordas. Para culto jovem; o centro fica escuro.', base: '#0B0716', text: '#FFFFFF', title: '#FFFFFF', sub: '#DCD3F2', orn: '#8FD9DF', font: 'Trebuchet MS', wf: 1, bold: true, shadow: true }
+];
+const SL_DEF = { tpl: 'classico', lines: 4, title: true, blank: true, part: false, caps: false };
+const slTpl = (id) => SL_TPL.find(t => t.id === (id === 'claro' ? 'manha' : id)) || SL_TPL[0];
+const hex = (c) => String(c).replace('#', '').toUpperCase();
+const sl = { id: null, o: null, b: null, big: -1 };
+function slOptsFor(l) { return Object.assign({}, SL_DEF, db.slidePrefs || {}, (l && l.slides) || {}); }
+const slCap = (t) => sl.o && sl.o.caps ? String(t).toLocaleUpperCase('pt-BR') : String(t);
+
+/* divide a parte em slides: respeita as linhas em branco (estrofes) e divide igual (5 linhas → 3 + 2) */
+function slChunks(lines, max) {
+  const st = []; let c = [];
+  lines.forEach(x => { if (x.blank) { if (c.length) st.push(c); c = []; } else if (x.text) c.push(x.text); });
+  if (c.length) st.push(c);
+  if (!isFinite(max)) { const all = st.flat(); return all.length ? [all] : []; }
+  const out = [];
+  st.forEach(a => { const k = Math.ceil(a.length / max), base = Math.floor(a.length / k), extra = a.length % k; let i = 0; for (let j = 0; j < k; j++) { const n = base + (j < extra ? 1 : 0); out.push(a.slice(i, i + n)); i += n; } });
+  return out;
+}
+/* a sequência de partes de uma música na lista: a mesma busca do roteiro da cifra (rotFind), mas repetindo de verdade */
+function slSequence(s, it) {
+  const { items } = rotBlocks(s.text), has = lyricsOf(s.text).has;
+  const linesOf = (b) => { const out = []; lyricsOf(b.lines.join('\n')).parts.forEach((p, i) => { if (i) out.push({ blank: true }); out.push(...p.lines); }); return out.some(x => x.text) ? out : null; };
+  const rot = it && Array.isArray(it.rot) ? it.rot : rotOfSong(s);
+  if (!rot.length) return { has, rot: false, seq: items.map(b => { const L = linesOf(b); return L && { label: b.loose ? '' : b.label, lines: L }; }).filter(Boolean) };
+  const loose = items.filter(b => b.loose).map(b => ({ label: '', lines: linesOf(b) })).filter(x => x.lines);
+  return { has, rot: true, seq: loose.concat(rot.map(name => { const b = rotFind(items, name), L = b && !b.inst && linesOf(b); return L ? { label: b.label, lines: L } : { label: name, inst: true }; })) };
+}
+function buildSlides(l, o) {
+  const out = [], warn = [], max = o.lines ? o.lines : Infinity;
+  const songs = l.items.map(it => ({ it, s: songById(it.songId) })).filter(x => x.s && !x.s.archived);
+  if (o.blank && songs.length) out.push({ kind: 'blank' });
+  songs.forEach(({ it, s }, si) => {
+    const head = { song: s.title, artist: s.artist || '', si };
+    const q = slSequence(s, it), seq = q.seq.slice();
+    if (!q.has) warn.push(s.title);
+    if (o.title) out.push(Object.assign({ kind: 'title' }, head));
+    while (seq.length && seq[0].inst) seq.shift();   // a intro fica no slide do título
+    while (seq.length && seq[seq.length - 1].inst) seq.pop();   // o final fica na tela vazia
+    const count = {};
+    seq.forEach(x => {
+      if (x.inst) { out.push(Object.assign({ kind: 'blank', part: x.label, inst: true }, head)); return; }
+      count[x.label] = (count[x.label] || 0) + 1;
+      const ch = slChunks(x.lines, max);
+      ch.forEach((lines, j) => out.push(Object.assign({ kind: 'lyrics', lines, part: x.label, rep: count[x.label], k: j + 1, n: ch.length }, head)));
+    });
+    if (o.blank && si < songs.length - 1) out.push({ kind: 'blank' });
+  });
+  out.forEach((x, i) => { x.notes = slNote(x, out[i + 1]); });
+  return { slides: out, warn, nSongs: songs.length, nLyr: out.filter(x => x.kind === 'lyrics').length };
+}
+function slDesc(x) {
+  if (!x) return 'fim';
+  if (x.kind === 'title') return 'título';
+  if (x.kind === 'blank') return x.inst ? `${x.part} (tela vazia)` : 'tela vazia';
+  return `${x.part || 'letra'}${x.rep > 1 ? ` (${x.rep}ª vez)` : ''}${x.n > 1 ? ` ${x.k}/${x.n}` : ''}`;
+}
+function slNote(x, nx) {
+  const now = (x.song ? x.song + ' · ' : '') + slDesc(x);
+  const then = (nx && nx.song && nx.song !== x.song ? nx.song + ' · ' : '') + slDesc(nx);
+  return `${now}\nDepois: ${then}`;
+}
+
+/* tamanho da letra: a linha mais larga cabe na largura e todas as linhas na altura (em pontos, iguais no app e no PowerPoint) */
+let slCtx;
+const SL_ALT = { 'Arial': 'Liberation Sans', 'Calibri': 'Carlito', 'Georgia': 'Gelasio', 'Trebuchet MS': '' };   // fontes com as mesmas medidas
+const slFontOk = {};
+function slCanvas() { if (slCtx === undefined) { try { const c = document.createElement('canvas'); slCtx = (c.getContext && c.getContext('2d')) || null; } catch (e) { slCtx = null; } } return slCtx; }
+/* a fonte do modelo existe neste aparelho? (compara com a monoespaçada: se a largura muda, a fonte existe) */
+function slHasFont(name) {
+  if (!name) return false;
+  if (name in slFontOk) return slFontOk[name];
+  const c = slCanvas(); if (!c) return (slFontOk[name] = false);
+  c.font = '100px monospace'; const a = c.measureText('mmmwwwiiilllQ').width;
+  c.font = `100px "${name}", monospace`; const b = c.measureText('mmmwwwiiilllQ').width;
+  return (slFontOk[name] = Math.abs(a - b) > 0.5);
+}
+/* largura em pontos para letra de 100 pt: com a própria fonte quando existe; senão, Arial × fator do modelo */
+function slMeasure(t, tpl) {
+  const c = slCanvas(), w = tpl.bold ? 700 : 400;
+  if (c) {
+    const own = slHasFont(tpl.font) ? tpl.font : slHasFont(SL_ALT[tpl.font]) ? SL_ALT[tpl.font] : null;
+    c.font = own ? `${w} 100px "${own}"` : `${w} 100px Arial, "Liberation Sans", Roboto, sans-serif`;
+    const v = c.measureText(t).width; if (v) return v * (own ? 1 : tpl.wf);
+  }
+  return String(t).length * (tpl.bold ? 58 : 54) * tpl.wf;
+}
+function slFit(lines, tpl, kind) {
+  const boxW = 840, boxH = kind === 'title' ? 210 : 420, maxPt = kind === 'title' ? 72 : lines.length <= 2 ? 66 : 60;
+  const widest = Math.max(1, ...lines.map(t => slMeasure(slCap(t), tpl))) * 1.08 / 100;
+  const pt = Math.min(maxPt, boxW / widest, boxH / (lines.length * 1.2));
+  return Math.max(28, Math.floor(pt / 2) * 2);
+}
+/* mesma letra em toda a música (fica mais calmo de ler); só não iguala se uma linha muito longa encolheria tudo */
+function slLayout(slides, tpl) {
+  slides.forEach(x => { if (x.kind === 'title') x.pt = slFit([x.song], tpl, 'title'); else if (x.kind === 'lyrics') x.pt = slFit(x.lines, tpl, 'lyrics'); });
+  const bySong = {};
+  slides.forEach(x => { if (x.kind === 'lyrics') (bySong[x.si] = bySong[x.si] || []).push(x); });
+  Object.values(bySong).forEach(a => {
+    const v = a.map(x => x.pt).sort((p, q) => p - q), min = v[0], med = v[Math.floor(v.length / 2)];
+    if (min >= med * 0.8) a.forEach(x => { x.pt = min; });
+  });
+}
+/* Fundos desenhados uma vez por modelo (letra e título), em JPEG com um grão leve para não formar faixas no projetor.
+   O mesmo desenho vai na prévia e no PowerPoint. O título tem um filete com losango embaixo do nome. */
+const slBgCache = {};
+let slSeed = 1; const slRnd = () => (slSeed = (slSeed * 16807) % 2147483647) / 2147483647;
+const SL_DECO = {
+  classico() {},
+  manha(g, W, H, k, t) {
+    const r = g.createRadialGradient(W / 2, H * 0.45, 40, W / 2, H / 2, W * 0.7); r.addColorStop(0, '#FFFDF7'); r.addColorStop(1, '#EDE3CC');
+    g.fillStyle = r; g.fillRect(0, 0, W, H);
+    g.strokeStyle = t.orn; g.lineWidth = 2.4 * k; g.strokeRect(20 * k, 20 * k, W - 40 * k, H - 40 * k);
+    g.lineWidth = 0.9 * k; g.strokeRect(28 * k, 28 * k, W - 56 * k, H - 56 * k);
+    g.fillStyle = t.orn; [[28, 28], [932, 28], [28, 512], [932, 512]].forEach(([x, y]) => { g.save(); g.translate(x * k, y * k); g.rotate(Math.PI / 4); g.fillRect(-4 * k, -4 * k, 8 * k, 8 * k); g.restore(); });
+  },
+  noite(g, W, H, k) {
+    const r = g.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, W * 0.66); r.addColorStop(0, '#060D22'); r.addColorStop(1, '#010309');
+    g.fillStyle = r; g.fillRect(0, 0, W, H);
+    const gl = g.createRadialGradient(W / 2, -H * 0.25, 10, W / 2, -H * 0.25, W * 0.6); gl.addColorStop(0, 'rgba(60,110,200,.35)'); gl.addColorStop(1, 'rgba(60,110,200,0)');
+    g.fillStyle = gl; g.fillRect(0, 0, W, H);
+    slSeed = 7;
+    for (let i = 0; i < 170; i++) {
+      const x = slRnd() * W, y = slRnd() * H, dx = (x - W / 2) / (W * 0.37), dy = (y - H / 2) / (H * 0.36);
+      const rr = (0.5 + slRnd() * 1.4) * k, a = 0.25 + slRnd() * 0.6;
+      if (dx * dx + dy * dy < 1) continue;   // nada de estrela atrás da letra
+      g.fillStyle = slRnd() < 0.2 ? `rgba(255,226,160,${a})` : `rgba(255,255,255,${a})`; g.beginPath(); g.arc(x, y, rr, 0, Math.PI * 2); g.fill();
+    }
+  },
+  igreja(g, W, H, k, t) {
+    const l = g.createLinearGradient(0, 0, 0, H); l.addColorStop(0, '#003524'); l.addColorStop(1, '#00150E');
+    g.fillStyle = l; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(0,166,81,.075)';
+    for (let i = -3; i <= 3; i++) { const a = i * 0.19; g.beginPath(); g.moveTo(W / 2, -H * 0.35); g.lineTo(W / 2 + Math.tan(a - 0.045) * H * 1.6, H * 1.25); g.lineTo(W / 2 + Math.tan(a + 0.045) * H * 1.6, H * 1.25); g.closePath(); g.fill(); }
+    const d = g.createRadialGradient(W / 2, H / 2, 20, W / 2, H / 2, W * 0.45); d.addColorStop(0, 'rgba(0,14,9,.55)'); d.addColorStop(1, 'rgba(0,14,9,0)');
+    g.fillStyle = d; g.fillRect(0, 0, W, H);
+    g.fillStyle = t.orn; g.fillRect(0, H - 10 * k, W, 10 * k); g.fillRect(W / 2 - 70 * k, 24 * k, 140 * k, 2.4 * k);
+  },
+  aurora(g, W, H, k) {
+    g.fillStyle = '#0B0716'; g.fillRect(0, 0, W, H);
+    g.save(); g.filter = `blur(${Math.round(34 * k)}px)`;
+    [[H * 0.92, H * 0.62, H * 1.02, 'rgba(110,52,190,.75)', 'rgba(14,150,160,.7)'], [H * 0.06, H * 0.3, -H * 0.02, 'rgba(14,150,160,.55)', 'rgba(110,52,190,.5)']].forEach(([y0, yc, y1, c1, c2]) => {
+      const gr = g.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, c1); gr.addColorStop(1, c2);
+      g.strokeStyle = gr; g.lineWidth = 95 * k; g.beginPath(); g.moveTo(-0.1 * W, y0); g.bezierCurveTo(W * 0.3, yc, W * 0.7, y1, W * 1.1, (y0 + yc) / 2); g.stroke();
+    });
+    g.restore();
+    const d = g.createRadialGradient(W / 2, H / 2, 20, W / 2, H / 2, W * 0.42); d.addColorStop(0, 'rgba(11,7,22,.85)'); d.addColorStop(1, 'rgba(11,7,22,0)');
+    g.fillStyle = d; g.fillRect(0, 0, W, H);
+  }
+};
+function slOrnament(g, cx, cy, k, color) {
+  g.strokeStyle = color; g.fillStyle = color; g.lineWidth = 1.6 * k;
+  g.beginPath(); g.moveTo(cx - 150 * k, cy); g.lineTo(cx - 14 * k, cy); g.moveTo(cx + 14 * k, cy); g.lineTo(cx + 150 * k, cy); g.stroke();
+  g.save(); g.translate(cx, cy); g.rotate(Math.PI / 4); g.fillRect(-5 * k, -5 * k, 10 * k, 10 * k); g.restore();
+}
+const SL_ORN_Y = 336;   // pontos: altura do filete do título
+function slBg(tpl, kind) {
+  const key = tpl.id + (kind === 'title' ? ':t' : ':l');
+  if (key in slBgCache) return slBgCache[key];
+  let url = null;
+  if (!(tpl.id === 'classico' && kind !== 'title')) try {
+    const W = 1600, H = 900, k = W / SL_W, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d'); g.fillStyle = tpl.base; g.fillRect(0, 0, W, H);
+    (SL_DECO[tpl.id] || SL_DECO.classico)(g, W, H, k, tpl);
+    if (kind === 'title') slOrnament(g, W / 2, SL_ORN_Y * k, k, tpl.orn);
+    const im = g.getImageData(0, 0, W, H), d = im.data, amp = tpl.id === 'manha' ? 7 : 4;
+    for (let i = 0; i < d.length; i += 4) { const n = (Math.random() - 0.5) * amp; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+    g.putImageData(im, 0, 0);
+    url = c.toDataURL('image/jpeg', 0.9);
+    if (!/^data:image\/jpeg/.test(url)) url = null;
+  } catch (e) { url = null; }
+  return (slBgCache[key] = url);
+}
+function slHtml(x, tpl, o) {
+  const bg = slBg(tpl, x.kind);
+  const ff = `'${tpl.font}', ${tpl.serif ? "Georgia, Merriweather, serif" : "Arial, 'Noto Sans', sans-serif"}`;   // só aspas simples: vai dentro de style="…"
+  const sh = tpl.shadow ? 'text-shadow:0 2px 4px rgba(0,0,0,.45);' : '';
+  let inner = '';
+  if (x.kind === 'title') inner = `<div class="sl-tbox"><div style="font-size:${x.pt}px;color:${tpl.title}">${esc(slCap(x.song))}</div></div>${x.artist ? `<div class="sl-a" style="color:${tpl.sub}">${esc(x.artist)}</div>` : ''}`;
+  else if (x.kind === 'lyrics') inner = `${o.part && x.part ? `<div class="sl-p" style="color:${tpl.sub}">${esc(x.part)}</div>` : ''}<div class="sl-box"><div style="font-size:${x.pt}px">${x.lines.map(t => esc(slCap(t))).join('<br>')}</div></div>`;
+  return `<div class="sl" style="background:${bg ? `url(${bg}) center/cover no-repeat, ` : ''}${tpl.base};color:${tpl.text};font-family:${ff};font-weight:${tpl.bold ? 700 : 400};${sh}">${inner}</div>`;
+}
+const slThumb = (x, tpl, o) => `<span class="sl-th">${slHtml(x, tpl, o)}</span>`;
+function slScale(root) { (root || document).querySelectorAll('.sl-th').forEach(th => { const w = th.clientWidth; if (w) th.style.setProperty('--k', String(w / SL_W)); }); }
+
+function openSlides(id) {
+  const l = listById(id); if (!l) { go('listas'); return; }
+  sl.id = id; sl.o = slOptsFor(l); sl.big = -1; $('sl-big').hidden = true;
+  $('top-title').textContent = 'Slides · ' + listTitle(l);
+  renderSlides();
+}
+function renderSlides() {
+  const l = listById(sl.id); if (!l) return;
+  const o = sl.o, tpl = slTpl(o.tpl);
+  sl.b = buildSlides(l, o); slLayout(sl.b.slides, tpl);
+  const b = sl.b;
+  $('sl-meta').textContent = [...listMeta(l), `${b.slides.length} slides`].join(' · ');
+  /* modelos: cada um mostra um slide desta lista */
+  const sample = b.slides.find(x => x.kind === 'lyrics') || { kind: 'lyrics', lines: ['Cantai ao SENHOR', 'um cântico novo'], si: -1 };
+  $('sl-models').innerHTML = SL_TPL.map(t => {
+    const x = Object.assign({}, sample); x.pt = slFit(x.lines, t, 'lyrics');
+    return `<button type="button" class="sl-model" role="radio" aria-checked="${t.id === o.tpl}" data-sl-tpl="${t.id}" data-tip="${esc(t.name)}|${esc(t.tip)}">${slThumb(x, t, Object.assign({}, o, { part: false }))}<span class="sl-mname">${esc(t.name)}</span></button>`;
+  }).join('');
+  const P = (k, on) => `aria-pressed="${!!on}"`;
+  $('sl-opts').innerHTML =
+    `<div class="group" role="group" aria-label="Linhas por slide">` +
+      `<button type="button" class="gi" data-sl-lines="2" ${P(0, o.lines === 2)} aria-label="Até 2 linhas por slide" data-tip="2 linhas|Letra bem grande; mais slides para passar.">2</button>` +
+      `<button type="button" class="gi" data-sl-lines="4" ${P(0, o.lines === 4)} aria-label="Até 4 linhas por slide" data-tip="4 linhas|Até 4 linhas por slide; a estrofe longa vira dois slides.">4</button>` +
+      `<button type="button" class="gi" data-sl-lines="0" ${P(0, !o.lines)} aria-label="Parte inteira por slide" data-tip="Parte inteira|Um slide por parte (estrofe, refrão); a letra diminui para caber.">${ico('slpart')}</button></div>` +
+    `<div class="group" role="group" aria-label="O que entra">` +
+      `<button type="button" class="gi" data-sl-t="title" ${P(0, o.title)} aria-label="Slide com o título" data-tip="Título|Um slide com o nome da música antes da letra (fica na tela durante a introdução).">${ico('sltitle')}</button>` +
+      `<button type="button" class="gi" data-sl-t="blank" ${P(0, o.blank)} aria-label="Tela vazia entre as músicas" data-tip="Tela vazia|Um slide só com o fundo no começo e entre as músicas.">${ico('slblank')}</button>` +
+      `<button type="button" class="gi" data-sl-t="part" ${P(0, o.part)} aria-label="Nome da parte no canto" data-tip="Nome da parte|Mostra pequeno no canto: Refrão, 2ª Estrofe… (ajuda quem canta junto).">${ico('tag')}</button>` +
+      `<button type="button" class="gi" data-sl-t="caps" ${P(0, o.caps)} aria-label="Letra em maiúsculas" data-tip="Maiúsculas|Toda a letra em MAIÚSCULAS, como em muitos telões.">AA</button></div>` +
+    `<div class="group" role="group" aria-label="Prévia"><button type="button" class="gi" data-sl-sim="1" ${P(0, sl.sim)} aria-label="Simular projetor fraco" data-tip="Simular projetor fraco|Mostra na prévia como fica com o projetor no fim da vida e a luz da janela: o preto vira cinza e as cores desbotam. Não muda o arquivo.">${ico('sun')}</button></div>`;
+  $('v-slides').classList.toggle('sl-sim', !!sl.sim);
+  $('sl-warn').innerHTML = b.warn.length ? `<p class="sl-warn">${ico('lyrics', 16)}<span>${b.warn.length === 1 ? 'Sem letra (a cifra só tem acordes)' : 'Sem letra (as cifras só têm acordes)'}: <b>${b.warn.map(esc).join(', ')}</b>.${o.title ? ' Entra só o título.' : ' Fica fora dos slides.'}</span></p>` : '';
+  let h = '', lastSong = -1;
+  b.slides.forEach((x, i) => {
+    if (x.si != null && x.si !== lastSong) { lastSong = x.si; const it = l.items.filter(y => { const s = songById(y.songId); return s && !s.archived; })[x.si]; const q = it ? slSequence(songById(it.songId), it) : null; h += `<h3 class="sl-song"><span>${x.si + 1}. ${esc(x.song)}</span>${q && q.rot ? '<small>na ordem do roteiro</small>' : ''}</h3>`; }
+    h += `<button type="button" class="sl-cell" data-sl-big="${i}" aria-label="Slide ${i + 1}: ${esc(slDesc(x))}">${slThumb(x, tpl, o)}<span class="sl-cap"><b>${i + 1}</b> ${esc(x.kind === 'lyrics' ? slDesc(x) : x.kind === 'title' ? 'título' : x.inst ? x.part : 'vazio')}</span></button>`;
+  });
+  $('sl-prev').innerHTML = b.slides.length ? h : `<div class="empty"><p>A lista ainda não tem músicas.</p></div>`;
+  $('sl-go').disabled = !b.nLyr;
+  requestAnimationFrame(() => slScale($('v-slides')));
+  if (sl.big >= 0) slBigShow(Math.min(sl.big, b.slides.length - 1));
+}
+function slSet(k, v) {
+  const l = listById(sl.id); if (!l) return;
+  sl.o[k] = v;
+  db.slidePrefs = Object.assign({}, sl.o);   // a última escolha vira o padrão das próximas listas
+  if (canEditLists()) { l.slides = Object.assign({}, sl.o); touchList(l); } else save();
+  renderSlides();
+}
+function slBigShow(i) {
+  const b = sl.b; if (!b || !b.slides[i]) return;
+  sl.big = i; const x = b.slides[i];
+  $('sl-big-th').innerHTML = slHtml(x, slTpl(sl.o.tpl), sl.o);
+  $('sl-big-n').textContent = `${i + 1} de ${b.slides.length}`;
+  $('sl-big-note').textContent = x.notes;
+  $('sl-big-prev').disabled = i === 0; $('sl-big-next').disabled = i === b.slides.length - 1;
+  $('sl-big').hidden = false;
+  requestAnimationFrame(() => slScale($('sl-big')));
+}
+function slBigClose() { sl.big = -1; $('sl-big').hidden = true; }
+
+let pptxP = null;
+function loadPptx() {
+  if (window.PptxGenJS) return Promise.resolve(window.PptxGenJS);
+  if (!pptxP) pptxP = new Promise((res, rej) => {
+    const sc = document.createElement('script'); sc.src = PPTX_URL;
+    sc.onload = () => { if (window.PptxGenJS) res(window.PptxGenJS); else { pptxP = null; rej(new Error('pptx')); } };
+    sc.onerror = () => { pptxP = null; rej(new Error('pptx')); };
+    document.head.appendChild(sc);
+  });
+  return pptxP;
+}
+/* monta o PowerPoint (separado de salvar, para os testes conferirem o arquivo) */
+async function slMakePptx() {
+  const l = listById(sl.id), P = await loadPptx(), tpl = slTpl(sl.o.tpl), o = sl.o, bg = slBg(tpl, 'lyrics');
+  const pptx = new P();
+  pptx.layout = 'LAYOUT_WIDE'; pptx.title = listTitle(l); pptx.author = 'Ministério da Música'; pptx.subject = 'Slides do culto';
+  const bgT = slBg(tpl, 'title');
+  pptx.defineSlideMaster({ title: 'IASD', background: bg ? { data: bg.replace(/^data:/, '') } : { color: hex(tpl.base) } });
+  pptx.defineSlideMaster({ title: 'IASD_T', background: bgT ? { data: bgT.replace(/^data:/, '') } : { color: hex(tpl.base) } });
+  const IN = (pt) => +(pt / 72).toFixed(3);
+  const base = { fontFace: tpl.font, bold: !!tpl.bold, color: hex(tpl.text), align: 'center', valign: 'middle', margin: 0, lineSpacingMultiple: 1.2, fit: 'shrink' };
+  if (tpl.shadow) base.shadow = { type: 'outer', color: '000000', opacity: 0.45, blur: 4, offset: 2, angle: 90 };
+  const box = { x: IN(60), y: IN(60), w: IN(840), h: IN(420) };
+  sl.b.slides.forEach(x => {
+    const s = pptx.addSlide({ masterName: x.kind === 'title' ? 'IASD_T' : 'IASD' });
+    if (x.kind === 'title') {
+      s.addText(slCap(x.song), Object.assign({}, base, { x: IN(60), y: IN(90), w: IN(840), h: IN(220), valign: 'bottom', fontSize: x.pt, color: hex(tpl.title) }));
+      if (x.artist) s.addText(x.artist, Object.assign({}, base, { x: IN(60), y: IN(SL_ORN_Y + 24), w: IN(840), h: IN(44), valign: 'top', fontSize: 26, color: hex(tpl.sub), bold: false }));
+    } else if (x.kind === 'lyrics') {
+      if (o.part && x.part) s.addText(x.part, { x: IN(36), y: IN(16), w: IN(520), h: IN(30), fontFace: tpl.font, fontSize: 16, color: hex(tpl.sub), align: 'left', valign: 'top', margin: 0 });
+      s.addText(x.lines.map((t, i) => ({ text: slCap(t), options: { breakLine: i < x.lines.length - 1 } })), Object.assign({}, base, box, { fontSize: x.pt }));
+    }
+    if (x.notes) s.addNotes(x.notes);
+  });
+  return pptx;
+}
+/* nome do arquivo sem acento: alguns navegadores, pendrives e computadores trocam o nome todo quando tem acento */
+function slFileName(l) { return `${fileSafe(listTitle(l)).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x20-\x7E]/g, '')}${l.date ? ' ' + l.date : ''} - slides.pptx`; }
+async function slExport() {
+  const l = listById(sl.id); if (!l || !sl.b || !sl.b.nLyr) { toast('Nada para gerar: as músicas desta lista não têm letra.'); return; }
+  const btn = $('sl-go'); btn.disabled = true; btn.setAttribute('aria-busy', 'true');
+  try { const pptx = await slMakePptx(); await slSave(pptx, slFileName(l)); }
+  catch (e) { toast(/pptx/.test(String(e && e.message)) ? 'O gerador de slides não carregou. Confira a internet e tente de novo.' : 'Não consegui gerar os slides.'); }
+  finally { btn.disabled = false; btn.removeAttribute('aria-busy'); }
+}
+async function slSave(pptx, name) {
+  /* APK: grava no cache do app e abre a janela de compartilhar (Drive, WhatsApp, e-mail, pendrive…) */
+  const FS = capPlugin('Filesystem'), SH = capPlugin('Share');
+  if (FS && SH) {
+    const b64 = await pptx.write({ outputType: 'base64' });
+    const w = await FS.writeFile({ path: name, data: b64, directory: 'CACHE', recursive: true });
+    try { await SH.share({ title: name, text: 'Slides do culto para abrir no PowerPoint.', files: [w.uri], dialogTitle: 'Enviar os slides' }); }
+    catch (e) { if (!/cancel/i.test(String(e && (e.message || e)))) toast('Não consegui abrir o compartilhamento.'); }
+    return;
+  }
+  const blob = await pptx.write({ outputType: 'blob' });
+  const dl = await getDownloads();   // dentro do Claude
+  if (dl) {
+    try { await dl.save({ filename: name, data: blob }); toast(`Slides salvos: ${name}`); return; }
+    catch (e) { if (e && (e.code === 'declined' || e.code === 'rate_limited')) return; }
+  }
+  let file = null; try { file = new File([blob], name, { type: PPTX_MIME }); } catch (e) { /* aparelho antigo */ }
+  if (file && /Android|iPhone|iPad/i.test(navigator.userAgent) && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: name }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  toast(`Slides salvos em Downloads: ${name}`);
+}
+$('v-slides').addEventListener('click', (e) => {
+  const t = e.target; let b;
+  if ((b = t.closest('[data-sl-tpl]'))) { slSet('tpl', b.dataset.slTpl); return; }
+  if ((b = t.closest('[data-sl-lines]'))) { slSet('lines', Number(b.dataset.slLines)); return; }
+  if ((b = t.closest('[data-sl-t]'))) { slSet(b.dataset.slT, !sl.o[b.dataset.slT]); return; }
+  if (t.closest('[data-sl-sim]')) { sl.sim = !sl.sim; renderSlides(); return; }
+  if ((b = t.closest('[data-sl-big]'))) { slBigShow(Number(b.dataset.slBig)); return; }
+  if (t.closest('#sl-go')) slExport();
+});
+$('sl-big').addEventListener('click', (e) => {
+  if (e.target.closest('#sl-big-prev')) { slBigShow(sl.big - 1); return; }
+  if (e.target.closest('#sl-big-next') || e.target.closest('#sl-big-th')) { if (sl.big < sl.b.slides.length - 1) slBigShow(sl.big + 1); return; }
+  if (e.target.closest('#sl-big-x') || e.target === $('sl-big')) slBigClose();
+});
+document.addEventListener('keydown', (e) => {
+  if ($('sl-big').hidden) return;
+  if (e.key === 'Escape') slBigClose();
+  else if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); if (sl.big < sl.b.slides.length - 1) slBigShow(sl.big + 1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); if (sl.big > 0) slBigShow(sl.big - 1); }
+});
+window.addEventListener('resize', () => { if (route.name === 'slides') slScale(); });
+
 /* APK: botão voltar do Android navega dentro do app (só fecha na tela Início) */
 (function nativeBack() {
   const App = capPlugin('App');
@@ -5217,6 +5730,7 @@ $('sf-form').addEventListener('submit', (e) => {
     if (!$('modal').hidden) { closeModal(null); return; }
     if (tour.on) { if (tour.i > 0) $('tour-prev').click(); else if (!tour.mandatory) tourEnd(false); return; }
     if (!$('drawer').hidden) { closeDrawer(); return; }
+    if (!$('sl-big').hidden) { slBigClose(); return; }
     if (!$('ink-text').hidden) { $('ink-text').hidden = true; return; }
     if (ink.on) { inkStop(); return; }
     if (!liPop.hidden) { closeListPop(); return; }
@@ -5250,7 +5764,7 @@ function tourEnsureDemo() {
     if (songById(id)) return;
     db.songs.push({ id, title: seed.title, artist, text: seed.text, source: '', archived: false, created: now, updated: now, tour: true });
   };
-  add(TOUR_IDS.ag, SEED[0], 'John Newton (1779) · exemplo do tour');
+  add(TOUR_IDS.ag, Object.assign({}, SEED[0], { text: setHeadDirectives(SEED[0].text, { x_roteiro: 'Intro | 1ª Estrofe | 2ª Estrofe | 1ª Estrofe' }) }), 'John Newton (1779) · exemplo do tour');
   add(TOUR_IDS.hh, SEED[1], 'Reginald Heber (1826) · exemplo do tour');
   if (!Array.isArray(db.lists)) db.lists = [];
   if (!listById(TOUR_IDS.lista)) db.lists.push({ id: TOUR_IDS.lista, title: 'Culto de exemplo', date: nextSaturday(), time: '09:00', leader: '', note: 'Lista de exemplo do tour', tour: true,
@@ -5266,7 +5780,7 @@ function tourCleanDemo() {
   if (Array.isArray(db.favs)) db.favs = db.favs.filter(id => !ids.includes(id));
   if (Array.isArray(db.lfavs)) db.lfavs = db.lfavs.filter(id => !ids.includes(id));
   if (db.view) ids.forEach(id => { delete db.view[id]; });
-  let mudou = false; ids.forEach(id => { if (notes['c:' + id]) { delete notes['c:' + id]; mudou = true; } });
+  let mudou = false; ids.forEach(id => ['c:' + id, 'c:' + id + '|rot'].forEach(k => { if (notes[k]) { delete notes[k]; mudou = true; } }));
   if (mudou) saveNotes();
   save();
 }
@@ -5285,6 +5799,8 @@ const TOUR_STEPS = [
     prep: () => { closeDrawer(); if (route.name !== 'cifras') go('cifras'); const q = $('list-q'); if (q.value !== 'grace') { q.value = 'grace'; q.dispatchEvent(new Event('input')); } } },
   { el: '#t-up', title: 'Mudar o tom', text: 'Mudou o tom na hora? Todos os acordes acompanham. Só muda na sua tela; o tom do culto fica na lista.', act: 'Toque em + para subir meio tom', wait: 'click', prep: goCifraDemo },
   { el: '#t-key', title: 'Escolher o tom', text: 'Tocando no tom, abre a grade para escolher direto. Dá até para guardar o tom de cada cantor.', prep: goCifraDemo },
+  { el: '#rot-bar', title: 'Roteiro do arranjo', text: 'A ordem em que a música é tocada: começar pelo refrão, repetir, pular partes. A cifra e a letra embaixo já aparecem nessa ordem, e os slides também. As setas mostram como a música está escrita.',
+    prep: () => { goCifraDemo(); if (cur.v && cur.v.escrita) { cur.v.escrita = false; renderViewer(); } } },
   { el: tGroup('#t-inst'), title: 'Instrumento', text: 'Diga em que você toca esta música. No violão aparecem o capotraste e o desenho dos acordes.', prep: goCifraDemo },
   { el: tGroup('#t-simp'), title: 'Simplificar', text: 'Troca acordes difíceis por versões simples: C#m7 vira C#m. Toque de novo para voltar.', prep: goCifraDemo },
   { el: tGroup('#t-cauto'), title: 'Colunas', text: 'Divide a música em colunas para caber na tela da estante. No Auto, o app escolhe.', prep: goCifraDemo },
@@ -5309,6 +5825,12 @@ const TOUR_STEPS = [
     prep: () => { if (!(route.name === 'lista' && route.id === TOUR_IDS.lista)) go('lista', { id: TOUR_IDS.lista, back: { name: 'listas' } }); } },
   { el: () => { const e = document.querySelector('[data-li-as]'); return e && e.closest('.group'); }, title: 'Abrir em', text: 'Cada um escolhe como ver: cifra, partitura ou letra. Quem é do louvor ou do coral já abre na letra.',
     prep: () => { if (!(route.name === 'lista' && route.id === TOUR_IDS.lista)) go('lista', { id: TOUR_IDS.lista, back: { name: 'listas' } }); } },
+  { el: '[data-li-slides]', title: 'Slides para o telão', text: 'O PowerPoint do culto sai da própria lista: as letras, na ordem do roteiro de cada música.', act: 'Toque em Slides', wait: 'click',
+    prep: () => { if (!(route.name === 'lista' && route.id === TOUR_IDS.lista)) go('lista', { id: TOUR_IDS.lista, back: { name: 'listas' } }); } },
+  { el: '#sl-models', title: 'Modelos', text: 'Escolha entre 5 modelos. Embaixo aparecem todos os slides, do jeito que vão ficar; toque num deles para ver grande, com o que vem depois.',
+    prep: () => { if (!(route.name === 'slides' && route.id === TOUR_IDS.lista)) go('slides', { id: TOUR_IDS.lista, back: { name: 'lista', params: { id: TOUR_IDS.lista, back: { name: 'listas' } } } }); } },
+  { el: '#sl-go', title: 'Gerar o PowerPoint', text: 'Cria o arquivo .pptx para o computador da projeção. No tablet, abre a janela de enviar: Drive, WhatsApp ou e-mail.',
+    prep: () => { if (!(route.name === 'slides' && route.id === TOUR_IDS.lista)) go('slides', { id: TOUR_IDS.lista, back: { name: 'lista', params: { id: TOUR_IDS.lista, back: { name: 'listas' } } } }); } },
   { el: '[data-li-start]', title: 'Modo culto', text: 'No culto, comece por aqui.', act: 'Toque em Começar', wait: 'click',
     prep: () => { if (!(route.name === 'lista' && route.id === TOUR_IDS.lista)) go('lista', { id: TOUR_IDS.lista, back: { name: 'listas' } }); } },
   { el: '#ln-next', title: 'Próxima música', text: 'Cada música abre já no tom do culto. É só avançar.', act: 'Toque para ir à próxima', wait: 'click',

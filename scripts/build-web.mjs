@@ -35,6 +35,8 @@ fs.writeFileSync(path.join(www, 'fonts', 'fonts.css'), css);
 // 2) Leitor de PDF (PDF.js) e o runtime do Capacitor (registra os plugins nativos: voltar, compartilhar, tela acesa, tela cheia)
 for (const f of ['pdf.min.js', 'pdf.worker.min.js']) fs.copyFileSync(path.join(nm, 'pdfjs-dist', 'build', f), path.join(www, 'lib', f));
 fs.copyFileSync(path.join(nm, '@capacitor', 'core', 'dist', 'capacitor.js'), path.join(www, 'lib', 'capacitor.js'));
+// Gerador de PowerPoint (slides da lista), carregado só quando a pessoa gera os slides
+fs.copyFileSync(path.join(nm, 'pptxgenjs', 'dist', 'pptxgen.bundle.js'), path.join(www, 'lib', 'pptxgen.bundle.js'));
 
 // 3) App: mesmas telas e lógica; só os endereços externos viram locais
 let html = fs.readFileSync(path.join(root, 'src', 'app.html'), 'utf8');
@@ -45,6 +47,7 @@ swap(/css: 'https:\/\/fonts\.googleapis\.com\/css2\?family=Patrick\+Hand[^']*'/,
 swap(/const RETRO_FONT = 'https:[^']*';/, "const RETRO_FONT = '';");
 swap(/const PDFJS_URL = 'https:[^']*';/, "const PDFJS_URL = 'lib/pdf.min.js';");
 swap(/const PDFJS_WORKER = 'https:[^']*';/, "const PDFJS_WORKER = 'lib/pdf.worker.min.js';");
+swap(/const PPTX_URL = 'https:[^']*';/, "const PPTX_URL = 'lib/pptxgen.bundle.js';");
 if (/https:\/\/fonts\.googleapis/.test(html)) throw new Error('ainda há fonte da internet');
 const page = `<!doctype html>
 <html lang="pt-BR">
