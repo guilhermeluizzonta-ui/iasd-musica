@@ -5,7 +5,7 @@ Atualizado em 14/10/2026 (v0.1.5 + melhorias de desempenho no ramo `listas`).
 ## Visão geral
 - App de cifras, letras, partituras e listas de culto do Ministério da Música da IASD Jaraguá do Sul - Central.
 - **Web puro:** HTML + CSS + JavaScript, sem framework e sem empacotador. Roda igual no navegador (prévia no Claude) e no Android.
-- **Android:** Capacitor 8. O app web roda numa WebView; a parte nativa é pequena (Java: `MainActivity` e o plugin `ImmersivePlugin`, para tela cheia).
+- **Android:** Capacitor 8. O app web roda numa WebView; a parte nativa é pequena (Java: `MainActivity` e os plugins próprios `ImmersivePlugin`, para tela cheia, e `WhatsAppPlugin`, para mandar os slides direto pelo WhatsApp).
 - **Funciona sem internet:** fontes, leitor de PDF e o próprio app vão dentro do APK.
 
 ## Pastas e arquivos
@@ -71,7 +71,8 @@ Navegação interna por `go(nome, params)`; cada tela é uma `<section class="vi
 ## Integração nativa (APK)
 - Botão voltar do Android: fecha o que estiver aberto antes de voltar de tela; no Início, sai.
 - Compartilhar (cifra em ChordPro), tela acesa, tela cheia imersiva.
-- Plugins: `@capacitor/app`, `filesystem`, `share`, `keep-awake`.
+- Plugins: `@capacitor/app`, `filesystem`, `share`, `keep-awake`; próprios: `Immersive` e `WhatsApp` (`shareFile({ path, mime, text, phone })`: ACTION_SEND com `setPackage` do WhatsApp/Business pelo FileProvider; `phone` vira o extra `jid`; sem WhatsApp → erro `SEM_WHATSAPP`). O manifesto declara `<queries>` dos pacotes do WhatsApp.
+- Testes: `testes/whatsapp` (plugins nativos falsos), `testes/pauta-musico` (músico só vê a pauta).
 
 ## Testes
 ```

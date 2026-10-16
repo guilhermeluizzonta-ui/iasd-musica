@@ -32,6 +32,7 @@ Papéis: **Editor** (cadastra e organiza) e **Músico** (usa). O que vale só pa
 - **Criar partitura** (+ › Criar partitura): ficha com prévia desenhada (clave, armadura, compasso) e abre o editor da pauta.
 
 ## Editor da pauta (Pauta a Mão Livre)
+- **Músico:** a partitura escrita abre só para ver (Visualizar), sem Editar, sem a lista de músicas e sem mudar o nome. Só o editor escreve e edita.
 - Escrever notas à mão com a S Pen (semibreve a semicolcheia, acordes, pausas, acidentes, ponto/staccato, ligaduras, barra de compasso, barra de colcheias) ou arrastar da Biblioteca.
 - Ficha da música (formação Sol/Fá/Dó/piano, tom, compasso, unidade, andamento), nome das notas e cifra dos acordes, conferência do compasso (✓ / falta / passou).
 - Linhas (+)/(−), páginas A4 automáticas, clave por linha, sistema de piano.
@@ -40,6 +41,11 @@ Papéis: **Editor** (cadastra e organiza) e **Músico** (usa). O que vale só pa
 ## Listas de culto
 - Criar (título, data, hora, responsável, observação), escolher músicas, tom do culto por música, reordenar, clonar, "Abrir em" cifra/partitura/letra, modo culto com próxima/anterior, próximo culto no Início.
 - **Slides** (botão na lista aberta, todos podem gerar): PowerPoint (.pptx) para o computador da projeção. Letra que sai da cifra, **na ordem do roteiro** (refrão repetido gera os slides de novo; Solo/Interlúdio no meio viram tela vazia; intro fica no slide do título). Até 2 / 4 linhas ou parte inteira por slide (a estrofe longa divide igual: 6 → 3 + 3), slide de título, tela vazia no começo e entre as músicas, nome da parte no canto, maiúsculas. **5 modelos** pensados para projetor fraco e sala clara (fundo muito escuro ou muito claro atrás da letra, letra em negrito, cor e enfeite só nas bordas): Clássico, Manhã, Noite, Igreja, Aurora (fontes que o Windows já tem; sem logo). Botão **Simular projetor fraco** na prévia. Prévia de todos os slides, slide grande com setas, notas do apresentador ("Refrão (2ª vez) · Depois: 2ª Estrofe"). No APK abre a janela de enviar; no navegador baixa o arquivo. O editor guarda as escolhas na lista; a última escolha vira o padrão.
+
+## Slides › Enviar pelo WhatsApp
+- Na tela de Slides, o botão **WhatsApp** gera o .pptx e abre o WhatsApp direto na escolha do contato (plugin nativo `WhatsApp`).
+- **WhatsApp da sonoplastia** (opcional, guardado no aparelho): com o número, o WhatsApp tenta abrir já na conversa.
+- Sem WhatsApp no aparelho (ou no navegador), abre o compartilhar comum / baixa o arquivo.
 
 ## Roteiro do arranjo
 - Ordem das partes (Intro, estrofes, refrão quantas vezes, Final) na cifra (`{x_roteiro: …}`) ou só num culto.
