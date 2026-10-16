@@ -589,6 +589,11 @@ body.metro-flash1::before { box-shadow: inset 0 0 0 10px var(--gold); }
 .sl-cap b { color: var(--fg); }
 .sl-foot { position: sticky; bottom: 0; display: flex; align-items: center; gap: 10px; justify-content: flex-end; padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--bg); border-top: var(--bw) solid var(--line); }
 .sl-foot .tipline { flex: 1; margin: 0; }
+.wa-btn { gap: 8px; background: #128C4A; color: #fff; border-color: #128C4A; font-weight: 600; }
+.wa-btn:hover { background: #0F7A40; }
+.wa-btn[disabled] { opacity: .6; }
+.sl-zap-field { margin-top: 10px; max-width: 420px; }
+.sl-zap-field small { font-weight: 400; color: var(--muted); }
 .sl-big { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.82); display: flex; align-items: center; justify-content: center; padding: 16px; }
 .sl-big[hidden] { display: none; }
 .sl-big-in { width: min(100%, 1100px); display: flex; flex-direction: column; gap: 10px; }
@@ -1089,8 +1094,13 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
       <div class="li-actions sl-opts" id="sl-opts"></div>
       <div id="sl-warn"></div>
       <div class="sl-prev" id="sl-prev"></div>
+      <div class="field sl-zap-field">
+        <label for="sl-zap">WhatsApp da sonoplastia <small>(opcional: com o número, o WhatsApp já abre na conversa)</small></label>
+        <input class="input" id="sl-zap" type="tel" inputmode="tel" autocomplete="off" placeholder="(47) 99999-9999" maxlength="20">
+      </div>
       <div class="sl-foot">
         <p class="tipline" aria-live="polite"></p>
+        <button type="button" class="btn wa-btn" id="sl-zap-go" aria-label="Enviar pelo WhatsApp" data-tip="Enviar pelo WhatsApp|Gera o .pptx e abre o WhatsApp para escolher o contato (ou já na conversa da sonoplastia)."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 18.8z"/><path d="M9.5 9.5c.3 1.6 1.4 3.4 3.4 4.4.6.3 1.2 0 1.6-.4l.4-.5"/></svg><span>WhatsApp</span></button>
         <button type="button" class="btn ib primary" id="sl-go" aria-label="Gerar o PowerPoint" data-tip="Gerar .pptx|Cria o arquivo para abrir no PowerPoint do computador da projeção. No tablet, abre a janela de enviar (Drive, WhatsApp, e-mail)."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11M7.5 9.5 12 14l4.5-4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></button>
       </div>
       <div class="sl-big" id="sl-big" role="dialog" aria-label="Slide em tamanho grande" hidden>
@@ -5576,6 +5586,7 @@ function openSlides(id) {
   renderSlides();
 }
 function renderSlides() {
+  if ($('sl-zap') && document.activeElement !== $('sl-zap')) $('sl-zap').value = db.slideZap || '';
   const l = listById(sl.id); if (!l) return;
   const o = sl.o, tpl = slTpl(o.tpl);
   sl.b = buildSlides(l, o); slLayout(sl.b.slides, tpl);
@@ -5675,6 +5686,33 @@ async function slExport() {
   catch (e) { toast(/pptx/.test(String(e && e.message)) ? 'O gerador de slides não carregou. Confira a internet e tente de novo.' : 'Não consegui gerar os slides.'); }
   finally { btn.disabled = false; btn.removeAttribute('aria-busy'); }
 }
+/* Enviar pelo WhatsApp: no APK abre o WhatsApp direto (plugin nativo WhatsApp); sem ele, o compartilhar comum */
+const zapDigits = (v) => { let d = String(v || '').replace(/\D/g, ''); if (d.length === 10 || d.length === 11) d = '55' + d; return d.length >= 12 && d.length <= 15 ? d : ''; };
+async function slWhats() {
+  const l = listById(sl.id); if (!l || !sl.b || !sl.b.nLyr) { toast('Nada para enviar: as músicas desta lista não têm letra.'); return; }
+  const btn = $('sl-zap-go'); btn.disabled = true; btn.setAttribute('aria-busy', 'true');
+  let pptx = null; const name = slFileName(l);
+  try {
+    pptx = await slMakePptx();
+    const FS = capPlugin('Filesystem'), WA = capPlugin('WhatsApp');
+    if (FS && WA) {
+      const b64 = await pptx.write({ outputType: 'base64' });
+      const w = await FS.writeFile({ path: name, data: b64, directory: 'CACHE', recursive: true });
+      try { await WA.shareFile({ path: w.uri, mime: PPTX_MIME, text: `Slides: ${listTitle(l)}${l.date ? ' (' + l.date.split('-').reverse().join('/') + ')' : ''}`, phone: zapDigits(db.slideZap) }); return; }
+      catch (e) {
+        const c = String(e && (e.code || e.message) || '');
+        toast(/SEM_WHATSAPP/.test(c) ? 'WhatsApp não encontrado neste aparelho. Escolha onde enviar.' : 'Abrindo o compartilhar…');
+      }
+    }
+    await slSave(pptx, name);   // sem o plugin (navegador, APK antigo): baixa ou abre o compartilhar
+  } catch (e) { toast(/pptx/.test(String(e && e.message)) ? 'O gerador de slides não carregou. Confira a internet e tente de novo.' : 'Não consegui enviar os slides.'); }
+  finally { btn.disabled = false; btn.removeAttribute('aria-busy'); }
+}
+$('sl-zap').addEventListener('change', () => {
+  const v = $('sl-zap').value.trim();
+  if (v && !zapDigits(v)) { toast('Confira o número: DDD + número, como (47) 99999-9999.'); return; }
+  db.slideZap = v; save(); if (v) toast('Número da sonoplastia guardado neste aparelho.');
+});
 async function slSave(pptx, name) {
   /* APK: grava no cache do app e abre a janela de compartilhar (Drive, WhatsApp, e-mail, pendrive…) */
   const FS = capPlugin('Filesystem'), SH = capPlugin('Share');
@@ -5707,6 +5745,7 @@ $('v-slides').addEventListener('click', (e) => {
   if (t.closest('[data-sl-sim]')) { sl.sim = !sl.sim; renderSlides(); return; }
   if ((b = t.closest('[data-sl-big]'))) { slBigShow(Number(b.dataset.slBig)); return; }
   if (t.closest('#sl-go')) slExport();
+  if (t.closest('#sl-zap-go')) slWhats();
 });
 $('sl-big').addEventListener('click', (e) => {
   if (e.target.closest('#sl-big-prev')) { slBigShow(sl.big - 1); return; }
@@ -5829,7 +5868,9 @@ const TOUR_STEPS = [
     prep: () => { if (!(route.name === 'lista' && route.id === TOUR_IDS.lista)) go('lista', { id: TOUR_IDS.lista, back: { name: 'listas' } }); } },
   { el: '#sl-models', title: 'Modelos', text: 'Escolha entre 5 modelos. Embaixo aparecem todos os slides, do jeito que vão ficar; toque num deles para ver grande, com o que vem depois.',
     prep: () => { if (!(route.name === 'slides' && route.id === TOUR_IDS.lista)) go('slides', { id: TOUR_IDS.lista, back: { name: 'lista', params: { id: TOUR_IDS.lista, back: { name: 'listas' } } } }); } },
-  { el: '#sl-go', title: 'Gerar o PowerPoint', text: 'Cria o arquivo .pptx para o computador da projeção. No tablet, abre a janela de enviar: Drive, WhatsApp ou e-mail.',
+  { el: '#sl-zap-go', title: 'Enviar pelo WhatsApp', text: 'Gera o .pptx e abre o WhatsApp para mandar à sonoplastia. Com o número da sonoplastia guardado logo acima, o WhatsApp já abre na conversa.',
+    prep: () => { if (!(route.name === 'slides' && route.id === TOUR_IDS.lista)) go('slides', { id: TOUR_IDS.lista, back: { name: 'lista', params: { id: TOUR_IDS.lista, back: { name: 'listas' } } } }); } },
+  { el: '#sl-go', title: 'Gerar o PowerPoint', text: 'Também dá para só gerar o arquivo e escolher onde mandar: Drive, e-mail ou pendrive.',
     prep: () => { if (!(route.name === 'slides' && route.id === TOUR_IDS.lista)) go('slides', { id: TOUR_IDS.lista, back: { name: 'lista', params: { id: TOUR_IDS.lista, back: { name: 'listas' } } } }); } },
   { el: '[data-li-start]', title: 'Modo culto', text: 'No culto, comece por aqui.', act: 'Toque em Começar', wait: 'click',
     prep: () => { if (!(route.name === 'lista' && route.id === TOUR_IDS.lista)) go('lista', { id: TOUR_IDS.lista, back: { name: 'listas' } }); } },

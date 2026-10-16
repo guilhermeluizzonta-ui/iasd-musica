@@ -7,6 +7,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(ImmersivePlugin.class);   // tela cheia (plugin próprio do app)
+        registerPlugin(WhatsAppPlugin.class);    // enviar os slides direto pelo WhatsApp
         super.onCreate(savedInstanceState);
     }
 }
