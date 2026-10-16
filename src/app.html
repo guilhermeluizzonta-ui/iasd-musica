@@ -681,6 +681,30 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
   .tour-card p.tour-text { font-size: 15px; }
 }
 @media (prefers-reduced-motion: reduce) { .tour-hole, .tour-card { transition: none; } .tour-hole.wait { animation: none; } }
+/* ---------- Biblioteca do Drive ---------- */
+.sync-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 2px 0 4px; }
+.sync-row .hint { flex: 1; margin: 0; }
+.btn.ib.spin svg { animation: bibSpin 1s linear infinite; }
+@keyframes bibSpin { to { transform: rotate(360deg); } }
+.bib-tag { flex: none; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px; margin-right: 6px; border: 1px solid var(--line); color: var(--muted); }
+.bib-tag.ok { color: var(--accent); border-color: var(--accent); }
+.bib-tag.new { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); }
+.bib-tag.upd { background: rgba(255, 203, 8, .18); color: var(--fg); border-color: var(--gold); }
+.keytag.bib-have { color: var(--accent); }
+.cf-filter { margin: 4px 0 2px; }
+.cf-filter .chip { min-height: 38px; padding: 0 14px; font-size: 14px; }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink, #fff); border-color: var(--accent); }
+.modal { position: fixed; inset: 0; z-index: 1500; background: rgba(0, 0, 0, .5); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.modal[hidden] { display: none; }
+.modal-card { width: min(460px, 100%); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: 0 16px 48px rgba(0, 0, 0, .35); }
+.modal-card h2 { margin: 0 0 6px; font-size: 19px; }
+.modal-card p { margin: 0 0 14px; color: var(--muted); line-height: 1.45; }
+.modal-acts { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.modal-acts.stack-acts { flex-direction: column; align-items: stretch; }
+.modal-acts .btn.big { justify-content: flex-start; text-align: left; gap: 12px; min-height: 64px; padding: 10px 14px; }
+.modal-acts .btn.big span { display: flex; flex-direction: column; gap: 2px; }
+.modal-acts .btn.big small { font-weight: 400; font-size: 13px; opacity: .8; }
+.modal-acts.stack-acts .btn:not(.big) { align-self: flex-end; }
 </style>
 
 <!-- ================= LOGIN ================= -->
@@ -807,6 +831,23 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
     </section>
 
     <!-- Cifras: busca, favoritas, recentes e todas -->
+    <!-- Biblioteca de cifras (Drive do ministério) -->
+    <section class="view" id="v-biblioteca" data-tipscope hidden>
+      <div class="sync-row">
+        <p class="hint" id="bib-st" aria-live="polite"></p>
+        <button type="button" class="btn ib" id="bib-sync" aria-label="Sincronizar" data-tip="Sincronizar|Busca no Drive as músicas novas e as que mudaram."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.6-4.5M4 13a8 8 0 0 0 14.6 4.5"/><path d="M4 4v4h4M20 20v-4h-4"/></svg></button>
+      </div>
+      <p class="tipline" aria-live="polite"></p>
+      <p class="warn" id="bib-err" hidden></p>
+      <div class="search-box">
+        <label for="bib-q" class="sr">Buscar na biblioteca</label>
+        <input class="input" id="bib-q" type="search" placeholder="Buscar música, artista ou pasta">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+      </div>
+      <nav class="crumbs" id="bib-crumbs" aria-label="Pasta atual"></nav>
+      <p class="hint" id="bib-count"></p>
+      <div class="song-list" id="bib-list"></div>
+    </section>
     <section class="view" id="v-cifras" hidden>
       <div class="search-box">
         <label for="list-q" class="sr">Buscar no repertório</label>
@@ -816,6 +857,11 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
       <div class="home-grid" id="cifras-panels">
         <div class="panel"><div class="panel-head"><span class="sec-title">Favoritas</span><button type="button" class="link" data-nav="favoritas">Ver todas</button></div><div class="song-list" id="home-favs"></div></div>
         <div class="panel"><div class="panel-head"><span class="sec-title">Atualizadas recentemente</span></div><div class="song-list" id="home-recent"></div></div>
+      </div>
+      <div class="chips cf-filter" role="group" aria-label="Mostrar">
+        <button type="button" class="chip" data-cf="todas" aria-pressed="true">Todas</button>
+        <button type="button" class="chip" data-cf="minhas" aria-pressed="false">Minhas</button>
+        <button type="button" class="chip" data-cf="biblioteca" aria-pressed="false">Biblioteca</button>
       </div>
       <p class="sec-title" id="all-title">Todas as cifras</p>
       <input type="file" id="bulk-file" accept=".txt,.cho,.chordpro,.crd,text/plain" multiple hidden>
@@ -846,6 +892,11 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
       </div>
       <input type="file" id="pdf-file" accept="application/pdf,.pdf" multiple hidden>
       <div class="box" id="pdf-box" hidden></div>
+      <div class="sync-row" id="pdf-sync-row" data-tipscope hidden>
+        <p class="hint" id="pdf-sync-st" aria-live="polite"></p>
+        <button type="button" class="btn ib" id="pdf-sync" aria-label="Sincronizar" data-tip="Sincronizar|Busca no Drive as partituras novas e as que mudaram."><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.6-4.5M4 13a8 8 0 0 0 14.6 4.5"/><path d="M4 4v4h4M20 20v-4h-4"/></svg></button>
+        <p class="tipline" aria-live="polite" style="flex-basis:100%;order:3;margin:0"></p>
+      </div>
       <nav class="crumbs" id="pdf-crumbs" aria-label="Pasta atual"></nav>
       <p class="hint" id="pdf-count"></p>
       <p class="hint" id="pdf-howto" hidden></p>
@@ -1071,6 +1122,12 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
         <p class="sec-title">Prévia</p>
         <article class="sheet" id="theme-preview"></article>
       </div>
+      <div class="box" id="cfg-bib-box" hidden>
+        <p class="sec-title">Biblioteca do Drive</p>
+        <p class="hint">Endereço do script que liga o app às pastas Cifras e Partituras do Drive (termina em /exec). Veja docs/BIBLIOTECA.md.</p>
+        <div class="field"><label for="cfg-bib-url">Endereço</label><input class="input" id="cfg-bib-url" type="url" inputmode="url" autocomplete="off" spellcheck="false"></div>
+        <div class="row"><button type="button" class="btn" id="cfg-bib-test">Testar e salvar</button><span class="hint" id="cfg-bib-st" aria-live="polite"></span></div>
+      </div>
       <p class="hint">A aparência vale só para você, neste aparelho. As mudanças aparecem na hora como prévia e só ficam gravadas ao tocar em Salvar.</p>
       <div class="editor-actions" data-tipscope>
         <p class="tipline" aria-live="polite" style="flex-basis:100%;order:-1"></p>
@@ -1249,6 +1306,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
     </div>
   </div>
 </div>
+<div class="modal" id="modal" hidden><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-t"><h2 id="modal-t"></h2><p id="modal-p"></p><div class="modal-acts" id="modal-a"></div></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script>
@@ -1596,7 +1654,7 @@ function viewFor(id) {
 }
 
 /* ---------- Navegação ---------- */
-const TITLES = { devocional: 'Devocional', scoreform: 'Nova partitura', letra: 'Letra', lista: 'Lista', listaform: 'Nova lista', listapick: 'Adicionar músicas', letras: 'Letras', partitura: 'Partitura', inicio: 'Início', cifras: 'Cifras', favoritas: 'Favoritas', partituras: 'Partituras', listas: 'Listas de culto', config: 'Configurações', lixeira: 'Lixeira' };
+const TITLES = { biblioteca: 'Biblioteca de cifras', devocional: 'Devocional', scoreform: 'Nova partitura', letra: 'Letra', lista: 'Lista', listaform: 'Nova lista', listapick: 'Adicionar músicas', letras: 'Letras', partitura: 'Partitura', inicio: 'Início', cifras: 'Cifras', favoritas: 'Favoritas', partituras: 'Partituras', listas: 'Listas de culto', config: 'Configurações', lixeira: 'Lixeira' };
 const TOP = ['devocional', 'inicio', 'cifras', 'favoritas', 'partituras', 'letras', 'listas', 'config', 'lixeira'];
 let route = { name: 'inicio' }, lastTop = 'inicio';
 function show(id) { ['v-login', 'v-signup'].forEach(x => $(x).hidden = x !== id); $('app').hidden = id !== 'app'; }
@@ -1620,11 +1678,11 @@ function go(name, params = {}) {
   const hasBack = !!(params && params.back) || (name === 'partituras' && !!pdfFolder);
   $('menu-btn').hidden = !top || hasBack; $('back-btn').hidden = top && !hasBack;
   document.querySelectorAll('.nav-item[data-nav]').forEach(b => { if (b.dataset.nav === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
-  $('fab-wrap').hidden = !((db.role === 'editor' && (name === 'cifras' || name === 'listas')) || name === 'partituras'); closeFab();
+  $('fab-wrap').hidden = !((db.role === 'editor' && name === 'listas') || name === 'cifras' || name === 'partituras');   // cifras: o músico também importa (biblioteca ou aparelho) closeFab();
   $('fab-wrap').classList.toggle('single', name === 'listas');   // pastas: todos organizam as suas
   $('fab').setAttribute('aria-label', name === 'partituras' ? 'Importar partituras em PDF' : name === 'listas' ? 'Nova lista' : 'Adicionar cifra');
   const inPdf = name === 'partituras';
-  ['fab-new', 'fab-import'].forEach(i => $(i).hidden = inPdf); $('fab-folder').hidden = !inPdf; $('fab-pdf').hidden = !inPdf; $('fab-score').hidden = !(inPdf && db.role === 'editor');   // todos importam os PDFs que têm no aparelho
+  ['fab-new', 'fab-import'].forEach(i => $(i).hidden = inPdf); if (db.role !== 'editor') $('fab-new').hidden = true; $('fab-folder').hidden = !inPdf; $('fab-pdf').hidden = !inPdf; $('fab-score').hidden = !(inPdf && db.role === 'editor');   // todos importam os PDFs que têm no aparelho
   if (TITLES[name]) $('top-title').textContent = TITLES[name];
   if (name === 'inicio') renderWelcome();
   if (name === 'devocional') renderDevocional(params);
@@ -1640,6 +1698,9 @@ function go(name, params = {}) {
   if (name === 'scoreform') openScoreForm();
   if (name === 'letras') renderLetras();
   if (name === 'letra') openLetra(params.id);
+  if (name === 'biblioteca') bibOpenView();
+  if (name === 'partituras') pdfAutoSync();
+  if (name === 'config') renderBibCfg();
   if (name === 'lista') renderListDetail(params.id);
   if (name === 'listaform') openListForm(params);
   if (name === 'listapick') openPick(params.id);
@@ -1672,7 +1733,7 @@ function emptyBox(msg, withAdd) {
 }
 function renderList() {
   const q = norm($('list-q').value.trim());
-  const all = activeSongs().sort(byTitle);
+  const all = activeSongs().filter(cfPass).sort(byTitle);
   const list = q ? all.filter(s => norm(s.title + ' ' + s.artist).includes(q)) : all;
   $('list-count').textContent = q ? `${list.length} de ${all.length} músicas` : `${all.length} ${all.length === 1 ? 'música' : 'músicas'} no repertório`;
   $('list-songs').innerHTML = list.length ? list.map(songRow).join('')
@@ -1691,6 +1752,8 @@ const TITLE_RE = /^\s*t[ií]tulo\s*:\s*(.*)$/i;
 const ARTIST_RE = /^\s*(artista|autor|vers[aã]o)\s*:\s*(.*)$/i;
 /* Lê um arquivo com uma ou várias músicas (separadas por =====) e diz, música por música, o que encontrou */
 function splitBulk(text, fileName) {
+  /* Arquivo de uma música só, sem "Título:" (como os da biblioteca do Drive): título e artista vêm do nome do arquivo */
+  if (fileName && !/^\s*t[ií]tulo\s*:/im.test(text) && !/^[ \t]*={3,}[ \t]*$/m.test(text) && !/^\s*\{\s*(title|t)\s*:/im.test(text) && looksLikeCifra(text)) text = parseLibTxt(text, fileName).text;
   const lines = text.replace(/^﻿/, '').replace(/\r\n?/g, '\n').split('\n');
   const blocks = []; let curB = null;
   lines.forEach((l, idx) => {
@@ -2430,7 +2493,7 @@ $('fab-new').addEventListener('click', () => { closeFab(); go('editor', {}); });
 $('fab-pdf').addEventListener('click', () => { closeFab(); $('pdf-file').click(); });
 $('fab-score').addEventListener('click', () => { closeFab(); go('scoreform', { back: { name: 'partituras', params: { folder: pdfFolder } } }); });
 $('fab-folder').addEventListener('click', () => { closeFab(); folderDialog('new'); });
-$('fab-import').addEventListener('click', () => { closeFab(); $('bulk-file').click(); });
+$('fab-import').addEventListener('click', () => { closeFab(); importChoice(); });
 document.addEventListener('click', (e) => { if (!e.target.closest('#fab-wrap')) closeFab(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('fab-wrap').classList.contains('open')) { closeFab(); $('fab').focus(); } });
 function applyRole() {
@@ -2590,7 +2653,7 @@ const fileKey = (n) => norm(String(n).replace(/\.pdf$/i, '')).replace(/[^a-z0-9]
 function seedCatalog() {
   if (!Array.isArray(db.scores)) db.scores = [];
   let changed = false;
-  CATALOG.forEach(c => {
+  if (!db.libPartAt) CATALOG.forEach(c => {
     let sc = db.scores.find(x => x.catId === c.d);
     if (!sc) { db.scores.push({ id: 'cat-' + c.d, catId: c.d, title: c.t, album: c.a, file: c.f, size: c.s, pages: null, songId: null, local: false, added: 0 }); changed = true; }
     else if (sc.album !== c.a || sc.file !== c.f) { sc.album = c.a; sc.file = c.f; changed = true; }
@@ -2621,7 +2684,7 @@ function getMcp() {
   if (!mcpP) mcpP = (window.claude && typeof window.claude.use === 'function') ? Promise.resolve(window.claude.use('mcp')).catch(() => null) : Promise.resolve(null);
   return mcpP;
 }
-async function canDownload() { return isApk() || !!(await getMcp()); }
+async function canDownload() { return !!bibUrl() || isApk() || !!(await getMcp()); }
 function b64ToBytes(b64) {
   const bin = atob(String(b64).replace(/\s+/g, '')); const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
@@ -2629,6 +2692,7 @@ function b64ToBytes(b64) {
 }
 class DlError extends Error { constructor(code, msg) { super(msg || code); this.code = code; } }
 async function fetchFromDrive(sc) {
+  if (bibUrl()) { try { return await bibDownloadPdf(sc); } catch (e) { throw new DlError(e && e.code === 'offline' ? 'offline' : 'http', e && e.message); } }
   if (isApk()) {
     let r; try { r = await fetch(CAT_DL(sc.catId)); } catch (e) { throw new DlError('offline'); }
     if (!r.ok) throw new DlError(r.status === 403 || r.status === 404 ? 'private' : 'http', 'HTTP ' + r.status);
@@ -2711,7 +2775,7 @@ const scoreRow = (sc, showPath) => {
       <button type="button" class="icon-btn" data-pmore="${esc(sc.id)}" aria-haspopup="menu" aria-label="Mais opções: ${esc(sc.title)}"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg></button>
     </div>`;
   }
-  const sub = [s ? 'Cifra: ' + s.title : 'Sem cifra ligada', showPath && sc.folderId ? folderLabel(sc.folderId) : '', sc.pages ? `${sc.pages} ${sc.pages === 1 ? 'página' : 'páginas'}` : '', sc.local ? '' : 'não baixada'].filter(Boolean).join(' · ');
+  const sub = [s ? 'Cifra: ' + s.title : 'Sem cifra ligada', showPath && sc.folderId ? folderLabel(sc.folderId) : '', sc.pages ? `${sc.pages} ${sc.pages === 1 ? 'página' : 'páginas'}` : '', sc.local ? '' : 'não baixada', sc.novaVersao ? 'nova versão no Drive' : '', sc.fora ? 'fora do acervo do Drive' : ''].filter(Boolean).join(' · ');
   return `<div class="song${sc.local ? '' : ' not-local'}">
       <button type="button" class="song-open" data-pdf="${esc(sc.id)}">
         <span class="keytag pdf-ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M9 13h6M9 17h6"></path></svg></span>
@@ -3029,6 +3093,7 @@ async function openPdfView(id) {
     return;
   }
   pv.id = id; pv.zoom = db.pdfZoom[id] || 1;
+  if (sc.local && sc.novaVersao && sc.catId && bibUrl()) setTimeout(() => toast('Esta partitura mudou no Drive.', { label: 'Atualizar', fn: async () => { toast('Baixando do Drive…'); try { await downloadScore(sc); toast('Partitura atualizada.'); openPdfView(sc.id); } catch (e) { toast(dlErrorText(e)); } } }), 400);
   if (pv.doc) { try { pv.doc.destroy(); } catch (e) {} pv.doc = null; }
   $('top-title').textContent = sc.title;
   const s = scoreSong(sc);
@@ -5139,6 +5204,7 @@ $('sf-form').addEventListener('submit', (e) => {
   if (!App) return;
   const P = { App };
   App.addListener('backButton', () => {
+    if (!$('modal').hidden) { closeModal(null); return; }
     if (tour.on) { if (tour.i > 0) $('tour-prev').click(); else if (!tour.mandatory) tourEnd(false); return; }
     if (!$('drawer').hidden) { closeDrawer(); return; }
     if (!$('ink-text').hidden) { $('ink-text').hidden = true; return; }
@@ -5355,6 +5421,344 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (!tour.mandatory) tourEnd(false); else if (tour.i > 0) tourShow(tour.i - 1, -1); }
 }, true);
 $('nav-tour').addEventListener('click', () => { closeDrawer(); tourStart(false); });
+
+/* ---------- Biblioteca do Drive (cifras e partituras) ----------
+   O app lê as pastas Cifras e Partituras do Drive do ministério por um Google Apps Script (drive/biblioteca.gs),
+   que roda com a conta do dono: as pastas não precisam ser públicas, e o app só lê.
+   A lista fica guardada no aparelho (funciona sem internet com a última lista); "Sincronizar" pede uma nova.
+   Cifras baixadas da biblioteca ficam marcadas (s.lib) e separadas das criadas/importadas pela pessoa. */
+const BIB_URL_PADRAO = '';   // endereço do script publicado (termina em /exec); o editor também pode pôr em Configurações
+const BIB_CHAVE = 'iasd-jgs-central-musica';   // a mesma de drive/biblioteca.gs
+const BIB_VELHA_MS = 2 * 60 * 1000;            // ao abrir a biblioteca, sincroniza sozinha se a lista tem mais de 2 min
+const bibUrl = () => String(db.bibUrl || BIB_URL_PADRAO || '').trim();
+const bib = { busy: {}, err: {}, path: [], novas: {} };
+ICO.sync = '<path d="M20 11a8 8 0 0 0-14.6-4.5M4 13a8 8 0 0 0 14.6 4.5"/><path d="M4 4v4h4M20 20v-4h-4"/>';
+ICO.book = '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H19v14H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3"/><path d="M8 8h7"/>';
+ICO.phone = '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18h2"/>';
+ICO.down = '<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M5 20h14"/>';
+ICO.folder = '<path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.5h8.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/>';
+
+class BibError extends Error { constructor(code, msg) { super(msg || code); this.code = code; } }
+async function bibGet(params, ms) {
+  const url = bibUrl(); if (!url) throw new BibError('nourl');
+  const qs = new URLSearchParams(Object.assign({ chave: BIB_CHAVE }, params)).toString();
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const t = ctl ? setTimeout(() => ctl.abort(), ms || 45000) : 0;
+  let r;
+  try { r = await fetch(url + (url.includes('?') ? '&' : '?') + qs, { signal: ctl ? ctl.signal : undefined, redirect: 'follow' }); }
+  catch (e) { throw new BibError(e && e.name === 'AbortError' ? 'timeout' : 'offline'); }
+  finally { clearTimeout(t); }
+  if (!r.ok) throw new BibError('http', 'HTTP ' + r.status);
+  let j; try { j = await r.json(); } catch (e) { throw new BibError('format'); }
+  if (j && j.erro) throw new BibError(j.erro === 'chave' ? 'chave' : j.erro === 'fora' ? 'fora' : 'script', j.erro);
+  return j;
+}
+function bibErrText(e) {
+  switch (e && e.code) {
+    case 'nourl': return db.role === 'editor' ? 'A biblioteca ainda não está ligada. Ponha o endereço em Configurações › Biblioteca do Drive.' : 'A biblioteca ainda não foi ligada pelo editor.';
+    case 'offline': return 'Sem internet. Mostrando a última lista guardada neste aparelho.';
+    case 'timeout': return 'O Drive demorou para responder. Tente sincronizar de novo.';
+    case 'chave': return 'A chave do app não confere com a do script. Confira o script publicado.';
+    case 'fora': return 'Esse arquivo não está nas pastas da biblioteca.';
+    case 'format': case 'http': return 'O endereço da biblioteca não respondeu como esperado. Confira em Configurações.';
+    default: return 'Não consegui falar com o Drive' + (e && e.message ? ` (${e.message})` : '') + '.';
+  }
+}
+/* lista guardada no aparelho */
+const BIB_KEY = (raiz) => 'repertorio.bib.' + raiz;
+function bibCache(raiz) { try { return JSON.parse(localStorage.getItem(BIB_KEY(raiz)) || 'null'); } catch (e) { return null; } }
+function bibCacheSet(raiz, v) { try { localStorage.setItem(BIB_KEY(raiz), JSON.stringify(v)); } catch (e) {} }
+/* todos os arquivos da árvore, com o caminho de pastas (sem a pasta raiz) */
+function bibFlat(arv, filtro) {
+  const out = [];
+  const walk = (p, path) => {
+    (p.arquivos || []).forEach(a => { if (!filtro || filtro(a)) out.push(Object.assign({ path }, a)); });
+    (p.pastas || []).forEach(f => walk(f, path.concat(f.nome)));
+  };
+  if (arv) walk(arv, []);
+  return out;
+}
+const isCifraFile = (a) => /\.(txt|cho|chordpro|crd)$/i.test(a.nome) || /^text\//.test(a.tipo || '');
+const isPdfFile = (a) => /\.pdf$/i.test(a.nome) || a.tipo === 'application/pdf';
+async function bibSync(raiz, force) {
+  if (bib.busy[raiz]) return bib.busy[raiz];
+  const p = (async () => {
+    const antes = bibCache(raiz);
+    const j = await bibGet(Object.assign({ acao: 'lista', raiz }, force ? { novo: '1' } : {}));
+    if (!j || !j.arvore) throw new BibError('format');
+    const v = { at: Date.now(), arvore: j.arvore };
+    // o que apareceu desde a última sincronização (para marcar "nova")
+    if (antes && antes.arvore) {
+      const velhos = new Set(bibFlat(antes.arvore).map(a => a.id));
+      v.novas = bibFlat(j.arvore).filter(a => !velhos.has(a.id)).map(a => a.id).concat((antes.novas || []).filter(id => bibFlat(j.arvore).some(a => a.id === id)));
+    }
+    bibCacheSet(raiz, v); bib.err[raiz] = null;
+    return v;
+  })();
+  bib.busy[raiz] = p;
+  try { return await p; } catch (e) { bib.err[raiz] = e; throw e; } finally { bib.busy[raiz] = null; }
+}
+const quando = (ts) => {
+  if (!ts) return '';
+  const d = new Date(ts), hoje = new Date(), hm = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  if (d.toDateString() === hoje.toDateString()) return 'hoje às ' + hm;
+  const ontem = new Date(hoje); ontem.setDate(hoje.getDate() - 1);
+  if (d.toDateString() === ontem.toDateString()) return 'ontem às ' + hm;
+  return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)} às ${hm}`;
+};
+
+/* ---------- Janela de escolha (modal simples) ---------- */
+let modalRes = null;
+function askModal(o) {
+  return new Promise(res => {
+    if (modalRes) modalRes(null);
+    modalRes = res;
+    $('modal-t').textContent = o.title || ''; $('modal-p').textContent = o.text || ''; $('modal-p').hidden = !o.text;
+    $('modal-a').innerHTML = (o.actions || []).map((a, i) => `<button type="button" class="btn${a.primary ? ' primary' : ''}${a.big ? ' big' : ''}" data-modal="${i}">${a.icon ? ico(a.icon, 22) : ''}<span>${a.big ? `<strong>${esc(a.label)}</strong>${a.sub ? `<small>${esc(a.sub)}</small>` : ''}` : esc(a.label)}</span></button>`).join('');
+    $('modal-a').classList.toggle('stack-acts', (o.actions || []).some(a => a.big));
+    $('modal').hidden = false;
+    $('modal').dataset.vals = JSON.stringify((o.actions || []).map(a => a.value));
+    setTimeout(() => { const b = $('modal-a').querySelector('.primary') || $('modal-a').querySelector('button'); if (b) b.focus(); }, 30);
+  });
+}
+function closeModal(v) { $('modal').hidden = true; const r = modalRes; modalRes = null; if (r) r(v === undefined ? null : v); }
+$('modal').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-modal]');
+  if (b) { const vals = JSON.parse($('modal').dataset.vals || '[]'); closeModal(vals[Number(b.dataset.modal)]); return; }
+  if (e.target === $('modal')) closeModal(null);
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('modal').hidden) { e.stopPropagation(); closeModal(null); } }, true);
+
+/* ---------- Importar cifras: biblioteca ou aparelho ---------- */
+async function importChoice() {
+  const v = await askModal({ title: 'Importar cifras', text: 'De onde vêm as cifras?', actions: [
+    { label: 'Biblioteca do ministério', sub: 'Pastas e músicas do Drive. Escolha e baixe.', icon: 'book', value: 'bib', primary: true, big: true },
+    { label: 'Arquivo do aparelho', sub: 'Um .txt do tablet ou celular (uma ou várias músicas).', icon: 'phone', value: 'dev', big: true },
+    { label: 'Cancelar', value: null }] });
+  if (v === 'bib') { bib.path = []; $('bib-q').value = ''; go('biblioteca', { back: { name: 'cifras' } }); }
+  if (v === 'dev') $('bulk-file').click();
+}
+
+/* ---------- Cifras da biblioteca: lista ---------- */
+const libSongOf = (fileId) => db.songs.find(s => s.lib && s.lib.id === fileId && !s.archived) || null;
+function libTitle(nome) {   // "Adoradores Novo Tempo - Vitória.txt" → artista "Adoradores Novo Tempo", título "Vitória"
+  const base = String(nome).replace(/\.(txt|cho|chordpro|crd|pdf)$/i, '').replace(/\s+/g, ' ').trim();
+  const m = base.match(/^(.+?)\s+[-–]\s+(.+)$/);
+  return m ? { artist: m[1].trim(), title: m[2].trim(), base } : { artist: '', title: base, base };
+}
+function bibNode(arv, path) {   // path = ids das pastas a partir da raiz
+  let n = arv;
+  for (const id of path) { const f = (n.pastas || []).find(p => p.id === id); if (!f) return null; n = f; }
+  return n;
+}
+const bibCountIn = (p) => bibFlat(p, isCifraFile).length;
+function bibRow(a, showPath, novas) {
+  const t = libTitle(a.nome), s = libSongOf(a.id);
+  const upd = s && a.mod && s.lib.mod && a.mod > s.lib.mod;
+  const isNew = !s && novas && novas.includes(a.id);
+  const sub = [t.artist, showPath && a.path.length ? a.path.join(' › ') : ''].filter(Boolean).join(' · ');
+  const tag = upd ? '<span class="bib-tag upd">Nova versão</span>' : s ? '<span class="bib-tag ok">Baixada</span>' : isNew ? '<span class="bib-tag new">Nova</span>' : '';
+  return `<div class="song">
+    <button type="button" class="song-open" data-bibf="${esc(a.id)}">
+      <span class="keytag${s ? ' bib-have' : ''}" aria-hidden="true">${ico(s ? 'check' : 'down', 20)}</span>
+      <span class="song-text"><strong>${esc(t.title)}</strong><span>${esc(sub)}</span></span>
+    </button>${tag}
+  </div>`;
+}
+function renderBiblioteca() {
+  const c = bibCache('cifras'), busy = !!bib.busy.cifras, err = bib.err.cifras;
+  const total = c ? bibCountIn(c.arvore) : 0, mine = db.songs.filter(s => s.lib && !s.archived).length;
+  $('bib-st').innerHTML = busy ? 'Sincronizando com o Drive…'
+    : !bibUrl() ? esc(bibErrText({ code: 'nourl' }))
+    : c ? `Atualizada ${esc(quando(c.at))} · ${total} ${total === 1 ? 'música' : 'músicas'} · ${mine} ${mine === 1 ? 'baixada' : 'baixadas'} neste aparelho` : 'Ainda não sincronizada.';
+  $('bib-sync').disabled = busy || !bibUrl(); $('bib-sync').classList.toggle('spin', busy);
+  $('bib-err').hidden = !err || busy; if (err && !busy) $('bib-err').textContent = bibErrText(err);
+  const list = $('bib-list');
+  if (!c) { $('bib-crumbs').hidden = true; list.innerHTML = busy ? '' : `<div class="empty"><p>${!bibUrl() ? 'Sem biblioteca ligada.' : 'Toque em Sincronizar para buscar as cifras no Drive.'}</p></div>`; return; }
+  const q = norm($('bib-q').value.trim()), novas = c.novas || [];
+  let node = bibNode(c.arvore, bib.path); if (!node) { bib.path = []; node = c.arvore; }
+  // caminho no topo
+  const names = []; { let n = c.arvore; for (const id of bib.path) { n = (n.pastas || []).find(p => p.id === id); names.push(n); } }
+  $('bib-crumbs').hidden = !!q || !names.length;
+  $('bib-crumbs').innerHTML = [`<button type="button" data-bibc="-1"${names.length ? '' : ' aria-current="page"'}>Biblioteca</button>`]
+    .concat(names.map((f, i) => `<span class="sep" aria-hidden="true">›</span><button type="button" data-bibc="${i}"${i === names.length - 1 ? ' aria-current="page"' : ''}>${esc(f.nome)}</button>`)).join('');
+  if (q) {
+    const hits = bibFlat(c.arvore, isCifraFile).filter(a => norm(a.nome + ' ' + a.path.join(' ')).includes(q)).sort((x, y) => libTitle(x.nome).title.localeCompare(libTitle(y.nome).title, 'pt-BR'));
+    $('bib-count').textContent = `${hits.length} ${hits.length === 1 ? 'música encontrada' : 'músicas encontradas'} em todas as pastas`;
+    list.innerHTML = hits.map(a => bibRow(a, true, novas)).join('') || '<p class="hint">Nada encontrado para essa busca.</p>';
+    return;
+  }
+  const pastas = (node.pastas || []).slice().sort((x, y) => x.nome.localeCompare(y.nome, 'pt-BR', { numeric: true }));
+  const arqs = (node.arquivos || []).filter(isCifraFile).map(a => Object.assign({ path: names.map(n => n.nome) }, a)).sort((x, y) => libTitle(x.nome).title.localeCompare(libTitle(y.nome).title, 'pt-BR'));
+  $('bib-count').textContent = names.length ? (arqs.length ? `${arqs.length} ${arqs.length === 1 ? 'música' : 'músicas'} nesta pasta` : '') : '';
+  list.innerHTML = pastas.map(f => {
+    const n = bibCountIn(f), nn = bibFlat(f, isCifraFile).filter(a => novas.includes(a.id) && !libSongOf(a.id)).length;
+    return `<div class="song"><button type="button" class="song-open" data-bibp="${esc(f.id)}">
+      <span class="keytag folder-ico" aria-hidden="true">${ico('folder', 22)}</span>
+      <span class="song-text"><strong>${esc(f.nome)}</strong><span>${n} ${n === 1 ? 'música' : 'músicas'}${nn ? ` · ${nn} ${nn === 1 ? 'nova' : 'novas'}` : ''}</span></span></button></div>`;
+  }).join('') + arqs.map(a => bibRow(a, false, novas)).join('') || '<div class="empty"><p>Pasta vazia.</p></div>';
+}
+function bibOpenView() {
+  renderBiblioteca();
+  const c = bibCache('cifras');
+  if (bibUrl() && (!c || Date.now() - c.at > BIB_VELHA_MS)) bibSyncUi('cifras', false);
+}
+async function bibSyncUi(raiz, force) {
+  const p = bibSync(raiz, force);
+  if (raiz === 'cifras') renderBiblioteca(); else renderPdfSync();
+  try { const v = await p; if (raiz === 'partituras') pdfMergeLib(v); }
+  catch (e) { /* o erro aparece na tela */ }
+  if (raiz === 'cifras') { if (route.name === 'biblioteca') renderBiblioteca(); }
+  else { renderPdfSync(); if (route.name === 'partituras') renderPdfList(); }
+}
+/* cifra .txt do Drive → ChordPro do app */
+function parseLibTxt(texto, nome) {
+  const t = libTitle(nome);
+  let raw = String(texto || '').replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  if (/^\s*\{\s*(title|t)\s*:/im.test(raw)) {   // já é ChordPro
+    const meta = parseMeta(raw);
+    return { title: meta.title || t.title, artist: meta.artist || t.artist, text: raw.trim() + '\n' };
+  }
+  const cut = raw.search(/^[ \t]*-{3,}[ \t]*acordes[ \t]*-{3,}[ \t]*$/im);   // desenho dos acordes no fim do arquivo
+  if (cut >= 0) raw = raw.slice(0, cut);
+  const lines = raw.split('\n');
+  while (lines.length && !lines[0].trim()) lines.shift();
+  const key = (x) => norm(x).replace(/[^a-z0-9]+/g, ' ').trim();
+  if (lines.length && !isChordLine(lines[0]) && (key(lines[0]) === key(t.base) || key(lines[0]).endsWith(key(t.title)) || key(lines[0]) === key(t.title))) lines.shift();   // 1ª linha repete o nome do arquivo
+  const conv = convertToChordPro(lines.join('\n'), { title: t.title, artist: t.artist });
+  return { title: t.title, artist: t.artist, text: conv.text };
+}
+async function bibDownloadCifra(a, replace) {
+  const j = await bibGet({ acao: 'arquivo', id: a.id });
+  if (typeof j.texto !== 'string') throw new BibError('format');
+  const p = parseLibTxt(j.texto, j.nome || a.nome), now = Date.now();
+  const lib = { id: a.id, mod: j.mod || a.mod || now, path: a.path || [], nome: j.nome || a.nome, at: now };
+  let s = replace;
+  if (s) { Object.assign(s, { title: p.title, artist: p.artist, text: p.text, updated: now, lib }); }
+  else { s = { id: uid('s'), title: p.title, artist: p.artist, text: p.text, source: 'Biblioteca do ministério', archived: false, created: now, updated: now, lib }; db.songs.push(s); }
+  save(); if (autoLinkScores()) save();
+  return s;
+}
+async function bibTap(fileId) {
+  const c = bibCache('cifras'); if (!c) return;
+  const a = bibFlat(c.arvore, isCifraFile).find(x => x.id === fileId); if (!a) return;
+  const t = libTitle(a.nome), have = libSongOf(a.id);
+  const open = (s) => go('cifra', { id: s.id, back: { name: 'biblioteca', params: { back: { name: 'cifras' } } } });
+  if (have) {
+    const upd = a.mod && have.lib.mod && a.mod > have.lib.mod;
+    if (!upd) { open(have); return; }
+    const mudou = have.updated > (have.lib.at || 0) + 1000;
+    const v = await askModal({ title: `Nova versão de “${t.title}”`, text: mudou ? 'A cifra foi alterada no Drive. Você também mudou a sua cópia: atualizar troca pelo que está no Drive.' : 'A cifra foi alterada no Drive depois que você baixou.',
+      actions: [{ label: 'Atualizar', value: 'upd', primary: true }, { label: 'Abrir a que tenho', value: 'open' }, { label: 'Cancelar', value: null }] });
+    if (v === 'open') open(have);
+    if (v === 'upd') await bibDoDownload(a, have, open);
+    return;
+  }
+  const v = await askModal({ title: `Baixar “${t.title}”?`, text: [t.artist, a.path.join(' › ')].filter(Boolean).join(' · ') + '. Ela entra nas suas cifras e abre sem internet.',
+    actions: [{ label: 'Baixar', value: 'dl', primary: true }, { label: 'Agora não', value: null }] });
+  if (v === 'dl') await bibDoDownload(a, null, open);
+}
+async function bibDoDownload(a, replace, open) {
+  toast('Baixando do Drive…');
+  try { const s = await bibDownloadCifra(a, replace); toast(replace ? 'Cifra atualizada.' : 'Cifra baixada. Ela fica em Cifras › Biblioteca.'); open(s); }
+  catch (e) { toast(bibErrText(e)); }
+}
+$('bib-list').addEventListener('click', (e) => {
+  let b;
+  if ((b = e.target.closest('[data-bibp]'))) { bib.path.push(b.dataset.bibp); renderBiblioteca(); window.scrollTo(0, 0); return; }
+  if ((b = e.target.closest('[data-bibf]'))) bibTap(b.dataset.bibf);
+});
+$('bib-crumbs').addEventListener('click', (e) => { const b = e.target.closest('[data-bibc]'); if (!b || b.hasAttribute('aria-current')) return; bib.path = bib.path.slice(0, Number(b.dataset.bibc) + 1); renderBiblioteca(); });
+$('bib-q').addEventListener('input', () => renderBiblioteca());
+$('bib-sync').addEventListener('click', () => bibSyncUi('cifras', true));
+
+/* ---------- Cifras: Todas · Minhas · Biblioteca ---------- */
+let cfFiltro = 'todas';
+try { cfFiltro = localStorage.getItem('repertorio.cfFiltro') || 'todas'; } catch (e) {}
+function cfPass(s) { return cfFiltro === 'todas' || (cfFiltro === 'biblioteca' ? !!s.lib : !s.lib); }
+function syncCfChips() { document.querySelectorAll('[data-cf]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cf === cfFiltro))); }
+document.querySelectorAll('[data-cf]').forEach(b => b.addEventListener('click', () => {
+  cfFiltro = b.dataset.cf; try { localStorage.setItem('repertorio.cfFiltro', cfFiltro); } catch (e) {}
+  syncCfChips(); renderList();
+}));
+syncCfChips();
+
+/* ---------- Partituras: catálogo vindo do Drive ---------- */
+function prettyTitle(base) {
+  const s = String(base).replace(/\s+/g, ' ').trim();
+  if (s !== s.toUpperCase()) return s;   // já tem minúsculas: mantém
+  const peq = /^(a|o|as|os|e|de|da|do|das|dos|em|na|no|nas|nos|pra|pro|para|com|por|ao|aos|um|uma)$/;
+  return s.toLowerCase().split(' ').map((w, i) => i && peq.test(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+function pdfMergeLib(v) {
+  if (!v || !v.arvore) return;
+  if (!Array.isArray(db.scores)) db.scores = [];
+  const files = bibFlat(v.arvore, isPdfFile), ids = new Set(files.map(f => f.id));
+  let novas = 0;
+  files.forEach(f => {
+    let sc = db.scores.find(x => x.catId === f.id);
+    const base = String(f.nome).replace(/\.pdf$/i, '');
+    if (!sc) {
+      const cat = CATALOG.find(c => c.d === f.id);
+      sc = { id: 'cat-' + f.id, catId: f.id, title: cat ? cat.t : prettyTitle(base), album: f.path[f.path.length - 1] || '', file: f.nome, size: f.tam, pages: null, songId: null, local: false, added: Date.now(), libMod: f.mod };
+      sc.folderId = ensureFolder(f.path.length ? f.path : ['Biblioteca']);
+      db.scores.push(sc); novas++;
+    } else {
+      sc.fora = false;
+      if (sc.file !== f.nome) sc.file = f.nome;
+      if (!sc.local) { sc.size = f.tam; sc.libMod = f.mod; }
+      else if (sc.libMod && f.mod > sc.libMod) sc.novaVersao = true;
+      else if (!sc.libMod) sc.libMod = f.mod;
+    }
+  });
+  // saiu do Drive: some do catálogo; a cópia já baixada continua, marcada "fora do acervo"
+  db.scores = db.scores.filter(sc => {
+    if (!sc.catId || ids.has(sc.catId)) return true;
+    if (sc.local) { sc.fora = true; return true; }
+    return false;
+  });
+  db.libPartAt = Date.now(); bib.novasPdf = novas;
+  autoLinkScores(); save();
+}
+function renderPdfSync() {
+  const st = $('pdf-sync-st'); if (!st) return;
+  const c = bibCache('partituras'), busy = !!bib.busy.partituras, err = bib.err.partituras;
+  $('pdf-sync-row').hidden = !bibUrl();
+  st.textContent = busy ? 'Sincronizando com o Drive…' : err ? bibErrText(err) : c ? `Acervo do Drive atualizado ${quando(c.at)}${bib.novasPdf ? ` · ${bib.novasPdf} ${bib.novasPdf === 1 ? 'nova' : 'novas'}` : ''}` : 'Acervo do Drive ainda não sincronizado.';
+  $('pdf-sync').disabled = busy; $('pdf-sync').classList.toggle('spin', busy);
+}
+$('pdf-sync').addEventListener('click', () => bibSyncUi('partituras', true));
+function pdfAutoSync() {
+  renderPdfSync();
+  const c = bibCache('partituras');
+  if (bibUrl() && (!c || Date.now() - c.at > 10 * 60 * 1000) && !bib.busy.partituras) bibSyncUi('partituras', false);
+}
+async function bibDownloadPdf(sc) {
+  const j = await bibGet({ acao: 'arquivo', id: sc.catId }, 120000);
+  if (!j.b64) throw new BibError('format');
+  sc.libMod = j.mod || sc.libMod; sc.novaVersao = false;
+  return b64ToBytes(j.b64);
+}
+
+/* ---------- Configurações › Biblioteca do Drive (só editor) ---------- */
+function renderBibCfg() {
+  $('cfg-bib-box').hidden = db.role !== 'editor';
+  $('cfg-bib-url').value = db.bibUrl || '';
+  $('cfg-bib-url').placeholder = BIB_URL_PADRAO || 'https://script.google.com/macros/s/…/exec';
+  $('cfg-bib-st').textContent = bibUrl() ? (db.bibUrl ? 'Ligada (endereço deste aparelho).' : 'Ligada (endereço padrão do app).') : 'Ainda não ligada.';
+}
+$('cfg-bib-test').addEventListener('click', async () => {
+  const v = $('cfg-bib-url').value.trim(), st = $('cfg-bib-st'), antes = db.bibUrl;
+  if (v && !/^https:\/\/script\.google(usercontent)?\.com\//.test(v)) { st.textContent = 'O endereço precisa começar com https://script.google.com/ e terminar em /exec.'; return; }
+  db.bibUrl = v; st.textContent = v || BIB_URL_PADRAO ? 'Testando…' : '';
+  if (!v && !BIB_URL_PADRAO) { save(); renderBibCfg(); return; }
+  try {
+    const j = await bibGet({ acao: 'ping' }, 30000);
+    if (!j || !j.ok) throw new BibError('format');
+    save(); localStorage.removeItem(BIB_KEY('cifras')); localStorage.removeItem(BIB_KEY('partituras'));
+    st.textContent = 'Funcionou. Biblioteca ligada.';
+  } catch (e) { db.bibUrl = antes; st.textContent = bibErrText(e); }
+});
 
 /* ---------- Início ---------- */
 load();

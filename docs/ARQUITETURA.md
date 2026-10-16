@@ -18,6 +18,7 @@ Atualizado em 14/10/2026 (v0.1.5 + melhorias de desempenho no ramo `listas`).
 | `.github/workflows/apk.yml` | Gera o APK a cada envio para o `main` e publica em Releases (`v0.1.N`, N = número da execução). |
 | `testes/pauta/` | Testes automáticos (Node + jsdom). |
 | `testes/perf/` | Medição de desempenho (Playwright + Chromium com processador desacelerado). |
+| `drive/biblioteca.gs` | Google Apps Script que entrega ao app as pastas Cifras e Partituras do Drive (ver `docs/BIBLIOTECA.md`). |
 | `docs/` | Esta documentação. |
 
 ## Telas (rotas)
@@ -41,6 +42,8 @@ Navegação interna por `go(nome, params)`; cada tela é uma `<section class="vi
 | `localStorage['repertorio.notes.v1']` | Anotações à mão (cifra e partitura). |
 | `localStorage['pauta-mao-livre.v2']` | Partituras escritas na pauta, desenhos ensinados, preferências da Biblioteca. |
 | `IndexedDB 'repertorio-pdf'` | Os arquivos PDF baixados ou importados. |
+| `localStorage['repertorio.bib.cifras' / '.partituras']` | Última lista da biblioteca do Drive (árvore de pastas e arquivos), para funcionar sem internet. |
+| `db.bibUrl`, `db.libPartAt` | Endereço do script da biblioteca (se o editor pôs um diferente do padrão) e quando as partituras vieram do Drive (depois disso a lista fixa `CATALOG` deixa de valer). |
 | `db.tourDone` | Data em que a pessoa terminou o tour (sem ela, o tour começa sozinho ao entrar). |
 | Outras chaves pequenas | Dicas já vistas, "só caneta", pedido de abertura da pauta e volta para a pasta. |
 

@@ -15,6 +15,7 @@ Papéis: **Editor** (cadastra e organiza) e **Músico** (usa). O que vale só pa
 - Usa uma cifra e uma lista de exemplo (ids `tour-*`), retiradas no fim junto com as anotações feitas nelas.
 
 ## Cifras
+- **Biblioteca do ministério (Drive):** Cifras › + › Importar › Biblioteca. Pastas e músicas do Drive, sincroniza ao abrir e pelo botão; toque na música e baixe. Marcas Nova / Baixada / Nova versão. Filtro Todas · Minhas · Biblioteca. Detalhes em `docs/BIBLIOTECA.md`.
 - Repertório com busca (título e artista), painéis de favoritas e recentes, lixeira (apagar volta pela lixeira).
 - Cifra aberta: tom − / tom / + e grade para escolher o tom (só muda na tela de quem usa); **capotraste** (sem capo, 1ª a 9ª casa, com "formas de G" e formas fáceis) para quem toca violão, guitarra, ukulele, cavaquinho, viola caipira ou bandolim; simplificar acordes; colunas Auto/1–4; tamanho do texto; ajustar à tela; tela cheia com tela acesa; pinça para zoom; anotar à mão (cores, marca-texto, texto, borracha); favoritar; adicionar à lista (Editor); compartilhar em ChordPro; abrir partitura e letra ligadas.
 - Editor (Editor): colar/importar de sites (Cifra Club, Banana Cifras), ChordPro, importar vários de um .txt, tom sugerido pelos acordes.
