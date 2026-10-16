@@ -5437,7 +5437,7 @@ $('nav-tour').addEventListener('click', () => { closeDrawer(); tourStart(false);
    que roda com a conta do dono: as pastas não precisam ser públicas, e o app só lê.
    A lista fica guardada no aparelho (funciona sem internet com a última lista); "Sincronizar" pede uma nova.
    Cifras baixadas da biblioteca ficam marcadas (s.lib) e separadas das criadas/importadas pela pessoa. */
-const BIB_URL_PADRAO = '';   // endereço do script publicado (termina em /exec); o editor também pode pôr em Configurações
+const BIB_URL_PADRAO = 'https://script.google.com/macros/s/AKfycbzQKUvrSrEdhrjpVUSJgq68Lj9b7lCuOn5C-A0r9sgLGoZvGKBwlYslj1h-aKc9C7E/exec';   // endereço do script publicado (termina em /exec); o editor também pode pôr em Configurações
 const BIB_CHAVE = 'iasd-jgs-central-musica';   // a mesma de drive/biblioteca.gs
 const BIB_VELHA_MS = 2 * 60 * 1000;            // ao abrir a biblioteca, sincroniza sozinha se a lista tem mais de 2 min
 const bibUrl = () => String(db.bibUrl || BIB_URL_PADRAO || '').trim();
