@@ -58,8 +58,8 @@ const TEXTO = `{title: Canção de Teste}
   await pg.evaluate(() => go('cifra', { id: 'st' })); await pg.waitForTimeout(200);
   const ordem = () => pg.evaluate(() => [...document.querySelectorAll('#sheet .section-name, #sheet > .body > .comment')].map(e => e.textContent.trim()));
   let o = await ordem();
-  chk('cifra começa pelo refrão e segue o roteiro', JSON.stringify(o) === JSON.stringify(['Intro: G D Em C', 'Refrão', '1ª Estrofe', 'Refrão×2', 'Solo', '2ª Estrofe', 'Refrão', 'Final']), o);
-  chk('repetição seguida aparece uma vez com ×2', await pg.evaluate(() => [...document.querySelectorAll('#sheet .section-name .rep')].map(e => e.textContent).join() === '×2'));
+  chk('cifra começa pelo refrão e segue o roteiro', JSON.stringify(o) === JSON.stringify(['Intro: G D Em C', 'Refrão', '1ª Estrofe', 'Refrão2ª vez', 'Refrão3ª vez', 'Solo', '2ª Estrofe', 'Refrão4ª vez', 'Final']), o);
+  chk('refrão repetido aparece por extenso, marcado "2ª vez"', await pg.evaluate(() => [...document.querySelectorAll('#sheet .section-name .rep')].map(e => e.textContent).join() === '2ª vez,3ª vez,4ª vez'));
   await pg.click('#rot-bar [data-rot-i="5"]'); await pg.waitForTimeout(400);
   chk('tocar no chip vai para a parte certa (a 2ª vez do refrão também tem o seu lugar)', await pg.evaluate(() => document.querySelector('#sheet [data-rot="5"]').classList.contains('rot-hl')));
   await pg.click('#rot-bar [data-rot-ord]'); await pg.waitForTimeout(200);
@@ -71,7 +71,14 @@ const TEXTO = `{title: Canção de Teste}
   // 2) Letra na mesma ordem
   await pg.evaluate(() => go('letra', { id: 'st' })); await pg.waitForTimeout(200);
   const lo = await pg.evaluate(() => [...document.querySelectorAll('#lsheet .section')].map(e => (e.querySelector('.section-name') || e.querySelector('.comment') || {}).textContent));
-  chk('letra segue o roteiro (Intro, Solo e Final aparecem como marca)', JSON.stringify(lo) === JSON.stringify(['Intro', 'Refrão', '1ª Estrofe', 'Refrão×2', 'Solo', '2ª Estrofe', 'Refrão', 'Final']), lo);
+  chk('letra segue o roteiro (Intro, Solo e Final aparecem como marca)', JSON.stringify(lo) === JSON.stringify(['Intro', 'Refrão', '1ª Estrofe', 'Refrão2ª vez', 'Refrão3ª vez', 'Solo', '2ª Estrofe', 'Refrão4ª vez', 'Final']), lo);
+
+  // 2b) Cifra importada (Cifra Club): parte com linha em branco no meio continua na mesma parte
+  const RAW = '[Intro] G  D  Em  C\n\n[Primeira Parte]\nG      D\nLinha um da estrofe\nEm      C\nLinha dois da estrofe\n\nG      D\nLinha três da estrofe\nEm      C\nLinha quatro da estrofe\n\n[Refrão]\nC      G\nTeu santo nome eu vou louvar\nD      Em\nTeu santo nome vou exaltar';
+  await pg.evaluate((raw) => { const t = convertToChordPro(raw, { title: 'Importada', artist: 'X' }).text; db.songs.push({ id: 'imp', title: 'Importada', artist: 'X', text: setHeadDirectives(t, { x_roteiro: 'Refrão | Refrão | 1ª Estrofe | Refrão' }), source: '', archived: false, created: 1, updated: 1 }); save(); go('cifra', { id: 'imp' }); }, RAW);
+  await pg.waitForTimeout(200);
+  const imp = await pg.evaluate(() => [...document.querySelectorAll('#sheet .section-name, #sheet .line')].map(e => e.classList.contains('line') ? [...e.querySelectorAll('.lyric')].map(l => l.textContent).join('').replace(/\s+/g, ' ').slice(0, 12).trim() : '[' + e.textContent.trim() + ']'));
+  chk('cifra importada: os nomes ficam no lugar e o 2º parágrafo fica na estrofe', JSON.stringify(imp) === JSON.stringify(['[Refrão]', 'Teu santo no', 'Teu santo no', '[Refrão2ª vez]', 'Teu santo no', 'Teu santo no', '[1ª Estrofe]', 'Linha um da', 'Linha dois d', 'Linha três d', 'Linha quatro', '[Refrão3ª vez]', 'Teu santo no', 'Teu santo no']), imp);
 
   // 3) Roteiro só deste culto vale nos slides
   await pg.evaluate(() => go('lista', { id: 'l1', back: { name: 'listas' } }));

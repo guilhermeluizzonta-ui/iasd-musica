@@ -1530,7 +1530,7 @@ function renderSheet(el, text, v, mode) {
       else if (/^end_of_|^eo[vcb]$/.test(k)) closeSec();
       else if (k === 'x_rot') rotI = val;
       else if (k === 'comment' || k === 'c' || k === 'ci') {
-        html += `<p class="comment"${rotAttr()}>${esc(val).replace(/\[([^\]]+)\]/g, (_, ch) => `<span class="chord">${esc(renderChord(ch, useFlats, v))}</span>`)}</p>`;
+        html += `<p class="comment"${rotAttr()}>${esc(vezTxt(val)).replace(/\[([^\]]+)\]/g, (_, ch) => `<span class="chord">${esc(renderChord(ch, useFlats, v))}</span>`)}</p>`;
       }
       return;
     }
@@ -4500,25 +4500,42 @@ function rotGroups(rot) { const g = []; rot.forEach((x, i) => { const last = g[g
    repetições seguidas aparecem uma vez com "×N". Os slides usam a mesma busca de partes, mas repetem de verdade.
    "Como está escrita" (v.escrita) mostra o texto original. Partes do roteiro que não estão escritas (Solo, Final…)
    viram uma marca no lugar. A partitura vai seguir a mesma lógica depois. */
+/* nome de parte "puro" num comentário ({c: Refrão}, {c: Intro: [G] [D]}); "Refrão 2x" é observação, não parte */
+const PART_LABEL = /^((\d{1,2}\s*[ªaº°o.]?\s*)?(estrofe|verso|parte)(\s*\d{1,2})?|(primeir|segund|terceir|quart|quint|sext|s[eé]tim|oitav|non|d[eé]cim)[ao]\s+(parte|estrofe)|refr[aã]o(\s*\d{1,2})?|coro|pr[eé][- ]?refr[aã]o|ponte|tag|coda)[\s:.-]*$/i;
+/* Divide a cifra em partes. Uma parte vai do nome (ou {start_of_…}) até o próximo nome: os parágrafos sem nome que vêm
+   depois de uma linha em branco continuam na mesma parte (é assim que as cifras importadas chegam). */
 function rotBlocks(text) {
-  const head = [], items = []; let curB = null;
+  const head = [], items = []; let curB = null, last = null;
+  const loose = (raw) => { const lo = items[items.length - 1]; if (lo && lo.loose) lo.lines.push(raw); else items.push({ loose: true, lines: [raw] }); };
+  const add = (raw) => { if (last) last.lines.push(raw); else if (raw.trim()) loose(raw); };
   text.split('\n').forEach(raw => {
     const t = raw.trim(), d = t.match(/^\{\s*([a-z_]+)\s*:?\s*(.*?)\s*\}$/i);
-    if (curB) { curB.lines.push(raw); if (d && /^(end_of_|eo[vcb]$)/i.test(d[1])) curB = null; return; }
     if (d) {
       const k = d[1].toLowerCase();
       if (/^(start_of_(verse|chorus|bridge)|sov|soc|sob)$/.test(k)) {
         curB = { label: secLabel(d[2] || (/chorus|soc/.test(k) ? 'Refrão' : /bridge|sob/.test(k) ? 'Ponte' : 'Estrofe')), lines: [raw] };
-        items.push(curB); return;
+        items.push(curB); last = curB; return;
       }
+      if (/^(end_of_|eo[vcb]$)/.test(k)) { if (curB) { curB.lines.push(raw); curB = null; } return; }
       if (k === 'c' || k === 'comment' || k === 'ci') {
-        const lab = d[2].replace(/\[[^\]]*\]/g, ' ').split(/[:(\-–]/)[0].replace(/\s+/g, ' ').trim();
-        items.push({ label: lab, lines: [raw], cmt: true }); return;
+        if (curB) { curB.lines.push(raw); return; }
+        const lab = d[2].replace(/\[[^\]]*\]/g, ' ').split(/[:(]/)[0].replace(/\s+/g, ' ').trim();
+        const inst = !!lab && LABEL_ONLY.test(lab);
+        if (inst || (lab && PART_LABEL.test(lab))) {
+          const b = { label: secLabel(lab.replace(/[\s:.-]+$/, '')), lines: [raw], cmt: true, inst };
+          items.push(b); if (!inst) last = b;   // depois de Solo/Intro, o parágrafo sem nome volta para a parte de letra anterior
+          return;
+        }
+        add(raw); return;   // observação ("Refrão 2x") ou acordes soltos: ficam onde estão
       }
+      if (curB) { curB.lines.push(raw); return; }
       head.push(raw); return;   // título, artista, tom, roteiro…
     }
-    if (t) items.push({ loose: true, lines: [raw] });
+    if (curB) { curB.lines.push(raw); return; }
+    if (!t) { if (last) last.lines.push(raw); return; }
+    add(raw);
   });
+  items.forEach(b => { while (b.lines.length > 1 && !b.lines[b.lines.length - 1].trim()) b.lines.pop(); });
   return { head, items };
 }
 /* acha a parte do roteiro no texto: primeiro as partes marcadas (estrofe, refrão), depois os comentários (Intro: …) */
@@ -4526,17 +4543,25 @@ function rotFind(items, name) {
   const n = norm(name);
   return items.find(b => !b.cmt && !b.loose && norm(b.label) === n) || items.find(b => b.cmt && norm(b.label) === n) || null;
 }
+/* Reescreve a cifra na ordem do roteiro. Parte com letra repetida aparece de novo, por extenso, marcada "2ª vez";
+   parte só instrumental repetida em seguida aparece uma vez com ×N. */
 function arrangeText(text, rot) {
   if (!rot || !rot.length) return text;
-  const { head, items } = rotBlocks(text), out = head.slice();
-  const loose = items.filter(b => b.loose);   // linhas fora de qualquer parte: ficam em cima
+  const { head, items } = rotBlocks(text), out = head.slice(), vez = {};
+  const loose = items.filter(b => b.loose);   // letra antes de qualquer parte: fica em cima
   if (loose.length) { out.push(''); loose.forEach(b => out.push(...b.lines)); }
   rotGroups(rot).forEach((g, k) => {
     const b = rotFind(items, g.name), x = g.n > 1 ? ' ×' + g.n : '';
     out.push('', `{x_rot: ${k}}`);
     if (!b) { out.push(`{c: ${g.name}${x}}`); return; }
-    if (b.cmt) { out.push(x ? b.lines[0].replace(/\s*\}\s*$/, x + '}') : b.lines[0]); return; }
-    out.push(b.lines[0].replace(/^(\s*\{\s*[a-z_]+)\s*:?\s*(.*?)\s*\}\s*$/i, (m0, a) => `${a}: ${b.label}${x}}`), ...b.lines.slice(1));
+    if (b.inst) { out.push(x ? b.lines[0].replace(/\s*\}\s*$/, x + '}') : b.lines[0], ...b.lines.slice(1)); return; }
+    for (let r = 0; r < g.n; r++) {
+      const nv = vez[b.label] = (vez[b.label] || 0) + 1;
+      if (r) out.push('');
+      const first = b.cmt ? (nv > 1 ? b.lines[0].replace(/\s*\}\s*$/, ` #${nv}}`) : b.lines[0])
+        : b.lines[0].replace(/^(\s*\{\s*[a-z_]+)\s*:?\s*(.*?)\s*\}\s*$/i, (m0, a) => `${a}: ${b.label}${nv > 1 ? ' #' + nv : ''}}`);
+      out.push(first, ...b.lines.slice(1));
+    }
   });
   return out.join('\n');
 }
@@ -4546,8 +4571,9 @@ function shownText(s, v) {
   const c = rotContext();
   return c.s === s && c.rot.length && !(v && v.escrita) ? arrangeText(s.text, c.rot) : s.text;
 }
-const secRep = (name) => { const m = String(name).match(/^(.*?)\s*×(\d+)$/); return m ? { name: m[1], n: Number(m[2]) } : { name: String(name), n: 1 }; };
-const secNameHtml = (name) => { const r = secRep(name); return `<div class="section-name">${esc(secLabel(r.name))}${r.n > 1 ? `<span class="rep" aria-label="${r.n} vezes">×${r.n}</span>` : ''}</div>`; };
+const secRep = (name) => { const t = String(name); let m = t.match(/^(.*?)\s*#(\d+)$/); if (m) return { name: m[1], vez: Number(m[2]), n: 1 }; m = t.match(/^(.*?)\s*×(\d+)$/); return m ? { name: m[1], n: Number(m[2]), vez: 1 } : { name: t, n: 1, vez: 1 }; };
+const secNameHtml = (name) => { const r = secRep(name); return `<div class="section-name">${esc(secLabel(r.name))}${r.n > 1 ? `<span class="rep" aria-label="${r.n} vezes">×${r.n}</span>` : ''}${r.vez > 1 ? `<span class="rep">${r.vez}ª vez</span>` : ''}</div>`; };
+const vezTxt = (t) => String(t).replace(/\s*#(\d+)\s*$/, ' ($1ª vez)');
 function renderRoteiro() {
   const bar = route.name === 'cifra' ? $('rot-bar') : route.name === 'letra' ? $('rot-bar-l') : null;
   ['rot-bar', 'rot-bar-l'].forEach(id => { if ($(id) && $(id) !== bar) $(id).hidden = true; });
@@ -4993,7 +5019,7 @@ function lyricsOf(text) {
       else if (/^end_of_|^eo[vcb]$/.test(k)) cur = null;
       else if (k === 'x_rot') { rotI = val; cur = null; }
       else if (k === 'comment' || k === 'c' || k === 'ci') {
-        const t = val.replace(/\[[^\]]*\]/g, ' ').replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
+        const t = vezTxt(val).replace(/\[[^\]]*\]/g, ' ').replace(/\s+/g, ' ').trim();
         const inst = rotI != null && t && LABEL_ONLY.test(t.replace(/\s*×\d+$/, ''));   // no roteiro: Solo, Intro… aparecem como marca
         if (inst) { open('inst', ''); cur.lines.push({ note: t.replace(/[\s:.-]+(?=\s*×\d+$|$)/, '') }); cur = null; }
         else if (t && !LABEL_ONLY.test(t)) { if (!cur) open('', ''); cur.lines.push({ note: t }); }
@@ -5299,12 +5325,12 @@ function slChunks(lines, max) {
 }
 /* a sequência de partes de uma música na lista: a mesma busca do roteiro da cifra (rotFind), mas repetindo de verdade */
 function slSequence(s, it) {
-  const ly = lyricsOf(s.text), parts = ly.parts.map(p => ({ label: p.name ? secLabel(p.name) : '', p })).filter(x => x.p.lines.some(y => y.text));
+  const { items } = rotBlocks(s.text), has = lyricsOf(s.text).has;
+  const linesOf = (b) => { const out = []; lyricsOf(b.lines.join('\n')).parts.forEach((p, i) => { if (i) out.push({ blank: true }); out.push(...p.lines); }); return out.some(x => x.text) ? out : null; };
   const rot = it && Array.isArray(it.rot) ? it.rot : rotOfSong(s);
-  if (!rot.length) return { has: ly.has, seq: parts, rot: false };
-  const loose = parts.filter(x => !x.label);   // letra fora de qualquer parte: vem antes (como na cifra)
-  const seq = loose.concat(rot.map(name => { const n = norm(name), f = parts.find(x => x.label && norm(x.label) === n); return f || { label: name, inst: true }; }));
-  return { has: ly.has, seq, rot: true };
+  if (!rot.length) return { has, rot: false, seq: items.map(b => { const L = linesOf(b); return L && { label: b.loose ? '' : b.label, lines: L }; }).filter(Boolean) };
+  const loose = items.filter(b => b.loose).map(b => ({ label: '', lines: linesOf(b) })).filter(x => x.lines);
+  return { has, rot: true, seq: loose.concat(rot.map(name => { const b = rotFind(items, name), L = b && !b.inst && linesOf(b); return L ? { label: b.label, lines: L } : { label: name, inst: true }; })) };
 }
 function buildSlides(l, o) {
   const out = [], warn = [], max = o.lines ? o.lines : Infinity;
@@ -5321,7 +5347,7 @@ function buildSlides(l, o) {
     seq.forEach(x => {
       if (x.inst) { out.push(Object.assign({ kind: 'blank', part: x.label, inst: true }, head)); return; }
       count[x.label] = (count[x.label] || 0) + 1;
-      const ch = slChunks(x.p.lines, max);
+      const ch = slChunks(x.lines, max);
       ch.forEach((lines, j) => out.push(Object.assign({ kind: 'lyrics', lines, part: x.label, rep: count[x.label], k: j + 1, n: ch.length }, head)));
     });
     if (o.blank && si < songs.length - 1) out.push({ kind: 'blank' });
