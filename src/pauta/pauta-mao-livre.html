@@ -92,6 +92,8 @@ body.visualizar .tinta, body.visualizar .previa { display: none; }
 body.visualizar .nota.sel .alvo { fill: transparent; stroke: none; }
 body.visualizar:not(.vis-anot) .anotacoes { display: none; }
 body.visualizar .folha svg { cursor: grab; }
+/* Músico: a partitura escrita só abre para ver (sem Editar, sem lista de músicas, sem mudar o nome) */
+body.so-ver .seg, body.so-ver #bMusica { display: none !important; }
 .barra-min .ic { background: var(--barra); box-shadow: 0 2px 10px var(--sombra); }
 @media (max-width: 600px) { .sep, .esp-barra { display: none; } }
 .chave { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; cursor: pointer; }
@@ -740,6 +742,8 @@ body:has(.tocador:not([hidden])) .mesa { padding-bottom: 190px; }
   // pauta.html?app=1&nova=1&pasta=<id>  ou  pauta.html?app=1&abrir=<id da música>
   const URLP = new URLSearchParams(location.search);
   const DO_APP = URLP.has('app');
+  /* Perfil do app: o músico só visualiza */
+  const SO_VER = URLP.has('app') && (() => { try { const d = JSON.parse(localStorage.getItem('repertorio.v1') || 'null'); return !!d && d.role === 'musico'; } catch (e) { return false; } })();
   const PEDIDO = { nova: URLP.get('nova') === '1', abrir: URLP.get('abrir') || null, req: URLP.get('nova') && URLP.get('nova') !== '1' ? URLP.get('nova') : null, ver: URLP.get('ver') === '1' };
   const PASTA_APP = URLP.has('pasta') ? (URLP.get('pasta') || null) : undefined;
   if (DO_APP && (PEDIDO.nova || PEDIDO.abrir || PEDIDO.req)) try { history.replaceState(null, '', 'pauta.html?app=1' + (PASTA_APP !== undefined ? '&pasta=' + encodeURIComponent(PASTA_APP || '') : '')); } catch (e) {}
@@ -2826,6 +2830,7 @@ body:has(.tocador:not([hidden])) .mesa { padding-bottom: 190px; }
   const tituloVer = $('tituloVer'), tituloEd = $('tituloEd'), tituloInput = $('tituloInput');
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   function editarTitulo(v) {
+    if (v && SO_VER) return;
     if (v && !M()) { abrirFicha('nova'); return; }
     tituloVer.hidden = v; tituloEd.hidden = !v;
     if (v) { tituloInput.value = M().titulo; setTimeout(() => { tituloInput.focus(); tituloInput.select(); }, 0); }
@@ -2853,7 +2858,7 @@ body:has(.tocador:not([hidden])) .mesa { padding-bottom: 190px; }
       avisar('<b>Pré-visualização:</b> é assim que a partitura sai no PDF e na impressão. Toque em Editar para voltar.');
     } else avisar(DICA_MODO[modo]);
   }
-  $('segEditar').onclick = () => modoVisual(false);
+  $('segEditar').onclick = () => { if (!SO_VER) modoVisual(false); };
   $('segVer').onclick = () => modoVisual(true);
   $('bVisMenos').onclick = () => { aplicarZoom(zoom - 0.25); gravar(); };
   $('bVisMais').onclick = () => { aplicarZoom(zoom + 0.25); gravar(); };
@@ -3255,11 +3260,12 @@ const Som = (() => {
     $('fExcluir').onclick = (e) => { const antes = banco.musicas.length; exOrig(e); if (banco.musicas.length < antes) voltarAoApp(); };
   }
   if (!M() && banco.musicas.length && !PEDIDO.nova) banco.atual = banco.musicas[banco.musicas.length - 1].id;
-  if (M() && !banco.guiaNaoMostrar) mostrarGuia(true);
+  if (M() && !banco.guiaNaoMostrar && !SO_VER) mostrarGuia(true);
   aplicarZoom(zoom);
   renderizar();
-  if (!M()) abrirFicha('nova');
-  if (DO_APP && PEDIDO.ver && M()) modoVisual(true); // aberto pelo app só para ver (como os músicos)
+  if (!M() && !SO_VER) abrirFicha('nova');
+  if (SO_VER) document.body.classList.add('so-ver');
+  if (DO_APP && (PEDIDO.ver || SO_VER) && M()) modoVisual(true); // aberto pelo app só para ver (como os músicos)
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => renderizarTudo());
 })();
 </script>

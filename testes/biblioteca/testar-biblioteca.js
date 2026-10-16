@@ -71,9 +71,11 @@ async function falso(route) {
   await pg.fill('#l-email', 'teste@iasd.org'); await pg.fill('#l-pass', '12345678'); await pg.click('#f-login button[type=submit]');
   await pg.waitForTimeout(800); await pg.evaluate('tour.on && tourEnd(false)'); await pg.waitForTimeout(300);
 
-  // sem endereço: a biblioteca avisa
-  await pg.evaluate("go('biblioteca', { back: { name: 'cifras' } })"); await pg.waitForTimeout(200);
-  conf(/Configurações/.test(await pg.textContent('#bib-st')), 'sem endereço: avisa para ligar em Configurações');
+  // sem endereço: a biblioteca avisa (só quando o app não tem um endereço padrão)
+  if (!(await pg.evaluate('BIB_URL_PADRAO'))) {
+    await pg.evaluate("go('biblioteca', { back: { name: 'cifras' } })"); await pg.waitForTimeout(200);
+    conf(/Configurações/.test(await pg.textContent('#bib-st')), 'sem endereço: avisa para ligar em Configurações');
+  } else conf(/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(await pg.evaluate('BIB_URL_PADRAO')), 'app vem com o endereço da biblioteca');
 
   // Configurações › Biblioteca do Drive
   await pg.evaluate("go('config')"); await pg.waitForTimeout(200);
