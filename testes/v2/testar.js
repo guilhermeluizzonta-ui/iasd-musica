@@ -10,7 +10,7 @@ let ok = 0, tot = 0; const chk = (n, c, info) => { tot++; if (c) ok++; console.l
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto(URL + '/index.html'); await pg.waitForTimeout(300);
   await pg.evaluate(() => { localStorage.clear(); }); await pg.reload(); await pg.waitForTimeout(300);
-  await pg.evaluate(() => { db.user = { name: 'Teste' }; db.role = 'editor'; save(); enterApp(); });
+  await pg.evaluate(() => { db.user = { name: 'Teste' }; db.role = 'editor'; db.tourDone = Date.now(); save(); enterApp(); });   // sem o tour (ele começa sozinho no 1º acesso)
   const sid = await pg.evaluate(() => activeSongs().find(s => songParts(s.text).length >= 2).id);
 
   // 1) Devocional

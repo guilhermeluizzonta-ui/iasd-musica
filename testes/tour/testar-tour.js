@@ -7,7 +7,7 @@ const [W, H] = tela === 'celular' ? [390, 844] : [1024, 640];
 let ok = 0, falhas = 0;
 const conf = (cond, nome) => { if (cond) { ok++; console.log('OK   ', nome); } else { falhas++; console.log('FALHA', nome); } };
 (async () => {
-  const b = await chromium.launch(); const pg = await (await b.newContext({ viewport: { width: W, height: H } })).newPage();
+  const b = await chromium.launch({ executablePath: process.env.CHROMIUM || undefined }); const pg = await (await b.newContext({ viewport: { width: W, height: H } })).newPage();
   const erros = []; pg.on('pageerror', e => erros.push(e.message));
   await pg.goto('http://localhost:8765/index.html'); await pg.waitForTimeout(400);
   if (papel === 'musico') await pg.click('[data-login-role="musico"]');

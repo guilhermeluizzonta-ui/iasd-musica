@@ -38,6 +38,13 @@ Papéis: **Editor** (cadastra e organiza) e **Músico** (usa). O que vale só pa
 
 ## Listas de culto
 - Criar (título, data, hora, responsável, observação), escolher músicas, tom do culto por música, reordenar, clonar, "Abrir em" cifra/partitura/letra, modo culto com próxima/anterior, próximo culto no Início.
+- **Slides** (botão na lista aberta, todos podem gerar): PowerPoint (.pptx) para o computador da projeção. Letra que sai da cifra, **na ordem do roteiro** (refrão repetido gera os slides de novo; Solo/Interlúdio no meio viram tela vazia; intro fica no slide do título). Até 2 / 4 linhas ou parte inteira por slide (a estrofe longa divide igual: 6 → 3 + 3), slide de título, tela vazia no começo e entre as músicas, nome da parte no canto, maiúsculas. **5 modelos:** Clássico, Noite, Igreja, Claro, Aurora (fontes que o Windows já tem; sem logo). Prévia de todos os slides, slide grande com setas, notas do apresentador ("Refrão (2ª vez) · Depois: 2ª Estrofe"). No APK abre a janela de enviar; no navegador baixa o arquivo. O editor guarda as escolhas na lista; a última escolha vira o padrão.
+
+## Roteiro do arranjo
+- Ordem das partes (Intro, estrofes, refrão quantas vezes, Final) na cifra (`{x_roteiro: …}`) ou só num culto.
+- **A cifra e a letra aparecem na ordem do roteiro** (começar pelo refrão, repetir, pular partes). Repetição seguida aparece uma vez com **×N**; parte sem letra escrita (Solo, Final) vira uma marca no lugar. Botão das setas: **como está escrita**. Tocar no chip rola até aquela vez da parte.
+- As anotações feitas na ordem do roteiro ficam separadas das feitas na cifra como está escrita (os trechos mudam de lugar). Mudou o roteiro: aparece o aviso de que a cifra mudou desde as anotações.
+- Os slides seguem o mesmo roteiro. A partitura vai seguir a mesma lógica depois.
 
 ## Configurações
 - Meu instrumento; Modo (claro, escuro, seguir o aparelho); Estilo (Simples, Moderno, Retrô); Contorno; Folha da partitura (Clássica, Creme, Suave, Palco, Retrô); Fonte; Cor de destaque; Salvar / Restaurar padrão.
@@ -46,4 +53,4 @@ Papéis: **Editor** (cadastra e organiza) e **Músico** (usa). O que vale só pa
 - Botão voltar inteligente, compartilhar, tela acesa, tela cheia imersiva, ícone e nome "IASD Música".
 
 ## Ainda não (planejado)
-- Exportar PDF da partitura escrita (próximo); importar foto/PDF de partitura (OMR); sincronizar e publicar no Drive; acervo de cifras; slides; grade do maestro e partes com transposição; letra na pauta; login com servidor (fase 2).
+- Exportar PDF da partitura escrita (próximo); importar foto/PDF de partitura (OMR); sincronizar e publicar no Drive; acervo de cifras; publicar os slides na pasta Slides do Drive; grade do maestro e partes com transposição; letra na pauta; login com servidor (fase 2).
