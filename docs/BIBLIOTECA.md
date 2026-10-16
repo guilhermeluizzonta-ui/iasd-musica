@@ -30,6 +30,9 @@ Mudou o script depois? **Implantar › Gerenciar implantações › ✏ › Vers
 - **Sincronizar:** a biblioteca se atualiza sozinha ao abrir (se a lista tem mais de 2 min) e pelo botão.
   Sem internet, mostra a última lista guardada. Marcas: **Nova** (entrou no Drive desde a última vez),
   **Baixada**, **Nova versão** (o arquivo mudou no Drive depois de baixado; tocar oferece Atualizar).
+- **Busca:** na biblioteca, responde "Sim: está na biblioteca (N músicas)" ou "Não encontrei … na biblioteca". Na busca de Cifras, se a música não está entre as baixadas, aparece "Na biblioteca do ministério: N músicas … Ver na biblioteca" (ou que também não está lá).
+- **Sem internet:** aviso vermelho na biblioteca e em Partituras; mostra a última lista guardada; tocar numa música não baixada explica que precisa de internet; as já baixadas abrem normalmente. Quando a rede volta, sincroniza sozinho.
+- As cifras baixadas aparecem em **Cifras** junto com as outras (filtro Todas).
 - **Cifras: Todas · Minhas · Biblioteca** separa as baixadas da biblioteca das criadas/importadas pela pessoa.
 - **Partituras:** a lista vem do Drive (sincroniza ao abrir a tela, se tem mais de 10 min, e pelo botão).
   Partitura nova entra na pasta com o mesmo caminho do Drive. A que saiu do Drive some da lista;

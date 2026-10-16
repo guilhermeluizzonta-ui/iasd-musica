@@ -121,6 +121,39 @@ async function falso(route) {
   await pg.fill('#bib-q', 'antigo'); await pg.waitForTimeout(200);
   conf(await pg.evaluate("document.querySelectorAll('#bib-list [data-bibf]').length") === 1, 'busca acha pelo nome da pasta');
   await pg.fill('#bib-q', '');
+  // busca diz se existe ou não
+  await pg.fill('#bib-q', 'outra'); await pg.waitForTimeout(150);
+  conf(/Sim: “outra” está na biblioteca \(1 música\)/.test(await pg.textContent('#bib-count')), 'busca: diz que existe e quantas');
+  await pg.fill('#bib-q', 'nao existe xyz'); await pg.waitForTimeout(150);
+  conf(/Não encontrei “nao existe xyz” na biblioteca/.test(await pg.textContent('#bib-list')), 'busca: diz que não existe');
+  await foto('7b-nao-existe');
+  await pg.fill('#bib-q', '');
+  // a baixada aparece em Cifras normalmente
+  await pg.evaluate("go('cifras')"); await pg.waitForTimeout(200);
+  conf(await pg.evaluate("[...document.querySelectorAll('#list-songs strong')].some(e => e.textContent === 'Canção de Teste')"), 'a cifra baixada aparece em Cifras (Todas)');
+  // busca em Cifras olha a biblioteca
+  await pg.fill('#list-q', 'outra'); await pg.waitForTimeout(250);
+  conf(await pg.isVisible('#cf-bib') && /Na biblioteca do ministério/.test(await pg.textContent('#cf-bib')), 'busca em Cifras avisa que existe na biblioteca');
+  await foto('7c-cifras-busca');
+  await pg.click('[data-cfbib]'); await pg.waitForTimeout(300);
+  conf(await pg.evaluate("route.name === 'biblioteca' && $('bib-q').value === 'outra'"), '"Ver na biblioteca" abre a biblioteca já com a busca');
+  await pg.evaluate("go('cifras')"); await pg.fill('#list-q', 'zzz nada'); await pg.waitForTimeout(250);
+  conf(/também não está na biblioteca/.test(await pg.textContent('#cf-bib')), 'busca em Cifras: diz que não está em lugar nenhum');
+  await pg.fill('#list-q', ''); await pg.waitForTimeout(100);
+  // sem internet
+  await ctx.setOffline(true); await pg.waitForTimeout(200);
+  await pg.evaluate("bib.path = []; $('bib-q').value = ''; go('biblioteca', { back: { name: 'cifras' } })"); await pg.waitForTimeout(300);
+  conf(await pg.isVisible('#bib-off') && /sem internet/i.test(await pg.textContent('#bib-off')), 'sem internet: aviso na biblioteca');
+  conf(await pg.evaluate("document.querySelectorAll('#bib-list [data-bibp]').length") === 3, 'sem internet: mostra a última lista guardada');
+  await foto('7d-sem-internet');
+  await pg.click('[data-bibp="pNovo"]'); await pg.waitForTimeout(150); await pg.click('[data-bibf="f3"]'); await pg.waitForTimeout(200);
+  conf(/Sem internet/.test(await pg.textContent('#modal-t')), 'sem internet: tocar para baixar avisa');
+  await foto('7e-sem-internet-baixar');
+  await pg.click('#modal [data-modal="0"]');
+  await pg.click('[data-bibf="f2"]'); await pg.waitForTimeout(300);
+  conf(await pg.evaluate("route.name === 'cifra'"), 'sem internet: a já baixada abre');
+  await ctx.setOffline(false); await pg.waitForTimeout(200);
+
   // Cifras: Todas · Minhas · Biblioteca
   await pg.evaluate("go('cifras')"); await pg.waitForTimeout(200);
   await pg.click('[data-cf="biblioteca"]'); await pg.waitForTimeout(200);

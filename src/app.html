@@ -682,6 +682,13 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
 }
 @media (prefers-reduced-motion: reduce) { .tour-hole, .tour-card { transition: none; } .tour-hole.wait { animation: none; } }
 /* ---------- Biblioteca do Drive ---------- */
+.offline-note { display: flex; gap: 10px; align-items: flex-start; margin: 6px 0; padding: 10px 12px; border-radius: 12px; background: rgba(229, 57, 53, .1); border: 1px solid rgba(229, 57, 53, .45); color: var(--fg); font-size: 14.5px; line-height: 1.45; }
+.offline-note[hidden], .bib-hint[hidden] { display: none; }
+.offline-note b { display: block; }
+.bib-hint { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 6px 0 10px; padding: 10px 12px; border-radius: 12px; border: 1px dashed var(--line); background: var(--surface); font-size: 14.5px; }
+.bib-hint p { margin: 0; flex: 1; min-width: 180px; }
+.bib-found { margin: 4px 0 8px; font-weight: 600; }
+.bib-found.none { color: var(--muted); font-weight: 400; }
 .sync-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 2px 0 4px; }
 .sync-row .hint { flex: 1; margin: 0; }
 .btn.ib.spin svg { animation: bibSpin 1s linear infinite; }
@@ -839,6 +846,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
       </div>
       <p class="tipline" aria-live="polite"></p>
       <p class="warn" id="bib-err" hidden></p>
+      <p class="offline-note" id="bib-off" role="status" hidden></p>
       <div class="search-box">
         <label for="bib-q" class="sr">Buscar na biblioteca</label>
         <input class="input" id="bib-q" type="search" placeholder="Buscar música, artista ou pasta">
@@ -867,6 +875,7 @@ html:not(.is-light) .badge-ed, html:not(.is-light) .score-ico { color: var(--gol
       <input type="file" id="bulk-file" accept=".txt,.cho,.chordpro,.crd,text/plain" multiple hidden>
       <div class="box" id="bulk-box" hidden></div>
       <p class="hint" id="list-count"></p>
+      <div class="bib-hint" id="cf-bib" hidden></div>
       <div class="song-list" id="list-songs"></div>
       <button type="button" class="link" id="go-trash" style="align-self:flex-start" hidden>Lixeira</button>
     </section>
@@ -1738,6 +1747,7 @@ function renderList() {
   $('list-count').textContent = q ? `${list.length} de ${all.length} músicas` : `${all.length} ${all.length === 1 ? 'música' : 'músicas'} no repertório`;
   $('list-songs').innerHTML = list.length ? list.map(songRow).join('')
     : emptyBox(q ? `Nenhuma música encontrada para "${esc($('list-q').value.trim())}".` : 'O repertório está vazio. Adicione a primeira cifra.', true);
+  cfBibHint(q, list.length);
   $('cifras-panels').hidden = !!q || !all.length;
   $('all-title').hidden = !!q || !all.length;
   if (!q && all.length) renderPanels();
@@ -5432,6 +5442,7 @@ const BIB_CHAVE = 'iasd-jgs-central-musica';   // a mesma de drive/biblioteca.gs
 const BIB_VELHA_MS = 2 * 60 * 1000;            // ao abrir a biblioteca, sincroniza sozinha se a lista tem mais de 2 min
 const bibUrl = () => String(db.bibUrl || BIB_URL_PADRAO || '').trim();
 const bib = { busy: {}, err: {}, path: [], novas: {} };
+const bibOnline = () => typeof navigator === 'undefined' || navigator.onLine !== false;
 ICO.sync = '<path d="M20 11a8 8 0 0 0-14.6-4.5M4 13a8 8 0 0 0 14.6 4.5"/><path d="M4 4v4h4M20 20v-4h-4"/>';
 ICO.book = '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H19v14H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3"/><path d="M8 8h7"/>';
 ICO.phone = '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18h2"/>';
@@ -5572,7 +5583,10 @@ function renderBiblioteca() {
     : !bibUrl() ? esc(bibErrText({ code: 'nourl' }))
     : c ? `Atualizada ${esc(quando(c.at))} · ${total} ${total === 1 ? 'música' : 'músicas'} · ${mine} ${mine === 1 ? 'baixada' : 'baixadas'} neste aparelho` : 'Ainda não sincronizada.';
   $('bib-sync').disabled = busy || !bibUrl(); $('bib-sync').classList.toggle('spin', busy);
-  $('bib-err').hidden = !err || busy; if (err && !busy) $('bib-err').textContent = bibErrText(err);
+  const off = !bibOnline() || (err && err.code === 'offline');
+  $('bib-off').hidden = !off || !bibUrl();
+  if (off) $('bib-off').innerHTML = `<span><b>Você está sem internet.</b>${c ? `A lista abaixo é a última guardada (${esc(quando(c.at))}). Músicas já baixadas abrem normalmente em Cifras; para baixar outras ou sincronizar, conecte o aparelho à internet.` : 'Conecte o aparelho à internet para ver a biblioteca.'}</span>`;
+  $('bib-err').hidden = !err || busy || off; if (err && !busy && !off) $('bib-err').textContent = bibErrText(err);
   const list = $('bib-list');
   if (!c) { $('bib-crumbs').hidden = true; list.innerHTML = busy ? '' : `<div class="empty"><p>${!bibUrl() ? 'Sem biblioteca ligada.' : 'Toque em Sincronizar para buscar as cifras no Drive.'}</p></div>`; return; }
   const q = norm($('bib-q').value.trim()), novas = c.novas || [];
@@ -5584,12 +5598,15 @@ function renderBiblioteca() {
     .concat(names.map((f, i) => `<span class="sep" aria-hidden="true">›</span><button type="button" data-bibc="${i}"${i === names.length - 1 ? ' aria-current="page"' : ''}>${esc(f.nome)}</button>`)).join('');
   if (q) {
     const hits = bibFlat(c.arvore, isCifraFile).filter(a => norm(a.nome + ' ' + a.path.join(' ')).includes(q)).sort((x, y) => libTitle(x.nome).title.localeCompare(libTitle(y.nome).title, 'pt-BR'));
-    $('bib-count').textContent = `${hits.length} ${hits.length === 1 ? 'música encontrada' : 'músicas encontradas'} em todas as pastas`;
-    list.innerHTML = hits.map(a => bibRow(a, true, novas)).join('') || '<p class="hint">Nada encontrado para essa busca.</p>';
+    const qq = $('bib-q').value.trim();
+    $('bib-count').className = 'bib-found' + (hits.length ? '' : ' none');
+    $('bib-count').textContent = hits.length ? `Sim: “${qq}” está na biblioteca (${hits.length} ${hits.length === 1 ? 'música' : 'músicas'}).` : '';
+    list.innerHTML = hits.map(a => bibRow(a, true, novas)).join('') || `<div class="empty"><p><strong>Não encontrei “${esc(qq)}” na biblioteca.</strong></p><p>${off ? 'Você está sem internet: a lista pode estar desatualizada. Sincronize quando tiver rede.' : 'Confira o nome ou peça ao editor para colocar a música na pasta Cifras do Drive.'}</p></div>`;
     return;
   }
   const pastas = (node.pastas || []).slice().sort((x, y) => x.nome.localeCompare(y.nome, 'pt-BR', { numeric: true }));
   const arqs = (node.arquivos || []).filter(isCifraFile).map(a => Object.assign({ path: names.map(n => n.nome) }, a)).sort((x, y) => libTitle(x.nome).title.localeCompare(libTitle(y.nome).title, 'pt-BR'));
+  $('bib-count').className = 'hint';
   $('bib-count').textContent = names.length ? (arqs.length ? `${arqs.length} ${arqs.length === 1 ? 'música' : 'músicas'} nesta pasta` : '') : '';
   list.innerHTML = pastas.map(f => {
     const n = bibCountIn(f), nn = bibFlat(f, isCifraFile).filter(a => novas.includes(a.id) && !libSongOf(a.id)).length;
@@ -5601,9 +5618,14 @@ function renderBiblioteca() {
 function bibOpenView() {
   renderBiblioteca();
   const c = bibCache('cifras');
-  if (bibUrl() && (!c || Date.now() - c.at > BIB_VELHA_MS)) bibSyncUi('cifras', false);
+  if (bibUrl() && bibOnline() && (!c || Date.now() - c.at > BIB_VELHA_MS)) bibSyncUi('cifras', false);
 }
 async function bibSyncUi(raiz, force) {
+  if (!bibOnline()) {
+    bib.err[raiz] = new BibError('offline');
+    if (raiz === 'cifras') { renderBiblioteca(); if (force) toast('Sem internet: não dá para sincronizar agora.'); } else { renderPdfSync(); if (force) toast('Sem internet: não dá para sincronizar agora.'); }
+    return;
+  }
   const p = bibSync(raiz, force);
   if (raiz === 'cifras') renderBiblioteca(); else renderPdfSync();
   try { const v = await p; if (raiz === 'partituras') pdfMergeLib(v); }
@@ -5651,7 +5673,11 @@ async function bibTap(fileId) {
     const v = await askModal({ title: `Nova versão de “${t.title}”`, text: mudou ? 'A cifra foi alterada no Drive. Você também mudou a sua cópia: atualizar troca pelo que está no Drive.' : 'A cifra foi alterada no Drive depois que você baixou.',
       actions: [{ label: 'Atualizar', value: 'upd', primary: true }, { label: 'Abrir a que tenho', value: 'open' }, { label: 'Cancelar', value: null }] });
     if (v === 'open') open(have);
-    if (v === 'upd') await bibDoDownload(a, have, open);
+    if (v === 'upd') { if (!bibOnline()) { toast('Sem internet: não dá para atualizar agora.'); return; } await bibDoDownload(a, have, open); }
+    return;
+  }
+  if (!bibOnline()) {
+    await askModal({ title: 'Sem internet', text: `Para baixar “${t.title}”, conecte o aparelho à internet (Wi-Fi ou dados). As músicas que você já baixou continuam abrindo em Cifras.`, actions: [{ label: 'Entendi', value: null, primary: true }] });
     return;
   }
   const v = await askModal({ title: `Baixar “${t.title}”?`, text: [t.artist, a.path.join(' › ')].filter(Boolean).join(' · ') + '. Ela entra nas suas cifras e abre sem internet.',
@@ -5671,6 +5697,34 @@ $('bib-list').addEventListener('click', (e) => {
 $('bib-crumbs').addEventListener('click', (e) => { const b = e.target.closest('[data-bibc]'); if (!b || b.hasAttribute('aria-current')) return; bib.path = bib.path.slice(0, Number(b.dataset.bibc) + 1); renderBiblioteca(); });
 $('bib-q').addEventListener('input', () => renderBiblioteca());
 $('bib-sync').addEventListener('click', () => bibSyncUi('cifras', true));
+
+/* Busca em Cifras: diz se a música existe na biblioteca do ministério (pela última lista guardada) */
+function cfBibHint(q, nLocal) {
+  const box = $('cf-bib'); if (!box) return;
+  const c = bibCache('cifras');
+  if (!q || !bibUrl()) { box.hidden = true; return; }
+  const qq = $('list-q').value.trim();
+  if (!c) { box.hidden = false; box.innerHTML = `<p>Quer procurar “${esc(qq)}” na biblioteca do ministério?</p><button type="button" class="btn" data-cfbib="1">Buscar na biblioteca</button>`; return; }
+  const hits = bibFlat(c.arvore, isCifraFile).filter(a => norm(a.nome + ' ' + a.path.join(' ')).includes(q));
+  const novos = hits.filter(a => !libSongOf(a.id));
+  box.hidden = false;
+  if (novos.length) box.innerHTML = `<p><strong>Na biblioteca do ministério:</strong> ${novos.length} ${novos.length === 1 ? 'música' : 'músicas'} com “${esc(qq)}” para baixar.</p><button type="button" class="btn primary" data-cfbib="1">Ver na biblioteca</button>`;
+  else if (hits.length) box.hidden = true;   // já baixadas: aparecem na lista
+  else box.innerHTML = `<p>${nLocal ? '' : '<strong>Não está nas suas cifras</strong> e '}${nLocal ? 'Não há outras com esse nome' : 'também não está'} na biblioteca do ministério${!bibOnline() ? ' (lista guardada, sem internet)' : ''}.</p>`;
+}
+$('cf-bib').addEventListener('click', (e) => {
+  if (!e.target.closest('[data-cfbib]')) return;
+  const q = $('list-q').value.trim(); bib.path = [];
+  go('biblioteca', { back: { name: 'cifras' } }); $('bib-q').value = q; renderBiblioteca();
+});
+function onRede() {
+  if (route.name === 'biblioteca') { if (bibOnline()) { bib.err.cifras = null; bibSyncUi('cifras', false); } else renderBiblioteca(); }
+  if (route.name === 'partituras') { if (bibOnline()) { bib.err.partituras = null; bibSyncUi('partituras', false); } else renderPdfSync(); }
+  if (route.name === 'cifras' && $('list-q').value.trim()) renderList();
+  if (!bibOnline() && ['biblioteca', 'partituras'].includes(route.name)) toast('Você está sem internet. O que já foi baixado continua abrindo.');
+  else if (bibOnline() && ['biblioteca', 'partituras'].includes(route.name)) toast('Internet de volta. Sincronizando…');
+}
+window.addEventListener('online', onRede); window.addEventListener('offline', onRede);
 
 /* ---------- Cifras: Todas · Minhas · Biblioteca ---------- */
 let cfFiltro = 'todas';
@@ -5724,7 +5778,7 @@ function renderPdfSync() {
   const st = $('pdf-sync-st'); if (!st) return;
   const c = bibCache('partituras'), busy = !!bib.busy.partituras, err = bib.err.partituras;
   $('pdf-sync-row').hidden = !bibUrl();
-  st.textContent = busy ? 'Sincronizando com o Drive…' : err ? bibErrText(err) : c ? `Acervo do Drive atualizado ${quando(c.at)}${bib.novasPdf ? ` · ${bib.novasPdf} ${bib.novasPdf === 1 ? 'nova' : 'novas'}` : ''}` : 'Acervo do Drive ainda não sincronizado.';
+  st.textContent = busy ? 'Sincronizando com o Drive…' : !bibOnline() ? `Sem internet${c ? ': mostrando o acervo de ' + quando(c.at) : ''}. As baixadas abrem normalmente.` : err ? bibErrText(err) : c ? `Acervo do Drive atualizado ${quando(c.at)}${bib.novasPdf ? ` · ${bib.novasPdf} ${bib.novasPdf === 1 ? 'nova' : 'novas'}` : ''}` : 'Acervo do Drive ainda não sincronizado.';
   $('pdf-sync').disabled = busy; $('pdf-sync').classList.toggle('spin', busy);
 }
 $('pdf-sync').addEventListener('click', () => bibSyncUi('partituras', true));
